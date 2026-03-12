@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-import ItemCard from './ItemCard';
-import './CardStack.css';
+import { useState, useRef, useEffect } from "react";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import ItemCard from "./ItemCard";
+import "./CardStack.css";
 
 const SWIPE_THRESHOLD = 100;
 const SWIPE_UP_THRESHOLD = 80;
@@ -11,11 +11,14 @@ const VISIBLE_CARDS = 3;
 export default function CardStack({ items = [], onRespond, matchItem }) {
   const [localItems, setLocalItems] = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
-  const [hintClass, setHintClass] = useState('');
+  const [hintClass, setHintClass] = useState("");
   const responding = useRef(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
+  const hintNoOpacity = useTransform(x, [-150, -60, 0], [1, 0.5, 0]);
+  const hintMaybeOpacity = useTransform(y, [0, -40, -80], [0, 0.5, 1]);
+  const hintYesOpacity = useTransform(x, [0, 60, 150], [0, 0.5, 1]);
 
   // Sync items from parent, but only when not mid-animation
   useEffect(() => {
@@ -27,10 +30,10 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
   function getHintClass() {
     const xVal = x.get();
     const yVal = y.get();
-    if (yVal < -SWIPE_UP_THRESHOLD) return 'hint-maybe';
-    if (xVal > SWIPE_THRESHOLD * 0.6) return 'hint-yes';
-    if (xVal < -SWIPE_THRESHOLD * 0.6) return 'hint-no';
-    return '';
+    if (yVal < -SWIPE_UP_THRESHOLD) return "hint-maybe";
+    if (xVal > SWIPE_THRESHOLD * 0.6) return "hint-yes";
+    if (xVal < -SWIPE_THRESHOLD * 0.6) return "hint-no";
+    return "";
   }
 
   function handleDrag() {
@@ -41,7 +44,7 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
     if (responding.current || localItems.length === 0) return;
     responding.current = true;
 
-    const dir = response === 'yes' ? 'right' : response === 'no' ? 'left' : 'up';
+    const dir = response === "yes" ? "right" : response === "no" ? "left" : "up";
     setExitDirection(dir);
     onRespond?.(localItems[0]?.id, response);
   }
@@ -52,14 +55,14 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
     const yUp = -offset.y;
 
     if (yUp > SWIPE_UP_THRESHOLD && yUp > xAbs) {
-      triggerResponse('maybe');
+      triggerResponse("maybe");
     } else if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) {
-      triggerResponse('yes');
+      triggerResponse("yes");
     } else if (offset.x < -SWIPE_THRESHOLD || velocity.x < -500) {
-      triggerResponse('no');
+      triggerResponse("no");
     }
 
-    setHintClass('');
+    setHintClass("");
   }
 
   function handleExitComplete() {
@@ -110,7 +113,7 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
               <span className="card-stack-match-emoji">{matchItem.emoji}</span>
               <h3 className="card-stack-match-title serif">It's a match</h3>
@@ -140,7 +143,7 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
                   onDrag={handleDrag}
                   onDragEnd={handleDragEnd}
                   exit={exitDirection ? exitVariants[exitDirection] : { opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
                   <ItemCard item={item} className={hintClass} />
                 </motion.div>
@@ -165,22 +168,13 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
 
       {/* Swipe hint labels */}
       <div className="card-stack-hints">
-        <motion.span
-          className="card-stack-hint hint-no-label"
-          style={{ opacity: useTransform(x, [-150, -60, 0], [1, 0.5, 0]) }}
-        >
+        <motion.span className="card-stack-hint hint-no-label" style={{ opacity: hintNoOpacity }}>
           Nope
         </motion.span>
-        <motion.span
-          className="card-stack-hint hint-maybe-label"
-          style={{ opacity: useTransform(y, [0, -40, -80], [0, 0.5, 1]) }}
-        >
+        <motion.span className="card-stack-hint hint-maybe-label" style={{ opacity: hintMaybeOpacity }}>
           Maybe
         </motion.span>
-        <motion.span
-          className="card-stack-hint hint-yes-label"
-          style={{ opacity: useTransform(x, [0, 60, 150], [0, 0.5, 1]) }}
-        >
+        <motion.span className="card-stack-hint hint-yes-label" style={{ opacity: hintYesOpacity }}>
           Yes
         </motion.span>
       </div>
@@ -190,10 +184,18 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
         <motion.button
           className="response-btn response-no"
           whileTap={{ scale: 0.88 }}
-          onClick={() => triggerResponse('no')}
+          onClick={() => triggerResponse("no")}
           aria-label="No"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -202,10 +204,18 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
         <motion.button
           className="response-btn response-maybe"
           whileTap={{ scale: 0.88 }}
-          onClick={() => triggerResponse('maybe')}
+          onClick={() => triggerResponse("maybe")}
           aria-label="Maybe"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
         </motion.button>
@@ -213,10 +223,18 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
         <motion.button
           className="response-btn response-yes"
           whileTap={{ scale: 0.88 }}
-          onClick={() => triggerResponse('yes')}
+          onClick={() => triggerResponse("yes")}
           aria-label="Yes"
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </motion.button>

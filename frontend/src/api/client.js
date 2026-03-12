@@ -8,16 +8,24 @@ async function request(path, options = {}) {
   });
 
   if (res.status === 401) {
-    // Don't redirect on session hydration check — only redirect if already on an auth-required page
-    if (path !== "/auth/me" && !window.location.pathname.includes("/login")) {
+    // Only auto-redirect for protected endpoints, never for auth endpoints themselves
+    const isAuthPath = path.startsWith("/auth/");
+    if (!isAuthPath && !window.location.pathname.includes("/login")) {
       window.location.href = "/login";
     }
-    throw new Error("Unauthorized");
+    const body = await res.json().catch(() => ({}));
+    throw new Error(typeof body.detail === "string" ? body.detail : "Unauthorized");
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Request failed: ${res.status}`);
+    const detail = body.detail;
+    const message = Array.isArray(detail)
+      ? detail.map((e) => e.msg).join(", ")
+      : typeof detail === "string"
+        ? detail
+        : `Request failed: ${res.status}`;
+    throw new Error(message);
   }
 
   if (res.status === 204) return null;
