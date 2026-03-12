@@ -22,7 +22,7 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
           >
             <Text style={styles.chipEmoji}>{cat.emoji}</Text>
             <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>{cat.label}</Text>
-            {prog && (
+            {prog && prog.total > 0 && (
               <Text style={[styles.chipCount, isActive && styles.chipCountActive]}>
                 {prog.done}/{prog.total}
               </Text>
