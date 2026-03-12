@@ -22,14 +22,14 @@ export default function Catalog() {
   }, []);
 
   const categoryItems = useMemo(() => {
-    return catalog.filter((item) => item.category === activeCategory && !responses[item.id]);
+    return catalog.filter((item) => item.category === activeCategory && !responses[String(item.id)]);
   }, [catalog, activeCategory, responses]);
 
   const progress = useMemo(() => {
     const prog = {};
     for (const cat of CATEGORIES) {
       const total = catalog.filter((i) => i.category === cat.key).length;
-      const done = catalog.filter((i) => i.category === cat.key && responses[i.id]).length;
+      const done = catalog.filter((i) => i.category === cat.key && responses[String(i.id)]).length;
       prog[cat.key] = { total, done };
     }
     return prog;
@@ -37,14 +37,14 @@ export default function Catalog() {
 
   const handleRespond = useCallback(
     (itemId, response) => {
-      setResponses((prev) => ({ ...prev, [itemId]: response }));
+      setResponses((prev) => ({ ...prev, [String(itemId)]: response }));
       client.post("/catalog/respond", { item_id: itemId, response }).catch(() => {});
 
       if (response === "yes") {
         client
           .get("/matches")
           .then((matches) => {
-            const fresh = matches.find((m) => m.id === itemId && !m.seen);
+            const fresh = matches.find((m) => String(m.id) === String(itemId) && !m.seen);
             if (fresh) {
               const item = catalog.find((i) => i.id === itemId);
               if (item) {

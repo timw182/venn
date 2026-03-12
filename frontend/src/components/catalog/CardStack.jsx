@@ -13,6 +13,10 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass] = useState("");
   const responding = useRef(false);
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
@@ -20,11 +24,10 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
   const hintMaybeOpacity = useTransform(y, [0, -40, -80], [0, 0.5, 1]);
   const hintYesOpacity = useTransform(x, [0, 60, 150], [0, 0.5, 1]);
 
-  // Sync items from parent, but only when not mid-animation
+  // Sync items from parent whenever not mid-animation
   useEffect(() => {
-    if (!responding.current) {
-      setLocalItems(items);
-    }
+    if (responding.current) return;
+    setLocalItems(items);
   }, [items]);
 
   function getHintClass() {
@@ -47,6 +50,15 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
     const dir = response === "yes" ? "right" : response === "no" ? "left" : "up";
     setExitDirection(dir);
     onRespond?.(localItems[0]?.id, response);
+
+    // After exit animation, sync from parent (which already removed the responded item)
+    setTimeout(() => {
+      responding.current = false;
+      setExitDirection(null);
+      x.set(0);
+      y.set(0);
+      setLocalItems(itemsRef.current);
+    }, 350);
   }
 
   function handleDragEnd(_, info) {
@@ -63,15 +75,6 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
     }
 
     setHintClass("");
-  }
-
-  function handleExitComplete() {
-    responding.current = false;
-    setExitDirection(null);
-    x.set(0);
-    y.set(0);
-    // Now sync with parent items
-    setLocalItems(items);
   }
 
   const exitVariants = {
@@ -125,7 +128,7 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
       </AnimatePresence>
 
       <div className="card-stack">
-        <AnimatePresence mode="popLayout" onExitComplete={handleExitComplete}>
+        <AnimatePresence mode="popLayout">
           {localItems.slice(0, VISIBLE_CARDS).map((item, i) => {
             const isTop = i === 0;
             const scale = 1 - i * 0.04;
