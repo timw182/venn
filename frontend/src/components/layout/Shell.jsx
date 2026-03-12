@@ -56,7 +56,7 @@ export default function Shell() {
     <div className="shell">
       <FloatingHearts />
       <header className="shell-header">
-        <img src="/kinklink_logo.svg" alt="kinklink" className="shell-logo" />
+        <span className="shell-wordmark">kinklink</span>
       </header>
       <main className="shell-content">
         <Outlet />
