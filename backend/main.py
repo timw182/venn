@@ -11,7 +11,7 @@ from seed import seed
 from routers import auth, pairing, catalog, matches, mood
 
 SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
+FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://kinklink.amoreapp.net")
 
 
 @asynccontextmanager
@@ -27,9 +27,9 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
     session_cookie="kl_session",
-    max_age=60 * 60 * 24 * 30,  # 30 days
-    https_only=False,            # set True behind TLS in production
-    same_site="lax",
+    max_age=60 * 60 * 24 * 30,
+    https_only=True,
+    same_site="none",
 )
 
 app.add_middleware(

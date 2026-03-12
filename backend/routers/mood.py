@@ -10,15 +10,15 @@ router = APIRouter(prefix="/mood", tags=["mood"])
 
 
 async def _require_couple(db: Connection, uid: int) -> int:
-    row = await db.execute_fetchone("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    row = (await (await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,)).fetchone()))
     if not row or not row["couple_id"]:
         raise HTTPException(403, "Not paired")
     return row["couple_id"]
 
 
 async def _get_partner_id(db: Connection, uid: int, couple_id: int) -> int:
-    couple = await db.execute_fetchone(
-        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)
+    couple = (await (await db.execute(
+        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)).fetchone())
     )
     return couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
@@ -52,8 +52,8 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
     )
     await db.commit()
 
-    partner_row = await db.execute_fetchone(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)
+    partner_row = (await (await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)).fetchone())
     )
     partner_mood = _active_mood(partner_row)
 
@@ -70,11 +70,11 @@ async def get_mood(request: Request, db: Connection = Depends(get_db)):
     couple_id = await _require_couple(db, uid)
     partner_id = await _get_partner_id(db, uid, couple_id)
 
-    my_row = await db.execute_fetchone(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (uid,)
+    my_row = (await (await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (uid,)).fetchone())
     )
-    partner_row = await db.execute_fetchone(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)
+    partner_row = (await (await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)).fetchone())
     )
 
     my_mood = _active_mood(my_row)

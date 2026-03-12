@@ -10,16 +10,18 @@ router = APIRouter(prefix="/matches", tags=["matches"])
 
 
 async def _require_couple(db: Connection, uid: int) -> int:
-    row = await db.execute_fetchone("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
     if not row or not row["couple_id"]:
         raise HTTPException(403, "Not paired")
     return row["couple_id"]
 
 
 async def _get_partner_id(db: Connection, uid: int, couple_id: int) -> int:
-    couple = await db.execute_fetchone(
+    cur = await db.execute(
         "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)
     )
+    couple = await cur.fetchone()
     return couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
 
@@ -30,7 +32,7 @@ async def get_matches(request: Request, db: Connection = Depends(get_db)):
     partner_id = await _get_partner_id(db, uid, couple_id)
 
     # Items where BOTH said yes — never expose what partner said no/maybe to
-    rows = await db.execute_fetchall(
+    cur = await db.execute(
         """
         SELECT
             ci.id, ci.title, ci.category, ci.description, ci.emoji, ci.tier,
@@ -51,6 +53,7 @@ async def get_matches(request: Request, db: Connection = Depends(get_db)):
         """,
         (uid, partner_id, uid, partner_id),
     )
+    rows = await cur.fetchall()
 
     return [
         MatchItem(

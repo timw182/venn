@@ -84,9 +84,10 @@ CATALOG = [
 async def seed():
     await init_db()
     async with aiosqlite.connect(DB_PATH) as db:
-        count = await db.execute_fetchone("SELECT COUNT(*) as n FROM catalog_items")
-        if count and count["n"] > 0:
-            print(f"Catalog already has {count['n']} items — skipping seed.")
+        cursor = await db.execute("SELECT COUNT(*) FROM catalog_items")
+        row = await cursor.fetchone()
+        if row and row[0] > 0:
+            print(f"Catalog already has {row[0]} items — skipping seed.")
             return
 
         await db.executemany(
