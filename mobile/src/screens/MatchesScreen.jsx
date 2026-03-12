@@ -1,0 +1,204 @@
+import { useState, useEffect } from 'react';
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CATEGORIES } from '../lib/constants';
+import { colors, space, radii } from '../theme/tokens';
+import client from '../api/client';
+
+function MatchCard({ match, onSeen, onRemove }) {
+  const [expanded, setExpanded] = useState(false);
+  const cat = CATEGORIES.find((c) => c.key === match.category);
+
+  function handleOpen() {
+    setExpanded(true);
+    if (!match.seen) onSeen(match.id);
+  }
+
+  return (
+    <>
+      <TouchableOpacity
+        style={[styles.card, !match.seen && styles.cardNew]}
+        onPress={handleOpen}
+        activeOpacity={0.75}
+      >
+        {!match.seen && <View style={styles.newDot} />}
+        <Text style={styles.cardEmoji}>{match.emoji}</Text>
+        <Text style={styles.cardTitle} numberOfLines={2}>{match.title}</Text>
+        <Text style={styles.cardCat}>{cat?.label}</Text>
+      </TouchableOpacity>
+
+      <Modal visible={expanded} transparent animationType="fade" onRequestClose={() => setExpanded(false)}>
+        <Pressable style={styles.overlay} onPress={() => setExpanded(false)}>
+          <Pressable style={styles.detail} onPress={() => {}}>
+            <Text style={styles.detailEmoji}>{match.emoji}</Text>
+            <Text style={styles.detailTitle}>{match.title}</Text>
+            <Text style={styles.detailDesc}>{match.description}</Text>
+            <View style={styles.detailMeta}>
+              <Text style={styles.detailCat}>{cat?.emoji} {cat?.label}</Text>
+              <Text style={styles.detailDate}>
+                Matched {new Date(match.matched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </Text>
+            </View>
+            <View style={styles.detailActions}>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setExpanded(false)}>
+                <Text style={styles.closeBtnText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeBtn}
+                onPress={() => { setExpanded(false); onRemove(match.id); }}
+              >
+                <Text style={styles.removeBtnText}>Remove match</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+export default function MatchesScreen() {
+  const [filter, setFilter] = useState('all');
+  const [allMatches, setAllMatches] = useState([]);
+
+  useEffect(() => {
+    client.get('/matches').then(setAllMatches).catch(() => {});
+  }, []);
+
+  function handleSeen(id) {
+    client.post(`/matches/${id}/seen`).catch(() => {});
+    setAllMatches((prev) => prev.map((m) => m.id === id ? { ...m, seen: true } : m));
+  }
+
+  function handleRemove(id) {
+    setAllMatches((prev) => prev.filter((m) => m.id !== id));
+    client.delete(`/matches/${id}`).catch(() => {});
+  }
+
+  const filtered = filter === 'all' ? allMatches : allMatches.filter((m) => m.category === filter);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Your Matches</Text>
+        <Text style={styles.subtitle}>{allMatches.length} thing{allMatches.length !== 1 ? 's' : ''} you both want</Text>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+        <TouchableOpacity
+          style={[styles.filterChip, filter === 'all' && styles.filterActive]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>All</Text>
+        </TouchableOpacity>
+        {CATEGORIES.map((cat) => {
+          const count = allMatches.filter((m) => m.category === cat.key).length;
+          if (count === 0) return null;
+          return (
+            <TouchableOpacity
+              key={cat.key}
+              style={[styles.filterChip, filter === cat.key && styles.filterActive]}
+              onPress={() => setFilter(cat.key)}
+            >
+              <Text style={[styles.filterText, filter === cat.key && styles.filterTextActive]}>
+                {cat.emoji} {cat.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {filtered.length > 0 ? (
+        <ScrollView contentContainerStyle={styles.grid}>
+          {filtered.map((match) => (
+            <MatchCard key={match.id} match={match} onSeen={handleSeen} onRemove={handleRemove} />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.empty}>
+          <Text style={styles.emptyIcon}>🤞</Text>
+          <Text style={styles.emptyTitle}>No matches yet</Text>
+          <Text style={styles.emptySub}>Keep browsing — when you both say yes, it'll show up here</Text>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+  header: { padding: space[5], paddingBottom: space[3] },
+  title: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 26, fontWeight: '400', color: colors.text },
+  subtitle: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+
+  filters: { flexDirection: 'row', gap: space[2], paddingHorizontal: space[5], paddingBottom: space[3] },
+  filterChip: {
+    paddingVertical: 6, paddingHorizontal: 12,
+    borderRadius: radii.full, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  filterActive: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  filterText: { fontSize: 13, color: colors.textMuted, fontWeight: '500' },
+  filterTextActive: { color: colors.accent },
+
+  grid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    padding: space[4], gap: space[3],
+  },
+  card: {
+    width: '47%',
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: space[4],
+    gap: 6,
+    position: 'relative',
+  },
+  cardNew: { borderColor: colors.accent, backgroundColor: colors.accentBg },
+  newDot: {
+    position: 'absolute', top: 10, right: 10,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
+  cardEmoji: { fontSize: 28 },
+  cardTitle: { fontSize: 14, fontWeight: '600', color: colors.text, lineHeight: 19 },
+  cardCat: { fontSize: 11, color: colors.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  overlay: {
+    flex: 1, backgroundColor: 'rgba(44,37,32,0.5)',
+    alignItems: 'center', justifyContent: 'center', padding: space[6],
+  },
+  detail: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    padding: space[6],
+    width: '100%',
+    alignItems: 'center',
+    gap: space[4],
+  },
+  detailEmoji: { fontSize: 52 },
+  detailTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 22, fontWeight: '400', color: colors.text, textAlign: 'center' },
+  detailDesc: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 21, fontWeight: '300' },
+  detailMeta: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+  detailCat: { fontSize: 13, color: colors.textMuted },
+  detailDate: { fontSize: 13, color: colors.textLight },
+  detailActions: { flexDirection: 'row', gap: space[3], width: '100%' },
+  closeBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: radii.full,
+    borderWidth: 1, borderColor: colors.border, alignItems: 'center',
+  },
+  closeBtnText: { fontSize: 14, color: colors.textMuted, fontWeight: '500' },
+  removeBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: radii.full,
+    backgroundColor: colors.noSoft, alignItems: 'center',
+  },
+  removeBtnText: { fontSize: 14, color: colors.no, fontWeight: '500' },
+
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[8] },
+  emptyIcon: { fontSize: 48 },
+  emptyTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 20, color: colors.text },
+  emptySub: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
+});
