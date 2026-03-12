@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, StyleSheet,
-  KeyboardAvoidingView, Platform, TouchableOpacity, Animated,
+  KeyboardAvoidingView, Platform, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
-import { SCREENS } from '../lib/constants';
-import { colors, space, radii } from '../theme/tokens';
+import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
+import LogoMark from '../components/LogoMark';
 
 const features = [
   { icon: '🔒', title: 'No rejection', body: "Neither of you ever sees what the other said no to. Only matches surface." },
@@ -15,7 +15,7 @@ const features = [
   { icon: '🫂', title: 'Just you two', body: "Fully private, self-hosted. No ads, no strangers, no data harvesting." },
 ];
 
-export default function LandingScreen({ navigation }) {
+export default function LandingScreen() {
   const [mode, setMode] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -27,11 +27,9 @@ export default function LandingScreen({ navigation }) {
     setError('');
     try {
       if (mode === 'login') {
-        const user = await login(username, password);
-        navigation.replace(user.coupleId ? 'Main' : SCREENS.PAIRING);
+        await login(username, password);
       } else {
         await register(username, password, displayName);
-        navigation.replace(SCREENS.PAIRING);
       }
     } catch (err) {
       setError(err.message || 'Something went wrong');
@@ -51,7 +49,7 @@ export default function LandingScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <Text style={styles.wordmark}>kinklink</Text>
+            <LogoMark size="lg" />
             <Text style={styles.tagline}>discover what you <Text style={styles.taglineEm}>both</Text> want</Text>
           </View>
 
@@ -94,7 +92,7 @@ export default function LandingScreen({ navigation }) {
           </TouchableOpacity>
 
           <View style={styles.formBrand}>
-            <Text style={styles.wordmark}>kinklink</Text>
+            <LogoMark size="md" />
             <Text style={styles.subtitle}>
               {mode === 'login' ? 'Welcome back' : 'Create your account'}
             </Text>
@@ -180,17 +178,9 @@ const styles = StyleSheet.create({
     gap: space[8],
   },
 
-  brand: { alignItems: 'center', gap: space[2] },
-  wordmark: {
-    fontFamily: 'serif',
-    fontSize: 48,
-    fontStyle: 'italic',
-    fontWeight: '500',
-    color: colors.accent,
-    letterSpacing: -1,
-  },
-  tagline: { fontSize: 15, color: colors.textMuted, letterSpacing: 0.3, fontWeight: '300' },
-  taglineEm: { color: colors.accent, fontStyle: 'italic' },
+  brand: { alignItems: 'center', gap: space[3] },
+  tagline: { fontFamily: fonts.sansLight, fontSize: 15, color: colors.textMuted, letterSpacing: 0.3 },
+  taglineEm: { fontFamily: fonts.serifItalic, color: colors.accent },
 
   features: { gap: space[3] },
   featureCard: {
@@ -198,21 +188,21 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: space[4],
     padding: space[4],
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
   featureIcon: { fontSize: 22, lineHeight: 28 },
-  featureTitle: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 3, letterSpacing: 0.2 },
-  featureBody: { fontSize: 13, color: colors.textMuted, lineHeight: 19, fontWeight: '300' },
+  featureTitle: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text, marginBottom: 3, letterSpacing: 0.2 },
+  featureBody: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, lineHeight: 19 },
 
   cta: { gap: space[4], alignItems: 'center' },
   toggleBtn: { padding: space[2] },
-  toggleText: { fontSize: 14, color: colors.textMuted, letterSpacing: 0.2, textAlign: 'center' },
+  toggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.2, textAlign: 'center' },
   toggleLink: { color: colors.accent },
 
-  footer: { fontSize: 11, color: colors.textLight, letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center' },
+  footer: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.textLight, letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center' },
 
   formScroll: {
     flexGrow: 1,
@@ -223,27 +213,28 @@ const styles = StyleSheet.create({
   },
 
   backBtn: { alignSelf: 'flex-start', paddingVertical: space[1] },
-  backText: { fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
+  backText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
 
   formBrand: { alignItems: 'center', gap: space[2] },
-  subtitle: { fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
+  subtitle: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
 
   form: { gap: space[5] },
   field: { gap: space[2] },
   label: {
+    fontFamily: fonts.sansMedium,
     fontSize: 11,
-    fontWeight: '600',
     color: colors.textMuted,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radii.md,
     paddingVertical: 13,
     paddingHorizontal: space[4],
+    fontFamily: fonts.sans,
     fontSize: 16,
     color: colors.text,
   },
@@ -253,5 +244,5 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     padding: space[3],
   },
-  errorText: { fontSize: 13, color: colors.no, textAlign: 'center' },
+  errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no, textAlign: 'center' },
 });
