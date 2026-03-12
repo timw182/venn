@@ -112,6 +112,126 @@ CATALOG = [
     ("Public Teasing", "adventurous", "Remote toy, whispered threats, hands under the table. Stay composed.", "😳", "standard"),
     ("Dirty Talk Challenge", "adventurous", "Whoever stops talking first loses. Make it explicit.", "🗣️", "standard"),
     ("Body Paint", "adventurous", "Skin-safe paint. Use each other as the canvas.", "🎨", "splurge"),
+
+    # Foreplay — kinkier additions
+    ("Spanking Warm-Up", "foreplay", "Start soft, build pressure. Over the knee or standing — your call.", "🖐️", "standard"),
+    ("Hair Pulling", "foreplay", "Grip at the root. Slow and deliberate. Read their reaction.", "✊", "quick"),
+    ("Degradation Lite", "foreplay", "Name-calling and put-downs — only if they're explicitly into it.", "🔥", "standard"),
+    ("Face Sitting", "foreplay", "Full weight, full control. They're there to serve.", "😮", "standard"),
+    ("Choking (Safe)", "foreplay", "Flat hand on the throat, no pressure on arteries. Discuss first.", "🤝", "standard"),
+    ("Drool / Spit Play", "foreplay", "Messy, primal, taboo. Not for everyone — but very much for some.", "💧", "standard"),
+    ("Pinning Down", "foreplay", "Hold their wrists above their head. Weight on them. Don't let them move.", "📌", "standard"),
+
+    # Positions — kinkier additions
+    ("Mating Press", "positions", "Full weight, legs pinned back, no escape. Intense and deep.", "🔒", "standard"),
+    ("Pile Driver", "positions", "Extreme depth, full control for the giver. Requires flexibility.", "⬇️", "standard"),
+    ("Standing Oral", "positions", "One kneels, one stands. Power in every inch of it.", "👅", "quick"),
+    ("Bent Over Furniture", "positions", "Table, counter, arm of the sofa. Angle is everything.", "🪑", "standard"),
+    ("Lifted Against Wall", "positions", "Strength, urgency, legs wrapped. Effort rewarded.", "🧱", "standard"),
+    ("On All Fours", "positions", "Classic submission. They present, you take.", "🐾", "standard"),
+
+    # Settings — kinkier additions
+    ("Filmed & Watched Back", "settings", "Make a private video. Watch it together immediately after.", "📹", "standard"),
+    ("With the Window Open", "settings", "Anyone could hear. That's the point.", "🪟", "quick"),
+    ("Fully Clothed Start", "settings", "Don't undress. Work around it entirely.", "👔", "quick"),
+    ("Sleep Sex (Consented)", "settings", "Pre-agreed: wake them up however you want. Trust required.", "😴", "standard"),
+
+    # Roleplay — kinkier additions
+    ("Breeding Roleplay", "roleplay", "Primal, possessive language. Pure instinct.", "🌿", "standard"),
+    ("Predator / Prey", "roleplay", "One hunts, one runs — then gets caught. Adrenaline-charged.", "🐺", "standard"),
+    ("Auction / Property", "roleplay", "One is owned for the night. Given orders, put on display.", "🔖", "standard"),
+    ("Corruption Arc", "roleplay", "Innocent character slowly seduced into doing things they 'shouldn't'.", "😇", "standard"),
+    ("Used & Objectified", "roleplay", "Pure physical use. They don't speak unless told to.", "🪆", "standard"),
+    ("Confessional", "roleplay", "Tell each other the filthiest thing you've thought about. In detail.", "📿", "quick"),
+    ("Punish Me", "roleplay", "They misbehave on purpose. You decide the consequence.", "📏", "standard"),
+
+    # Toys & Gear — kinkier additions
+    ("Spreader Bar", "toys-gear", "Keeps legs apart. Completely exposed. No hiding.", "↔️", "splurge"),
+    ("Collar & Lead", "toys-gear", "Wear it, hold it. The symbolism is the whole point.", "🐾", "standard"),
+    ("Ball Gag", "toys-gear", "Sounds only. No words. All reaction.", "⭕", "standard"),
+    ("Paddle", "toys-gear", "More impact than a hand. Leaves an impression — literally.", "🏓", "standard"),
+    ("Clamps Everywhere", "toys-gear", "Nipples, labia, wherever they're sensitive. Build and release.", "🔩", "standard"),
+    ("Flogger", "toys-gear", "Multiple tails, wide impact. Warm the skin before you intensify.", "🎗️", "splurge"),
+    ("Strap-On", "toys-gear", "Switches roles entirely. Whoever wears it leads.", "🔄", "splurge"),
+    ("Chastity Device", "toys-gear", "One person controls the other's release. Long game.", "🔐", "splurge"),
+    ("Tens Unit (E-Stim)", "toys-gear", "Low electrical pulses. Twitching muscles, novel sensation.", "⚡", "splurge"),
+
+    # Adventurous — kinkier additions
+    ("24h Power Exchange", "adventurous", "One Dom, one sub — for a full day. All decisions delegated.", "🎖️", "splurge"),
+    ("Orgasm Control", "adventurous", "You decide when — and if — they finish. Keep them on the edge.", "🌊", "standard"),
+    ("Consensual Non-Consent (CNC)", "adventurous", "Full scene with safeword. They say no but mean yes. Pre-negotiated only.", "🚦", "splurge"),
+    ("Degradation Scene", "adventurous", "Explicit verbal humiliation, agreed terms, full aftercare after.", "🗣️", "standard"),
+    ("Forced Orgasm", "adventurous", "Keep going past the first one. Don't stop when they ask.", "💫", "standard"),
+    ("Cuckolding / Voyeur Fantasy", "adventurous", "Describe a fantasy of watching or being watched with others. Words only.", "👁️", "standard"),
+    ("Bondage Scene", "adventurous", "Planned, rope or restraints, full immobility. Research safety first.", "🎗️", "splurge"),
+    ("Impact Play Scene", "adventurous", "Spanking, paddling, flogging — escalating, with check-ins.", "🖐️", "standard"),
+    ("Pet Play", "adventurous", "One takes an animal role — kitten, puppy. Collar, commands, rewards.", "🐱", "standard"),
+    ("Knife Play (Safety)", "adventurous", "Blunt edge only — trace the skin. Psychological edge, no cutting.", "🗡️", "splurge"),
+    ("Wax Play Scene", "adventurous", "Low-temp candle dripped from height. Map every reaction.", "🕯️", "standard"),
+    ("Somnophilia Scene", "adventurous", "One pretends to sleep, the other takes what they want. Pre-agreed.", "🌙", "standard"),
+
+    # Foreplay — BDSM additions
+    ("Nipple Play", "foreplay", "Fingers, mouth, clamps — spend real time there before moving on.", "🌸", "quick"),
+    ("Pegging Warm-Up", "foreplay", "Fingers and toys first. Slow prep is what makes it work.", "🔵", "standard"),
+    ("Boot / Foot Worship", "foreplay", "On your knees. Kiss, lick, massage. Submission from the ground up.", "👢", "standard"),
+    ("Over-the-Knee Spanking", "foreplay", "Classic OTK position. Slow build, check in, don't rush the warmth.", "🖐️", "standard"),
+    ("Pussy / Dick Slapping", "foreplay", "Light taps, deliberate. Shocking and arousing in equal measure.", "⚡", "standard"),
+    ("Rope Teasing (No Tie)", "foreplay", "Drag rope across skin without tying. The texture alone is enough.", "🎗️", "quick"),
+
+    # Positions — BDSM additions
+    ("Full Nelson", "positions", "Arms hooked behind, completely exposed and controlled.", "🔒", "standard"),
+    ("Doggy with Hair Pull", "positions", "From behind, one hand gripping hair. Controlled and primal.", "🐾", "standard"),
+    ("Pegging", "positions", "Strap-on from behind. Whoever wears it leads the pace entirely.", "🔄", "standard"),
+    ("Over the Lap", "positions", "Draped across their lap — intimate, vulnerable, ideal for impact.", "🛋️", "standard"),
+    ("Spread Eagle (Tied)", "positions", "Flat on back, all four limbs secured. Total surrender.", "↔️", "splurge"),
+    ("Suspended Oral", "positions", "One sits high — chair, counter, face level. The other kneels and serves.", "👑", "standard"),
+
+    # Settings — BDSM additions
+    ("Dungeon Aesthetic", "settings", "Candles, red light, leather gear laid out. Set the scene intentionally.", "🕯️", "splurge"),
+    ("After a Fight", "settings", "Tension turned into something physical. Raw and real.", "🌩️", "quick"),
+    ("Formal Dinner Then Scene", "settings", "Dress up, eat slowly, exchange looks. Then go home and drop the act.", "🍷", "splurge"),
+    ("Collared All Day", "settings", "They wear the collar from morning. The scene starts before the bedroom.", "🐾", "standard"),
+    ("Sensory Deprivation Room", "settings", "Blackout blindfold, earplugs or white noise. Only touch remains.", "🖤", "standard"),
+
+    # Roleplay — BDSM additions
+    ("Kidnapping Scene", "roleplay", "Pre-negotiated abduction fantasy. Safeword essential. Pure adrenaline.", "🚨", "splurge"),
+    ("Human Furniture", "roleplay", "They become an object — footrest, table. Silent, still, used.", "🪑", "standard"),
+    ("Auctioned Off", "roleplay", "Presented, inspected, bought. Play out the whole transaction.", "🔖", "standard"),
+    ("Pet Owner", "roleplay", "One is the pet — collar, commands, treats, punishment. Full dynamic.", "🐱", "standard"),
+    ("Maid / Butler Service", "roleplay", "In uniform (or not). Every order followed without question.", "🫧", "standard"),
+    ("Interrogation Scene", "roleplay", "One questions, one resists — until they don't. Intense and theatrical.", "💡", "standard"),
+    ("Arranged Marriage Night", "roleplay", "Strangers by agreement. Nervous, curious, first-time energy.", "💍", "standard"),
+
+    # Toys & Gear — leather & BDSM
+    ("Leather Harness (Body)", "toys-gear", "Straps across chest or hips. Purely aesthetic power.", "🖤", "standard"),
+    ("Leather Cuffs", "toys-gear", "Wrist or ankle. Padded, strong, and looks the part.", "⛓️", "standard"),
+    ("Leather Collar", "toys-gear", "Thick, buckled, real. Wearing it means something.", "🐾", "standard"),
+    ("Leather Paddle", "toys-gear", "Heavier than silicone. The sound alone changes the atmosphere.", "🏏", "standard"),
+    ("Full Bondage Tape", "toys-gear", "Sticks to itself, not skin. Wrap and unwrap without marks.", "🎗️", "standard"),
+    ("Latex Gloves", "toys-gear", "Clinical snap, total control. Sterile energy in the best way.", "🧤", "quick"),
+    ("Posture Collar", "toys-gear", "High and rigid — forces chin up. A constant reminder of the dynamic.", "📐", "splurge"),
+    ("Hogtie Kit", "toys-gear", "Wrists to ankles, face down. Complete immobility. Research safety.", "🔗", "splurge"),
+    ("Under-Bed Restraint System", "toys-gear", "Straps under the mattress. Invisible until you need them.", "🛏️", "splurge"),
+    ("Violet Wand", "toys-gear", "Static electricity across skin. Crackling, visual, intense.", "⚡", "splurge"),
+    ("Shibari Rope (Jute)", "toys-gear", "Traditional Japanese bondage rope. Learn a tie. The ritual is the point.", "🎋", "splurge"),
+    ("Leather Blindfold", "toys-gear", "Heavier and more serious than fabric. Blocks everything.", "🖤", "standard"),
+    ("Bit Gag", "toys-gear", "Bar between the teeth. Between a gag and a bridle — pet play crossover.", "🐴", "standard"),
+    ("Cane", "toys-gear", "Thin, precise, intense. A single strike lands differently than a paddle.", "🎋", "splurge"),
+    ("Wartenberg Wheel", "toys-gear", "Pinwheel rolled across skin. Pain and pleasure at the same time.", "🌀", "standard"),
+
+    # Adventurous — deep BDSM
+    ("Full Shibari Tie", "adventurous", "Learn and perform a complete rope bondage tie. The process is intimate.", "🎋", "splurge"),
+    ("TPE Night (Total Power Exchange)", "adventurous", "Complete transfer of control for a negotiated time. Every decision delegated.", "👑", "splurge"),
+    ("Humiliation Walk", "adventurous", "Collar and lead, walked around the home. On display for each other.", "🐾", "standard"),
+    ("Punishment Protocol", "adventurous", "Pre-agreed rules and consequences. Enforced consistently all evening.", "📋", "standard"),
+    ("Figging", "adventurous", "Peeled ginger root inserted — creates intense, natural heat. Old school kink.", "🌿", "standard"),
+    ("Breath Play (Light)", "adventurous", "Hand over mouth briefly during climax. Discuss fully. Never alone.", "🤚", "standard"),
+    ("Collaring Ceremony", "adventurous", "Formal moment of placing the collar. Words, meaning, commitment to the dynamic.", "💍", "splurge"),
+    ("Slave Contract Night", "adventurous", "Write and sign a play contract together. Limits, safewords, rules.", "📜", "splurge"),
+    ("Outdoor Bondage", "adventurous", "Secured in a private outdoor space. Nature adds to the exposure.", "🌲", "splurge"),
+    ("Aftercare Protocol", "adventurous", "Formal, deliberate aftercare — blanket, water, holding, debriefing.", "🫶", "quick"),
+    ("Erotic Hypnosis", "adventurous", "Voice-guided relaxation into a suggestible, deeply aroused state.", "🌀", "splurge"),
+    ("Fear Play", "adventurous", "Controlled scare — darkness, sounds, pretend threat. Adrenaline + arousal.", "😱", "splurge"),
 ]
 
 

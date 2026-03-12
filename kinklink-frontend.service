@@ -1,0 +1,17 @@
+[Unit]
+Description=KinkLink Frontend (Vite dev server)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/kinklink/frontend
+ExecStart=/root/.nvm/versions/node/v22.22.0/bin/npm run dev
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+Environment=PATH=/root/.nvm/versions/node/v22.22.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=multi-user.target

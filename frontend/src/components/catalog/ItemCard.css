@@ -2,10 +2,13 @@
   position: absolute;
   width: 100%;
   aspect-ratio: 3 / 4;
-  max-height: 460px;
+  max-height: 660px;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-card);
+  border: 1.5px solid var(--color-border-strong);
+  box-shadow:
+    0 4px 20px rgba(44, 37, 32, 0.12),
+    0 1px 4px rgba(44, 37, 32, 0.08);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -78,20 +81,26 @@
   left: 0;
   right: 0;
   height: 80px;
-  background: linear-gradient(transparent, rgba(255,255,255,0.6));
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.6));
   pointer-events: none;
   z-index: 0;
 }
 
 /* Response hints shown during drag */
 .item-card.hint-yes {
-  box-shadow: var(--shadow-card), inset 0 0 60px var(--color-yes-soft);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 60px var(--color-yes-soft);
 }
 
 .item-card.hint-no {
-  box-shadow: var(--shadow-card), inset 0 0 60px var(--color-no-soft);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 60px var(--color-no-soft);
 }
 
 .item-card.hint-maybe {
-  box-shadow: var(--shadow-card), inset 0 0 60px var(--color-maybe-soft);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 60px var(--color-maybe-soft);
 }

@@ -1,5 +1,8 @@
+import re
 from pydantic import BaseModel, field_validator
 from typing import Optional
+
+VALID_MOODS = {"green", "yellow", "red"}
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -15,13 +18,15 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if len(v) < 2 or len(v) > 32:
             raise ValueError("Username must be 2–32 characters")
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', v):
+            raise ValueError("Username may only contain letters, numbers, _ . -")
         return v
 
     @field_validator("password")
     @classmethod
     def password_valid(cls, v: str) -> str:
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
         return v
 
     @field_validator("display_name")
@@ -98,6 +103,13 @@ class MatchItem(BaseModel):
 class MoodRequest(BaseModel):
     mood: str
     expires_hours: int = 8
+
+    @field_validator("mood")
+    @classmethod
+    def mood_valid(cls, v: str) -> str:
+        if v not in VALID_MOODS:
+            raise ValueError(f"mood must be one of: {', '.join(sorted(VALID_MOODS))}")
+        return v
 
     @field_validator("expires_hours")
     @classmethod

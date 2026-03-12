@@ -29,6 +29,7 @@ async def init_db():
                 avatar_color TEXT    NOT NULL DEFAULT '#C4754B',
                 couple_id    INTEGER REFERENCES couples(id),
                 pairing_code TEXT    UNIQUE,
+                pairing_code_expires_at TEXT,
                 created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
             );
 

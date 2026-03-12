@@ -17,7 +17,7 @@ export default function Shell() {
   return (
     <div className="shell">
       <header className="shell-header">
-        <h1 className="shell-wordmark serif">kinklink</h1>
+        <img src="/kinklink_logo.svg" alt="kinklink" className="shell-logo" />
       </header>
       <main className="shell-content">
         <Outlet />

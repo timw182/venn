@@ -63,8 +63,10 @@ export default function Catalog() {
 
   return (
     <motion.div className="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
-      <CardStack items={categoryItems} onRespond={handleRespond} matchItem={matchItem} />
+      <div className="catalog-inner">
+        <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
+        <CardStack items={categoryItems} onRespond={handleRespond} matchItem={matchItem} />
+      </div>
     </motion.div>
   );
 }

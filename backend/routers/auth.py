@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from aiosqlite import Connection
 from passlib.context import CryptContext
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from models import RegisterRequest, LoginRequest, UserOut
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -58,6 +62,7 @@ def _session_user_id(request: Request) -> int:
 
 
 @router.post("/register", response_model=UserOut)
+@limiter.limit("5/minute")
 async def register(body: RegisterRequest, request: Request, db: Connection = Depends(get_db)):
     cur = await db.execute("SELECT id FROM users WHERE username = ?", (body.username,))
     existing = await cur.fetchone()
@@ -78,6 +83,7 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
 
 
 @router.post("/login", response_model=UserOut)
+@limiter.limit("10/minute")
 async def login(body: LoginRequest, request: Request, db: Connection = Depends(get_db)):
     cur = await db.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),))
     row = await cur.fetchone()

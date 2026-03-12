@@ -25,12 +25,14 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: var(--space-1) var(--space-3);
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
   position: relative;
   color: var(--color-text-light);
   transition: color var(--duration-fast) var(--ease-out);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
 }
 
 .bottom-nav-tab.active {
