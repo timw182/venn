@@ -232,6 +232,38 @@ CATALOG = [
     ("Aftercare Protocol", "adventurous", "Formal, deliberate aftercare — blanket, water, holding, debriefing.", "🫶", "quick"),
     ("Erotic Hypnosis", "adventurous", "Voice-guided relaxation into a suggestible, deeply aroused state.", "🌀", "splurge"),
     ("Fear Play", "adventurous", "Controlled scare — darkness, sounds, pretend threat. Adrenaline + arousal.", "😱", "splurge"),
+
+    # From Wikipedia Category:Sexual acts — additions
+    # Foreplay
+    ("Anilingus", "foreplay", "Oral on the anus. Clean, communicative, deeply intimate.", "🌀", "standard"),
+    ("Deep-Throating", "foreplay", "Take them all the way. Breath over speed. Let them set the depth.", "👅", "standard"),
+    ("Mammary Sex", "foreplay", "Between the chest, pressed together. Finish there or keep going.", "🌸", "quick"),
+    ("Footjob", "foreplay", "Feet wrapped around them. Different, playful, surprisingly effective.", "🦶", "quick"),
+    ("Groping", "foreplay", "Hands everywhere while still clothed. No rush to get further.", "🤲", "quick"),
+    ("Prostate Massage", "foreplay", "Internal P-spot pressure. Slow and patient. The payoff is enormous.", "🔵", "standard"),
+    ("Teabagging", "foreplay", "Lower onto their open mouth. Oral worship from below.", "🍵", "quick"),
+    ("Rusty Trombone", "foreplay", "Tongue on the anus while reaching around for a handjob. Coordination rewarded.", "🎺", "standard"),
+    ("Food Play", "foreplay", "Whipped cream, honey, chocolate — lick it off each other slowly.", "🍓", "standard"),
+    ("Erotic Lactation", "foreplay", "Nursing as intimacy. Deeply bonding and intensely personal.", "🤱", "standard"),
+    # Positions
+    ("Tribadism", "positions", "Vulva-to-vulva grinding. Find the rhythm and pressure that lands.", "♀️", "standard"),
+    ("Intercrural Sex", "positions", "Between the thighs, pressed tight. Slow glide, full-body contact.", "🦵", "quick"),
+    ("Frot", "positions", "Penis-to-penis friction and pressure. Full closeness without penetration.", "🔥", "quick"),
+    ("Soaking", "positions", "Full penetration, no movement. Just presence and fullness. Stay there.", "💧", "quick"),
+    # Settings
+    ("Mile High Club", "settings", "On an actual flight. Tiny bathroom, turbulence, pure adrenaline.", "✈️", "splurge"),
+    # Roleplay
+    ("Phone Sex", "roleplay", "Separate rooms or separate cities. Voice only — describe everything in detail.", "📞", "quick"),
+    ("Nyotaimori Scene", "roleplay", "One lies still as the surface. The other eats off their body.", "🍱", "splurge"),
+    # Adventurous
+    ("Fisting", "adventurous", "Full hand insertion. Slow, heavily lubricated, fully negotiated beforehand.", "✊", "splurge"),
+    ("Double Penetration", "adventurous", "Toy plus partner — both holes filled at once. Thorough prep, slow start.", "🔵", "splurge"),
+    ("Cock & Ball Torture", "adventurous", "CBT: pressure, binding, light impact on the genitals. Pain as pleasure.", "⚡", "standard"),
+    ("Mummification", "adventurous", "Wrapped head to toe in bondage tape or bandages. Total immobility. Safety scissors close.", "🎁", "splurge"),
+    ("Urethral Sounding", "adventurous", "Sterile rods into the urethra. Medical-grade equipment only. Research thoroughly first.", "🔩", "splurge"),
+    ("Water Sports", "adventurous", "Golden shower — one urinates on the other. Pre-agreed, controlled, warm.", "💦", "standard"),
+    ("Ass to Mouth", "adventurous", "Direct from anal to oral without pausing. Explicitly taboo and raw.", "🔄", "standard"),
+    ("Dogging Scene", "adventurous", "Park somewhere secluded, leave the lights on. The thrill of being watched.", "🚗", "standard"),
 ]
 
 
