@@ -6,10 +6,26 @@ import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
 import "./Catalog.css";
 
+const LS_KEY = "kl_responses";
+
+function loadLocalResponses() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveLocalResponses(resps) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(resps));
+  } catch {}
+}
+
 export default function Catalog() {
   const [activeCategory, setActiveCategory] = useState("foreplay");
   const [catalog, setCatalog] = useState([]);
-  const [responses, setResponses] = useState({});
+  const [responses, setResponses] = useState(loadLocalResponses);
   const [matchItem, setMatchItem] = useState(null);
   const [lastResponse, setLastResponse] = useState(null); // { item, response }
 
@@ -17,7 +33,12 @@ export default function Catalog() {
     Promise.all([client.get("/catalog"), client.get("/catalog/responses")])
       .then(([items, resps]) => {
         setCatalog(items);
-        setResponses(resps);
+        // Merge: server wins, but keep any locally cached votes not yet on server
+        setResponses((local) => {
+          const merged = { ...local, ...resps };
+          saveLocalResponses(merged);
+          return merged;
+        });
       })
       .catch(() => {});
   }, []);
@@ -43,6 +64,7 @@ export default function Catalog() {
     setResponses((prev) => {
       const next = { ...prev };
       delete next[String(item.id)];
+      saveLocalResponses(next);
       return next;
     });
     // Remove the response on the server by sending 'undo' — backend ignores unknown,
@@ -56,7 +78,11 @@ export default function Catalog() {
     (itemId, response) => {
       const item = catalog.find((i) => i.id === itemId);
       if (item) setLastResponse({ item, response });
-      setResponses((prev) => ({ ...prev, [String(itemId)]: response }));
+      setResponses((prev) => {
+        const next = { ...prev, [String(itemId)]: response };
+        saveLocalResponses(next);
+        return next;
+      });
       client.post("/catalog/respond", { item_id: itemId, response }).catch(() => {});
 
       if (response === "yes") {
