@@ -1,6 +1,6 @@
 import { ScrollView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { CATEGORIES } from '../lib/constants';
-import { colors, radii, space } from '../theme/tokens';
+import { colors, fonts, radii, space } from '../theme/tokens';
 
 export default function CategoryPicker({ active, onChange, progress = {} }) {
   return (
@@ -39,14 +39,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space[2],
     paddingHorizontal: space[5],
-    paddingVertical: space[2],
+    paddingVertical: 4,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingVertical: space[2],
-    paddingHorizontal: space[3],
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: radii.full,
     borderWidth: 1,
     borderColor: colors.border,
@@ -56,11 +56,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
   },
-  chipEmoji: { fontSize: 14 },
-  chipLabel: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+  chipEmoji: { fontSize: 12 },
+  chipLabel: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted },
   chipLabelActive: { color: colors.accent },
   chipCount: {
-    fontSize: 11,
+    fontFamily: fonts.sans,
+    fontSize: 10,
     color: colors.textLight,
     backgroundColor: colors.surfaceAlt,
     borderRadius: radii.full,

@@ -9,15 +9,15 @@ import Animated, {
   runOnJS,
   interpolate,
 } from 'react-native-reanimated';
-import ItemCard, { CARD_WIDTH, CARD_HEIGHT } from './ItemCard';
-import { colors, radii, space } from '../theme/tokens';
+import ItemCard, { CARD_WIDTH, CARD_HEIGHT, getCardHeight } from './ItemCard';
+import { colors, fonts, radii, space } from '../theme/tokens';
 
 const SWIPE_X = 100;
 const SWIPE_Y = 80;
 const MAX_ROT = 10;
 const VISIBLE = 3;
 
-export default function CardStack({ items = [], onRespond, matchItem, onUndo }) {
+export default function CardStack({ items = [], onRespond, matchItem, onUndo, availableHeight = 0 }) {
   const [localItems, setLocalItems] = useState(items);
   const [hint, setHint] = useState(null); // 'yes' | 'no' | 'maybe' | null
   const [exiting, setExiting] = useState(false);
@@ -115,7 +115,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
 
   return (
     <View style={styles.wrapper}>
-      {/* Match overlay */}
       {matchItem && (
         <View style={styles.matchOverlay}>
           <View style={styles.matchContent}>
@@ -127,7 +126,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
         </View>
       )}
 
-      <View style={[styles.stack, { width: CARD_WIDTH, height: CARD_HEIGHT }]}>
+      <View style={[styles.stack, { width: CARD_WIDTH, height: getCardHeight(availableHeight) }]}>
         {localItems.slice(0, VISIBLE).map((item, i) => {
           const isTop = i === 0;
           const scale = 1 - i * 0.04;
@@ -137,7 +136,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
             return (
               <GestureDetector key={item.id} gesture={panGesture}>
                 <Animated.View style={[styles.cardPos, { zIndex: VISIBLE - i }, topCardStyle]}>
-                  <ItemCard item={item} hintLabel={hintLabel} hintColor={hintColor} />
+                  <ItemCard item={item} hintLabel={hintLabel} hintColor={hintColor} cardHeight={availableHeight} />
                 </Animated.View>
               </GestureDetector>
             );
@@ -151,20 +150,18 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
                 transform: [{ scale }, { translateY: yOff }],
               }]}
             >
-              <ItemCard item={item} />
+              <ItemCard item={item} cardHeight={availableHeight} />
             </Animated.View>
           );
         })}
       </View>
 
-      {/* Hint labels */}
       <View style={styles.hints}>
         <Text style={[styles.hintLabel, { color: colors.no, opacity: hint === 'no' ? 1 : 0 }]}>NOPE</Text>
         <Text style={[styles.hintLabel, { color: colors.maybe, opacity: hint === 'maybe' ? 1 : 0 }]}>MAYBE</Text>
         <Text style={[styles.hintLabel, { color: colors.yes, opacity: hint === 'yes' ? 1 : 0 }]}>YES!</Text>
       </View>
 
-      {/* Action buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.btn, styles.btnUndo, !onUndo && styles.btnDisabled]}
@@ -203,6 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   hintLabel: {
+    fontFamily: fonts.sansMedium,
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: 1.5,
@@ -222,10 +220,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   btnUndo: { width: 44, height: 44 },
   btnNo: { width: 56, height: 56 },
@@ -236,12 +234,12 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: 'center', gap: space[3], paddingTop: space[10] },
   emptyIcon: { fontSize: 40, color: colors.accent },
-  emptyTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 20, color: colors.text },
-  emptySub: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  emptyTitle: { fontFamily: fonts.serifItalic, fontSize: 20, color: colors.text },
+  emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 
   matchOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(250,246,241,0.95)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
@@ -249,7 +247,7 @@ const styles = StyleSheet.create({
   },
   matchContent: { alignItems: 'center', gap: space[3] },
   matchEmoji: { fontSize: 56 },
-  matchTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 26, fontWeight: '400', color: colors.text },
-  matchItem: { fontSize: 16, fontWeight: '600', color: colors.accent },
-  matchSub: { fontSize: 13, color: colors.textMuted },
+  matchTitle: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
+  matchItem: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.accent },
+  matchSub: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted },
 });

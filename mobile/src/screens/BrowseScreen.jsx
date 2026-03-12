@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
 import CardStack from '../components/CardStack';
+import LogoMark from '../components/LogoMark';
 import { CATEGORIES } from '../lib/constants';
 import { colors, space } from '../theme/tokens';
 import client from '../api/client';
@@ -13,6 +14,7 @@ export default function BrowseScreen() {
   const [responses, setResponses] = useState({});
   const [matchItem, setMatchItem] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
+  const [stackHeight, setStackHeight] = useState(0);
 
   useEffect(() => {
     Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
@@ -70,15 +72,16 @@ export default function BrowseScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.wordmark}>kinklink</Text>
+        <LogoMark size="sm" />
       </View>
       <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
-      <View style={styles.stackArea}>
+      <View style={styles.stackArea} onLayout={(e) => setStackHeight(e.nativeEvent.layout.height)}>
         <CardStack
           items={categoryItems}
           onRespond={handleRespond}
           matchItem={matchItem}
           onUndo={lastResponse ? handleUndo : null}
+          availableHeight={stackHeight}
         />
       </View>
     </SafeAreaView>
@@ -94,13 +97,5 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     alignItems: 'center',
   },
-  wordmark: {
-    fontFamily: 'serif',
-    fontStyle: 'italic',
-    fontSize: 20,
-    fontWeight: '500',
-    color: colors.accent,
-    letterSpacing: -0.5,
-  },
-  stackArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: space[4] },
+  stackArea: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: space[4], paddingBottom: space[4] },
 });
