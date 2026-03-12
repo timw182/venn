@@ -1,14 +1,14 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import Shell from './components/layout/Shell';
-import Landing from './pages/Landing';
-import Pairing from './pages/Pairing';
-import Connected from './pages/Connected';
-import Catalog from './pages/Catalog';
-import Matches from './pages/Matches';
-import Mood from './pages/Mood';
-import Settings from './pages/Settings';
-import { ROUTES } from './lib/constants';
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "./context/useAuth";
+import Shell from "./components/layout/Shell";
+import Landing from "./pages/Landing";
+import Pairing from "./pages/Pairing";
+import Connected from "./pages/Connected";
+import Catalog from "./pages/Catalog";
+import Matches from "./pages/Matches";
+import Mood from "./pages/Mood";
+import Settings from "./pages/Settings";
+import { ROUTES } from "./lib/constants";
 
 function AuthGuard() {
   const { user, loading } = useAuth();

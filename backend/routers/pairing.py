@@ -20,16 +20,16 @@ def _gen_code(length: int = 6) -> str:
 async def create_pairing_code(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
 
-    user = (await (await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,)).fetchone()))
+    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    user = await cur.fetchone()
     if user and user["couple_id"]:
         raise HTTPException(400, "Already paired")
 
     # Generate a unique code
     for _ in range(10):
         code = _gen_code()
-        existing = (await (await db.execute(
-            "SELECT id FROM users WHERE pairing_code = ?", (code,)).fetchone())
-        )
+        cur = await db.execute("SELECT id FROM users WHERE pairing_code = ?", (code,))
+        existing = await cur.fetchone()
         if not existing:
             break
     else:
@@ -44,14 +44,14 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
 async def join_with_code(body: JoinRequest, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
 
-    me = (await (await db.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone()))
+    cur = await db.execute("SELECT * FROM users WHERE id = ?", (uid,))
+    me = await cur.fetchone()
     if me and me["couple_id"]:
         raise HTTPException(400, "Already paired")
 
     code = body.code.strip().upper()
-    other = (await (await db.execute(
-        "SELECT * FROM users WHERE pairing_code = ?", (code,)).fetchone())
-    )
+    cur = await db.execute("SELECT * FROM users WHERE pairing_code = ?", (code,))
+    other = await cur.fetchone()
     if not other:
         raise HTTPException(404, "Code not found")
     if other["id"] == uid:
@@ -79,9 +79,8 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
 @router.get("/status")
 async def pairing_status(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    row = (await (await db.execute(
-        "SELECT couple_id, pairing_code FROM users WHERE id = ?", (uid,)).fetchone())
-    )
+    cur = await db.execute("SELECT couple_id, pairing_code FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
     return {
         "paired": bool(row and row["couple_id"]),
         "pairing_code": row["pairing_code"] if row else None,

@@ -10,16 +10,18 @@ router = APIRouter(prefix="/mood", tags=["mood"])
 
 
 async def _require_couple(db: Connection, uid: int) -> int:
-    row = (await (await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,)).fetchone()))
+    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
     if not row or not row["couple_id"]:
         raise HTTPException(403, "Not paired")
     return row["couple_id"]
 
 
 async def _get_partner_id(db: Connection, uid: int, couple_id: int) -> int:
-    couple = (await (await db.execute(
-        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)).fetchone())
+    cur = await db.execute(
+        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)
     )
+    couple = await cur.fetchone()
     return couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
 
@@ -52,9 +54,10 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
     )
     await db.commit()
 
-    partner_row = (await (await db.execute(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)).fetchone())
+    cur = await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)
     )
+    partner_row = await cur.fetchone()
     partner_mood = _active_mood(partner_row)
 
     return MoodOut(
@@ -70,12 +73,14 @@ async def get_mood(request: Request, db: Connection = Depends(get_db)):
     couple_id = await _require_couple(db, uid)
     partner_id = await _get_partner_id(db, uid, couple_id)
 
-    my_row = (await (await db.execute(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (uid,)).fetchone())
+    cur = await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (uid,)
     )
-    partner_row = (await (await db.execute(
-        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)).fetchone())
+    my_row = await cur.fetchone()
+    cur = await db.execute(
+        "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)
     )
+    partner_row = await cur.fetchone()
 
     my_mood = _active_mood(my_row)
     partner_mood = _active_mood(partner_row)

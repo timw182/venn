@@ -11,18 +11,20 @@ router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 @router.get("", response_model=List[CatalogItem])
 async def get_catalog(db: Connection = Depends(get_db)):
-    rows = (await (await db.execute(
+    cur = await db.execute(
         "SELECT id, title, category, description, emoji, tier FROM catalog_items ORDER BY id"
-    )).fetchall())
+    )
+    rows = await cur.fetchall()
     return [dict(r) for r in rows]
 
 
 @router.get("/responses")
 async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    rows = (await (await db.execute(
-        "SELECT item_id, response FROM user_responses WHERE user_id = ?", (uid,)).fetchall())
+    cur = await db.execute(
+        "SELECT item_id, response FROM user_responses WHERE user_id = ?", (uid,)
     )
+    rows = await cur.fetchall()
     return {str(r["item_id"]): r["response"] for r in rows}
 
 
@@ -30,9 +32,8 @@ async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
 
-    item = (await (await db.execute(
-        "SELECT id FROM catalog_items WHERE id = ?", (body.item_id,)).fetchone())
-    )
+    cur = await db.execute("SELECT id FROM catalog_items WHERE id = ?", (body.item_id,))
+    item = await cur.fetchone()
     if not item:
         raise HTTPException(404, "Item not found")
 

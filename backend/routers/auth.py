@@ -15,27 +15,28 @@ AVATAR_COLORS = [
 
 
 async def _get_user_out(db: Connection, user_id: int) -> UserOut:
-    row = (await (await db.execute(
-        "SELECT * FROM users WHERE id = ?", (user_id,)).fetchone())
-    )
+    cur = await db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    row = await cur.fetchone()
     if not row:
         raise HTTPException(404, "User not found")
 
     partner_name = None
     if row["couple_id"]:
-        couple = (await (await db.execute(
+        cur = await db.execute(
             "SELECT user_a_id, user_b_id FROM couples WHERE id = ?",
-            (row["couple_id"],)).fetchone()),
+            (row["couple_id"],)
         )
+        couple = await cur.fetchone()
         if couple:
             partner_id = (
                 couple["user_b_id"]
                 if couple["user_a_id"] == user_id
                 else couple["user_a_id"]
             )
-            partner = (await (await db.execute(
-                "SELECT display_name FROM users WHERE id = ?", (partner_id,)).fetchone())
+            cur = await db.execute(
+                "SELECT display_name FROM users WHERE id = ?", (partner_id,)
             )
+            partner = await cur.fetchone()
             if partner:
                 partner_name = partner["display_name"]
 
@@ -58,9 +59,8 @@ def _session_user_id(request: Request) -> int:
 
 @router.post("/register", response_model=UserOut)
 async def register(body: RegisterRequest, request: Request, db: Connection = Depends(get_db)):
-    existing = (await (await db.execute(
-        "SELECT id FROM users WHERE username = ?", (body.username,)).fetchone())
-    )
+    cur = await db.execute("SELECT id FROM users WHERE username = ?", (body.username,))
+    existing = await cur.fetchone()
     if existing:
         raise HTTPException(400, "Username already taken")
 
@@ -79,9 +79,8 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
 
 @router.post("/login", response_model=UserOut)
 async def login(body: LoginRequest, request: Request, db: Connection = Depends(get_db)):
-    row = (await (await db.execute(
-        "SELECT * FROM users WHERE username = ?", (body.username.strip()).fetchone()),)
-    )
+    cur = await db.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),))
+    row = await cur.fetchone()
     if not row or not pwd_ctx.verify(body.password, row["password_hash"]):
         raise HTTPException(401, "Invalid username or password")
 

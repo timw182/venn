@@ -1,15 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Button from '../components/shared/Button';
-import { useAuth } from '../context/AuthContext';
-import { ROUTES } from '../lib/constants';
-import './Connected.css';
+import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import Button from "../components/shared/Button";
+import { useAuth } from "../context/useAuth";
+import { ROUTES } from "../lib/constants";
+import "./Connected.css";
 
 function createParticles(canvas) {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   const particles = [];
-  const colors = ['#C4754B', '#E8C4A8', '#D4B878', '#B5683F', '#F5DFC8', '#7B9E6F'];
+  const colors = ["#C4754B", "#E8C4A8", "#D4B878", "#B5683F", "#F5DFC8", "#7B9E6F"];
 
   canvas.width = canvas.offsetWidth * 2;
   canvas.height = canvas.offsetHeight * 2;
@@ -83,9 +83,18 @@ export default function Connected() {
           className="connected-icon"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.3 }}
+          transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.3 }}
         >
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="9" cy="12" r="5" />
             <circle cx="15" cy="12" r="5" />
           </svg>
@@ -106,21 +115,13 @@ export default function Connected() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <span className="connected-name">{user?.displayName || 'You'}</span>
+          <span className="connected-name">{user?.displayName || "You"}</span>
           <span className="connected-ampersand serif">&</span>
-          <span className="connected-name">{user?.partnerName || 'Your person'}</span>
+          <span className="connected-name">{user?.partnerName || "Your person"}</span>
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => navigate(ROUTES.BROWSE)}
-          >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+          <Button variant="primary" size="lg" onClick={() => navigate(ROUTES.BROWSE)}>
             Start exploring together
           </Button>
         </motion.div>

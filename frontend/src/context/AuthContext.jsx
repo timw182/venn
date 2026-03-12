@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useState, useCallback, useEffect } from "react";
 import client from "../api/client";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 function toUser(raw) {
   return {
@@ -76,10 +76,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 }

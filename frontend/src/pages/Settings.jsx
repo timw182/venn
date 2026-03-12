@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
-import Button from '../components/shared/Button';
-import { ROUTES } from '../lib/constants';
-import './Settings.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "../context/useAuth";
+import Button from "../components/shared/Button";
+import { ROUTES } from "../lib/constants";
+import "./Settings.css";
 
 export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
 
   function handleSave() {
@@ -47,7 +47,7 @@ export default function Settings() {
                 onChange={(e) => setDisplayName(e.target.value)}
               />
               <Button variant="secondary" size="sm" onClick={handleSave}>
-                {saved ? 'Saved!' : 'Save'}
+                {saved ? "Saved!" : "Save"}
               </Button>
             </div>
           </div>
@@ -57,7 +57,7 @@ export default function Settings() {
           <h3 className="settings-section-title">Your Partner</h3>
           <div className="settings-info-row">
             <span className="settings-info-label text-muted">Connected to</span>
-            <span className="settings-info-value">{user?.partnerName || 'Not paired yet'}</span>
+            <span className="settings-info-value">{user?.partnerName || "Not paired yet"}</span>
           </div>
         </section>
 
@@ -66,7 +66,8 @@ export default function Settings() {
           <div className="settings-about">
             <p className="settings-about-name serif">kinklink</p>
             <p className="settings-about-desc text-muted">
-              Discover what you both want — without the awkwardness. Your responses are never shared unless you both say yes.
+              Discover what you both want — without the awkwardness. Your responses are never shared unless you both say
+              yes.
             </p>
           </div>
         </section>
