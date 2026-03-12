@@ -8,6 +8,7 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
+      style={styles.scroll}
     >
       {CATEGORIES.map((cat) => {
         const isActive = active === cat.key;
@@ -35,6 +36,7 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
 }
 
 const styles = StyleSheet.create({
+  scroll: { flexGrow: 0 },
   row: {
     flexDirection: 'row',
     gap: space[2],
