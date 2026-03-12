@@ -1,0 +1,150 @@
+# Couples App — Concept & Spec
+
+## The Idea
+
+A private, self-hosted web app for couples with a **blind wishlist matching mechanic**. Both partners independently respond to a curated catalog of items. Only when both say yes does the match get revealed — neither partner ever knows what the other submitted that didn't match. Removes social risk and awkwardness.
+
+---
+
+## Why It Works
+
+- The blind match mechanic is a genuine differentiator — no vulnerability, no rejection
+- Existing apps in this space are cringy, poorly designed, or feel sketchy
+- Privacy-first positioning is a strong pitch for something this intimate
+- Simple data model, low support burden
+- Could go self-hosted, open source, or small SaaS with invite-only access
+
+---
+
+## Hosting
+
+- Self-hosted on a DigitalOcean droplet behind a Cloudflare tunnel
+- Two named accounts (Partner A / Partner B) — identity matters for the mechanic
+- No public access, private by design
+
+---
+
+## Account Pairing
+
+How two users connect to form a couple:
+
+**Recommended: Invite Link**
+- Person A creates an account, generates a unique one-time invite link
+- Sends it to partner via WhatsApp/SMS
+- Partner clicks, creates account, both are permanently linked
+- Link expires after one use
+
+**Alternative: Room Code**
+- Short human-readable code e.g. `TIGER-482`
+- Partner enters it manually
+- More intentional / ceremonial feel
+
+**Pairing moment** is a UX beat — a "you're connected" screen when both are linked sets the tone for the app.
+
+---
+
+## Data Model
+
+### Core Tables
+
+```sql
+users
+├── id
+├── email
+├── password_hash
+├── display_name
+├── avatar_color
+├── couple_id           -- FK to couples (null until paired)
+├── invite_token        -- one-time use
+├── created_at
+
+couples
+├── id
+├── user_a_id
+├── user_b_id
+├── paired_at
+├── pairing_code
+```
+
+### Wishlist (Predefined Catalog)
+
+```sql
+catalog_items          -- curated list, same for everyone (~50-100 items)
+├── id
+├── title
+├── category
+├── created_at
+
+user_responses
+├── user_id
+├── item_id
+├── response           -- yes / no / maybe
+├── responded_at
+```
+
+### Match Query
+
+```sql
+SELECT item_id FROM user_responses
+WHERE couple_id = X
+AND response = 'yes'
+GROUP BY item_id
+HAVING COUNT(*) = 2
+```
+
+Simple. No fuzzy logic, no AI, no free text needed.
+
+### Optional: Mood / Status
+
+```sql
+status
+├── id
+├── user_id
+├── couple_id
+├── mood               -- yes / maybe / not tonight
+├── expires_at         -- auto-clears after X hours
+├── updated_at
+```
+
+Only surfaces to partner when **both** have an active status set. Otherwise shows nothing.
+
+---
+
+## What Stays Invisible
+
+- Unmatched wishlist items — never exposed via API to the other user, ever
+- Status when only one partner has set it
+
+---
+
+## Matching Approach
+
+**Predefined catalog (chosen approach)**
+- Curated list of items, same for all users
+- Each partner independently taps yes / no / maybe
+- Match = both said yes
+- No comparison logic needed, no edge cases
+- Can add free-text submissions as a future layer
+
+---
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Backend | FastAPI + SQLite |
+| Frontend | React or Jinja2 templates |
+| Hosting | DigitalOcean droplet |
+| Tunnel | Cloudflare (same as OpenClaw) |
+| Auth | Simple session cookie, two hardcoded-ish accounts |
+
+---
+
+## Next Steps
+
+- [ ] Finalize catalog — curate initial 50-100 items with categories
+- [ ] Build FastAPI skeleton with auth + pairing flow
+- [ ] Build response UI (swipe or tap yes/no/maybe on catalog)
+- [ ] Match reveal screen
+- [ ] Optional: mood/status module
+- [ ] Name & brand the app

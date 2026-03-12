@@ -1,0 +1,85 @@
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import client from "../api/client";
+
+const AuthContext = createContext(null);
+
+function toUser(raw) {
+  return {
+    id: raw.id,
+    username: raw.username,
+    displayName: raw.display_name,
+    avatarColor: raw.avatar_color,
+    coupleId: raw.couple_id ?? null,
+    partnerName: raw.partner_name ?? null,
+  };
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // true while hydrating
+
+  // Hydrate session on mount
+  useEffect(() => {
+    client
+      .get("/auth/me")
+      .then((raw) => setUser(toUser(raw)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = useCallback(async (username, password) => {
+    setLoading(true);
+    try {
+      const raw = await client.post("/auth/login", { username, password });
+      const u = toUser(raw);
+      setUser(u);
+      return u;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(async (username, password, displayName) => {
+    setLoading(true);
+    try {
+      const raw = await client.post("/auth/register", { username, password, display_name: displayName });
+      const u = toUser(raw);
+      setUser(u);
+      return u;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    await client.post("/auth/logout").catch(() => {});
+    setUser(null);
+  }, []);
+
+  const pair = useCallback(async (code) => {
+    setLoading(true);
+    try {
+      const raw = await client.post("/pairing/join", { code });
+      setUser(toUser(raw));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createPairingCode = useCallback(async () => {
+    const data = await client.post("/pairing/create");
+    return data.code;
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout, pair, createPairingCode, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
