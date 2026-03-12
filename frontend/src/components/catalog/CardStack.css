@@ -139,6 +139,28 @@
   box-shadow: var(--shadow-md);
 }
 
+.response-undo {
+  width: 40px;
+  height: 40px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  opacity: 1;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.response-undo:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.response-undo:not(:disabled):hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
 /* Match overlay */
 .card-stack-match-overlay {
   position: fixed;

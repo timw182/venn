@@ -80,3 +80,23 @@ async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get
         (uid, item_id),
     )
     await db.commit()
+
+
+@router.delete("/{item_id}", status_code=204)
+async def remove_match(item_id: int, request: Request, db: Connection = Depends(get_db)):
+    """Remove a match by changing the current user's response to 'no'."""
+    uid = _session_user_id(request)
+    await _require_couple(db, uid)
+
+    await db.execute(
+        """INSERT INTO user_responses (user_id, item_id, response)
+           VALUES (?,?,'no')
+           ON CONFLICT(user_id, item_id) DO UPDATE SET response='no', responded_at=datetime('now')""",
+        (uid, item_id),
+    )
+    # Clean up seen record too
+    await db.execute(
+        "DELETE FROM match_seen WHERE user_id = ? AND item_id = ?",
+        (uid, item_id),
+    )
+    await db.commit()

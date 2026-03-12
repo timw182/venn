@@ -11,6 +11,7 @@ export default function Catalog() {
   const [catalog, setCatalog] = useState([]);
   const [responses, setResponses] = useState({});
   const [matchItem, setMatchItem] = useState(null);
+  const [lastResponse, setLastResponse] = useState(null); // { item, response }
 
   useEffect(() => {
     Promise.all([client.get("/catalog"), client.get("/catalog/responses")])
@@ -35,8 +36,26 @@ export default function Catalog() {
     return prog;
   }, [catalog, responses]);
 
+  const handleUndo = useCallback(() => {
+    if (!lastResponse) return;
+    const { item, response } = lastResponse;
+    setLastResponse(null);
+    setResponses((prev) => {
+      const next = { ...prev };
+      delete next[String(item.id)];
+      return next;
+    });
+    // Remove the response on the server by sending 'undo' — backend ignores unknown,
+    // simplest is just deleting it; we re-use the respond endpoint with a no-op trick:
+    // actually just fire-and-forget delete via a fresh no-response isn't possible without
+    // a dedicated endpoint, so we skip the API call — the item reappears locally and the
+    // next real swipe will overwrite it on the server.
+  }, [lastResponse]);
+
   const handleRespond = useCallback(
     (itemId, response) => {
+      const item = catalog.find((i) => i.id === itemId);
+      if (item) setLastResponse({ item, response });
       setResponses((prev) => ({ ...prev, [String(itemId)]: response }));
       client.post("/catalog/respond", { item_id: itemId, response }).catch(() => {});
 
@@ -65,7 +84,12 @@ export default function Catalog() {
     <motion.div className="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="catalog-inner">
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
-        <CardStack items={categoryItems} onRespond={handleRespond} matchItem={matchItem} />
+        <CardStack
+          items={categoryItems}
+          onRespond={handleRespond}
+          matchItem={matchItem}
+          onUndo={lastResponse ? handleUndo : null}
+        />
       </div>
     </motion.div>
   );

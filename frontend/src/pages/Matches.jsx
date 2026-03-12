@@ -4,7 +4,7 @@ import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
 import "./Matches.css";
 
-function MatchCard({ match, index, onSeen }) {
+function MatchCard({ match, index, onSeen, onRemove }) {
   const [expanded, setExpanded] = useState(false);
 
   function handleExpand() {
@@ -58,9 +58,20 @@ function MatchCard({ match, index, onSeen }) {
                   Matched {new Date(match.matched_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
               </div>
-              <button className="match-detail-close" onClick={() => setExpanded(false)}>
-                Close
-              </button>
+              <div className="match-detail-actions">
+                <button className="match-detail-close" onClick={() => setExpanded(false)}>
+                  Close
+                </button>
+                <button
+                  className="match-detail-remove"
+                  onClick={() => {
+                    setExpanded(false);
+                    onRemove(match.id);
+                  }}
+                >
+                  Remove match
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -83,6 +94,11 @@ export default function Matches() {
   function handleSeen(itemId) {
     client.post(`/matches/${itemId}/seen`).catch(() => {});
     setAllMatches((prev) => prev.map((m) => (m.id === itemId ? { ...m, seen: true } : m)));
+  }
+
+  function handleRemove(itemId) {
+    setAllMatches((prev) => prev.filter((m) => m.id !== itemId));
+    client.delete(`/matches/${itemId}`).catch(() => {});
   }
 
   const matches = filter === "all" ? allMatches : allMatches.filter((m) => m.category === filter);
@@ -123,7 +139,7 @@ export default function Matches() {
       {matches.length > 0 ? (
         <div className="matches-grid">
           {matches.map((match, i) => (
-            <MatchCard key={match.id} match={match} index={i} onSeen={handleSeen} />
+            <MatchCard key={match.id} match={match} index={i} onSeen={handleSeen} onRemove={handleRemove} />
           ))}
         </div>
       ) : (

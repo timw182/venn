@@ -8,7 +8,7 @@ const SWIPE_UP_THRESHOLD = 80;
 const MAX_ROTATION = 10;
 const VISIBLE_CARDS = 3;
 
-export default function CardStack({ items = [], onRespond, matchItem }) {
+export default function CardStack({ items = [], onRespond, matchItem, onUndo }) {
   const [localItems, setLocalItems] = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass] = useState("");
@@ -184,6 +184,27 @@ export default function CardStack({ items = [], onRespond, matchItem }) {
 
       {/* Response buttons */}
       <div className="card-stack-buttons">
+        <motion.button
+          className="response-btn response-undo"
+          whileTap={{ scale: 0.88 }}
+          onClick={onUndo}
+          disabled={!onUndo}
+          aria-label="Undo"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="9 14 4 9 9 4" />
+            <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+          </svg>
+        </motion.button>
         <motion.button
           className="response-btn response-no"
           whileTap={{ scale: 0.88 }}
