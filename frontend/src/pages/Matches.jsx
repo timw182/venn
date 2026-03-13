@@ -117,6 +117,28 @@ export default function Matches() {
         </p>
       </div>
 
+      {/* Dropdown — shown below 375px */}
+      <div className="matches-filter-dropdown-wrap">
+        <select
+          className="matches-filter-dropdown"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">All ({allMatches.length})</option>
+          {CATEGORIES.map((cat) => {
+            const count = allMatches.filter((m) => m.category === cat.key).length;
+            if (count === 0) return null;
+            return (
+              <option key={cat.key} value={cat.key}>
+                {cat.emoji} {cat.label} ({count})
+              </option>
+            );
+          })}
+        </select>
+        <span className="matches-filter-dropdown-arrow">▾</span>
+      </div>
+
+      {/* Chips — shown above 375px */}
       <div className="matches-filters hide-scrollbar">
         <button className={`matches-filter ${filter === "all" ? "active" : ""}`} onClick={() => setFilter("all")}>
           All

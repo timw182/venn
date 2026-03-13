@@ -49,6 +49,16 @@ export default function Catalog() {
     return catalog.filter((item) => item.category === activeCategory && !responses[String(item.id)]);
   }, [catalog, activeCategory, responses]);
 
+  const yesCount = useMemo(() =>
+    catalog.filter((i) => i.category === activeCategory && responses[String(i.id)] === "yes").length,
+    [catalog, activeCategory, responses]
+  );
+
+  const noCount = useMemo(() =>
+    catalog.filter((i) => i.category === activeCategory && responses[String(i.id)] === "no").length,
+    [catalog, activeCategory, responses]
+  );
+
   const progress = useMemo(() => {
     const prog = {};
     for (const cat of CATEGORIES) {
@@ -120,13 +130,33 @@ export default function Catalog() {
           <p className="catalog-subtitle text-muted">Over 200 Kinks in 6 Categories. (Every stack is randomized)</p>
         </div>
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
-        <CardStack
-          items={categoryItems}
-          onRespond={handleRespond}
-          matchItem={matchItem}
-          onMatchDismiss={() => { clearTimeout(matchTimerRef.current); setMatchItem(null); }}
-          onUndo={lastResponse ? handleUndo : null}
-        />
+        <div className="catalog-desktop-layout">
+          <div className="catalog-pile catalog-pile-no">
+            <div className="catalog-pile-stack">
+              {Array.from({ length: Math.min(noCount, 4) }).map((_, i) => (
+                <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * 4}deg) translateY(${i * -2}px)` }} />
+              ))}
+            </div>
+            <span className="catalog-pile-label">✕ {noCount}</span>
+          </div>
+
+          <CardStack
+            items={categoryItems}
+            onRespond={handleRespond}
+            matchItem={matchItem}
+            onMatchDismiss={() => { clearTimeout(matchTimerRef.current); setMatchItem(null); }}
+            onUndo={lastResponse ? handleUndo : null}
+          />
+
+          <div className="catalog-pile catalog-pile-yes">
+            <div className="catalog-pile-stack">
+              {Array.from({ length: Math.min(yesCount, 4) }).map((_, i) => (
+                <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * -4}deg) translateY(${i * -2}px)` }} />
+              ))}
+            </div>
+            <span className="catalog-pile-label">✓ {yesCount}</span>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

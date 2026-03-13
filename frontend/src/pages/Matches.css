@@ -224,3 +224,50 @@
   font-size: var(--text-xl);
   font-style: italic;
 }
+
+/* ── Filter dropdown (≤375px) ───────────────────────────────── */
+.matches-filter-dropdown-wrap {
+  display: none;
+}
+
+@media (max-width: 375px) {
+  .matches-filters {
+    display: none;
+  }
+
+  .matches-filter-dropdown-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin: 0 var(--space-5) var(--space-3);
+  }
+
+  .matches-filter-dropdown {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--color-surface);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: var(--space-2) var(--space-8) var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .matches-filter-dropdown:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-glow);
+  }
+
+  .matches-filter-dropdown-arrow {
+    position: absolute;
+    right: var(--space-4);
+    pointer-events: none;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+}

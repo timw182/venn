@@ -13,6 +13,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass] = useState("");
   const responding = useRef(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const itemsRef = useRef(items);
   useEffect(() => {
     itemsRef.current = items;
@@ -46,6 +47,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
   function triggerResponse(response) {
     if (responding.current || localItems.length === 0) return;
     responding.current = true;
+    setIsAnimating(true);
     setHintClass("");
 
     const dir = response === "yes" ? "right" : response === "no" ? "left" : "up";
@@ -62,6 +64,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
       // Step 2: Clear exit state after animation finishes
       setTimeout(() => {
         responding.current = false;
+        setIsAnimating(false);
         setExitDirection(null);
       }, 400);
     }, 30);
@@ -216,6 +219,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
           className="response-btn response-no"
           whileTap={{ scale: 0.88 }}
           onClick={() => triggerResponse("no")}
+          disabled={isAnimating}
           aria-label="No"
         >
           <svg
@@ -236,6 +240,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
           className="response-btn response-maybe"
           whileTap={{ scale: 0.88 }}
           onClick={() => triggerResponse("maybe")}
+          disabled={isAnimating}
           aria-label="Maybe"
         >
           <svg
@@ -255,6 +260,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
           className="response-btn response-yes"
           whileTap={{ scale: 0.88 }}
           onClick={() => triggerResponse("yes")}
+          disabled={isAnimating}
           aria-label="Yes"
         >
           <svg

@@ -11,10 +11,16 @@ import FloatingHearts from "../components/shared/FloatingHearts";
 export default function Pairing() {
   const { code: urlCode } = useParams();
   const [mode, setMode] = useState(urlCode ? "join" : "create");
+
+  // Already paired — go to browse
+  useEffect(() => {
+    if (user?.coupleId) navigate(ROUTES.BROWSE);
+  }, [user?.coupleId]);
+
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState(urlCode || "");
   const [copied, setCopied] = useState(false);
-  const { pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
+  const { user, pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,14 +34,17 @@ export default function Pairing() {
 
   // Poll for pairing when in create mode
   const pollRef = useRef(null);
+  const navigatedRef = useRef(false);
 
   useEffect(() => {
     if (mode !== "create" || !inviteCode) return;
 
     pollRef.current = setInterval(async () => {
+      if (navigatedRef.current) return;
       try {
         const raw = await client.get("/auth/me");
         if (raw.couple_id) {
+          navigatedRef.current = true;
           clearInterval(pollRef.current);
           setUser({
             id: raw.id,
@@ -48,9 +57,12 @@ export default function Pairing() {
           navigate(ROUTES.CONNECTED);
         }
       } catch {}
-    }, 3000);
+    }, 5000);
 
-    return () => clearInterval(pollRef.current);
+    return () => {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    };
   }, [mode, inviteCode]);
 
   const [joinError, setJoinError] = useState("");
