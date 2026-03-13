@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../context/useAuth';
 import { SCREENS } from '../lib/constants';
@@ -18,27 +18,44 @@ import SettingsScreen from '../screens/SettingsScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TAB_ICONS = {
-  [SCREENS.BROWSE]: 'grid',
-  [SCREENS.MATCHES]: 'link-2',
-  [SCREENS.MOOD]: 'smile',
-  [SCREENS.SETTINGS]: 'sun',
-};
+const TABS = [
+  { name: SCREENS.BROWSE,   label: 'Browse',  icon: 'grid'   },
+  { name: SCREENS.MATCHES,  label: 'Matches', icon: 'link-2' },
+  { name: SCREENS.MOOD,     label: 'Mood',    icon: 'smile'  },
+  { name: SCREENS.SETTINGS, label: 'Settings',icon: 'sun'    },
+];
 
-function TabButton({ label, iconName, focused, badge }) {
-  const color = focused ? colors.accent : colors.textLight;
+function CustomTabBar({ state, descriptors, navigation, matchCount }) {
   return (
-    <View style={styles.tabItem}>
-      <View style={styles.iconWrap}>
-        <Feather name={iconName} size={22} color={color} />
-        {badge > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
-      {focused && <View style={styles.activeDot} />}
+    <View style={styles.tabBar}>
+      {state.routes.map((route, index) => {
+        const focused = state.index === index;
+        const tab = TABS.find((t) => t.name === route.name);
+        const color = focused ? colors.accent : colors.textLight;
+        const badge = route.name === SCREENS.MATCHES ? matchCount : 0;
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            style={styles.tabItem}
+            onPress={() => {
+              if (!focused) navigation.navigate(route.name);
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconWrap}>
+              <Feather name={tab.icon} size={22} color={color} />
+              {badge > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{tab.label}</Text>
+            {focused && <View style={styles.activeDot} />}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -46,48 +63,13 @@ function TabButton({ label, iconName, focused, badge }) {
 function MainTabs({ matchCount = 0 }) {
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} matchCount={matchCount} />}
     >
-      <Tab.Screen
-        name={SCREENS.BROWSE}
-        component={BrowseScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabButton label="Browse" iconName={TAB_ICONS[SCREENS.BROWSE]} focused={focused} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name={SCREENS.MATCHES}
-        component={MatchesScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabButton label="Matches" iconName={TAB_ICONS[SCREENS.MATCHES]} focused={focused} badge={matchCount} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name={SCREENS.MOOD}
-        component={MoodScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabButton label="Mood" iconName={TAB_ICONS[SCREENS.MOOD]} focused={focused} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name={SCREENS.SETTINGS}
-        component={SettingsScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabButton label="Settings" iconName={TAB_ICONS[SCREENS.SETTINGS]} focused={focused} />
-          ),
-        }}
-      />
+      <Tab.Screen name={SCREENS.BROWSE}   component={BrowseScreen}   />
+      <Tab.Screen name={SCREENS.MATCHES}  component={MatchesScreen}  />
+      <Tab.Screen name={SCREENS.MOOD}     component={MoodScreen}     />
+      <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
@@ -104,12 +86,13 @@ export default function AppNavigator() {
           <Stack.Screen name={SCREENS.LANDING} component={LandingScreen} />
         ) : !user.coupleId && !isSolo ? (
           <>
-            <Stack.Screen name={SCREENS.PAIRING} component={PairingScreen} />
+            <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
           </>
         ) : (
           <>
-            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="Main"              component={MainTabs}        />
+            <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
           </>
         )}
@@ -120,18 +103,19 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderTopColor: colors.border,
     borderTopWidth: 1,
-    height: 64,
-    paddingBottom: 0,
-    paddingTop: 0,
+    borderTopColor: colors.border,
+    height: 72,
+    paddingBottom: 8,
   },
   tabItem: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
-    paddingTop: 6,
+    gap: 4,
+    paddingTop: 8,
   },
   iconWrap: {
     position: 'relative',
@@ -150,7 +134,6 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.accent,
-    marginTop: 1,
   },
   badge: {
     position: 'absolute',

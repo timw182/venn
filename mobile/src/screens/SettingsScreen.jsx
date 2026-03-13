@@ -5,7 +5,7 @@ import { useAuth } from '../context/useAuth';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const { user, logout } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saved, setSaved] = useState(false);
@@ -46,10 +46,19 @@ export default function SettingsScreen() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Partner</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Connected to</Text>
-              <Text style={styles.infoValue}>{user?.partnerName || 'Not paired yet'}</Text>
-            </View>
+            {user?.coupleId ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Connected to</Text>
+                <Text style={styles.infoValue}>{user.partnerName}</Text>
+              </View>
+            ) : (
+              <View style={styles.unpaired}>
+                <Text style={styles.unpairedText}>You're not connected to a partner yet.</Text>
+                <Button variant="primary" size="sm" onPress={() => navigation.navigate('Pairing')}>
+                  Connect with a partner
+                </Button>
+              </View>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -111,6 +120,8 @@ const styles = StyleSheet.create({
   },
 
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  unpaired: { gap: space[3] },
+  unpairedText: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted },
   infoLabel: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
   infoValue: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
 
