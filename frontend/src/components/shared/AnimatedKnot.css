@@ -1,0 +1,14 @@
+@keyframes knotDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.knot-svg {
+  color: var(--color-accent);
+  overflow: visible;
+}
+
+.knot-ring {
+  stroke: currentColor;
+  fill: none;
+  stroke-dashoffset: 9999; /* overridden by JS after mount */
+}

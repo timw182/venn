@@ -77,7 +77,7 @@ export default function Landing() {
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="landing-brand">
-              <span className="landing-wordmark">kinklink</span>
+              <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg" />
               <p className="landing-tagline">
                 discover what you <em>both</em> want
               </p>
@@ -140,7 +140,7 @@ export default function Landing() {
             </button>
 
             <div className="landing-brand landing-brand-sm">
-              <span className="landing-wordmark landing-wordmark-sm">kinklink</span>
+              <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg landing-logo-svg-sm" />
               <p className="landing-subtitle">{mode === "login" ? "Welcome back" : "Create your account"}</p>
             </div>
 

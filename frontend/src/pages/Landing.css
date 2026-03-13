@@ -300,3 +300,24 @@
 .landing-toggle:hover {
   color: var(--color-accent);
 }
+
+/* ── Animated logo GIF ───────────────────────────────────────── */
+.landing-logo-gif {
+  width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto var(--space-2);
+}
+
+/* ── SVG logo ────────────────────────────────────────────────── */
+.landing-logo-svg {
+  width: 300px;
+  height: auto;
+  display: block;
+  margin: 0 auto 2px;
+}
+
+.landing-logo-svg-sm {
+  width: 220px;
+  margin-bottom: var(--space-2);
+}

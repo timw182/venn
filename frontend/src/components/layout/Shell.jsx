@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import FloatingHearts from "../shared/FloatingHearts";
+import AnimatedKnot from "../shared/AnimatedKnot";
 import BottomNav from "./BottomNav";
 import client from "../../api/client";
 import "./Shell.css";
@@ -19,6 +20,7 @@ export default function Shell() {
     <div className="shell">
       <FloatingHearts />
       <header className="shell-header">
+        <AnimatedKnot size={28} />
         <span className="shell-wordmark">kinklink</span>
       </header>
       <main className="shell-content">

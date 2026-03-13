@@ -9,7 +9,7 @@ import "./Connected.css";
 function createParticles(canvas) {
   const ctx = canvas.getContext("2d");
   const particles = [];
-  const colors = ["#C4754B", "#E8C4A8", "#D4B878", "#B5683F", "#F5DFC8", "#7B9E6F"];
+  const colors = ["#d89848", "#E8C4A8", "#D4B878", "#be8536", "#F5DFC8", "#7B9E6F"];
 
   canvas.width = canvas.offsetWidth * 2;
   canvas.height = canvas.offsetHeight * 2;

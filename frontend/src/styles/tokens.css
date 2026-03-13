@@ -16,11 +16,11 @@
   --color-text-inverse: #FAF6F1;
 
   /* Accent — terracotta / amber range */
-  --color-accent: #C4754B;
-  --color-accent-hover: #B5683F;
-  --color-accent-soft: #E8C4A8;
-  --color-accent-glow: rgba(196, 117, 75, 0.15);
-  --color-accent-bg: #FDF5EF;
+  --color-accent: #d89848;
+  --color-accent-hover: #be8536;
+  --color-accent-soft: #f0ddb8;
+  --color-accent-glow: rgba(216, 152, 72, 0.15);
+  --color-accent-bg: #fdf8ee;
 
   /* Semantic */
   --color-yes: #7B9E6F;
@@ -29,7 +29,7 @@
   --color-no-soft: rgba(196, 116, 116, 0.12);
   --color-maybe: #D4B878;
   --color-maybe-soft: rgba(212, 184, 120, 0.12);
-  --color-match: #C4754B;
+  --color-match: #d89848;
 
   /* Typography */
   --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
