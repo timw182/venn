@@ -1,5 +1,8 @@
 import { createContext, useState, useCallback, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import client, { clearSession } from '../api/client';
+
+const SOLO_KEY = 'kl_solo';
 
 export const AuthContext = createContext(null);
 
@@ -16,50 +19,49 @@ function toUser(raw) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isSolo, setIsSolo] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    client
-      .get('/auth/me')
-      .then((raw) => setUser(toUser(raw)))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      client.get('/auth/me').then((raw) => setUser(toUser(raw))).catch(() => {}),
+      AsyncStorage.getItem(SOLO_KEY).then((v) => { if (v) setIsSolo(true); }).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (username, password) => {
-    setLoading(true);
-    try {
-      const raw = await client.post('/auth/login', { username, password });
-      const u = toUser(raw);
-      setUser(u);
-      return u;
-    } finally {
-      setLoading(false);
-    }
+    const raw = await client.post('/auth/login', { username, password });
+    const u = toUser(raw);
+    setUser(u);
+    return u;
   }, []);
 
   const register = useCallback(async (username, password, displayName) => {
-    setLoading(true);
-    try {
-      const raw = await client.post('/auth/register', { username, password, display_name: displayName });
-      const u = toUser(raw);
-      setUser(u);
-      return u;
-    } finally {
-      setLoading(false);
-    }
+    const raw = await client.post('/auth/register', { username, password, display_name: displayName });
+    const u = toUser(raw);
+    setUser(u);
+    return u;
+  }, []);
+
+  const enterSolo = useCallback(async () => {
+    await AsyncStorage.setItem(SOLO_KEY, '1').catch(() => {});
+    setIsSolo(true);
   }, []);
 
   const logout = useCallback(async () => {
     await client.post('/auth/logout').catch(() => {});
     await clearSession();
+    await AsyncStorage.removeItem(SOLO_KEY).catch(() => {});
     setUser(null);
+    setIsSolo(false);
   }, []);
 
   const pair = useCallback(async (code) => {
     setLoading(true);
     try {
       const raw = await client.post('/pairing/join', { code });
+      await AsyncStorage.removeItem(SOLO_KEY).catch(() => {});
+      setIsSolo(false);
       setUser(toUser(raw));
     } finally {
       setLoading(false);
@@ -72,7 +74,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, pair, createPairingCode, setUser }}>
+    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -16,7 +16,7 @@ export default function PairingScreen({ navigation }) {
   const [joinCode, setJoinCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
-  const { pair, createPairingCode, loading } = useAuth();
+  const { pair, createPairingCode, enterSolo, loading } = useAuth();
 
   useEffect(() => {
     if (mode === 'create' && !inviteCode) {
@@ -110,6 +110,10 @@ export default function PairingScreen({ navigation }) {
               {mode === 'create' ? 'I have a code from my partner' : 'I need to create an invite'}
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={enterSolo} style={styles.skipBtn}>
+            <Text style={styles.skipText}>Skip for now — explore solo</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -173,4 +177,7 @@ const styles = StyleSheet.create({
 
   modeToggle: { padding: space[2] },
   modeToggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
+
+  skipBtn: { padding: space[2] },
+  skipText: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textLight, textAlign: 'center' },
 });

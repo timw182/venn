@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
+import { useAuth } from '../context/useAuth';
 
 function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   const [expanded, setExpanded] = useState(false);
@@ -64,10 +65,12 @@ export default function MatchesScreen() {
   const [allMatches, setAllMatches] = useState([]);
   const { width } = useWindowDimensions();
   const cardWidth = Math.floor((width - space[4] * 2 - space[3]) / 2);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?.coupleId) return;
     client.get('/matches').then(setAllMatches).catch(() => {});
-  }, []);
+  }, [user?.coupleId]);
 
   function handleSeen(id) {
     client.post(`/matches/${id}/seen`).catch(() => {});
@@ -87,6 +90,12 @@ export default function MatchesScreen() {
         <Text style={styles.title}>Your Matches</Text>
         <Text style={styles.subtitle}>{allMatches.length} thing{allMatches.length !== 1 ? 's' : ''} you both want</Text>
       </View>
+
+      {!user?.coupleId && (
+        <View style={styles.soloPrompt}>
+          <Text style={styles.soloPromptText}>Pair up with a partner to see your matches</Text>
+        </View>
+      )}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.filters}>
         <TouchableOpacity
@@ -204,4 +213,16 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48 },
   emptyTitle: { fontFamily: fonts.serifItalic, fontSize: 20, color: colors.text },
   emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
+
+  soloPrompt: {
+    marginHorizontal: space[5],
+    marginBottom: space[3],
+    padding: space[4],
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  soloPromptText: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 });

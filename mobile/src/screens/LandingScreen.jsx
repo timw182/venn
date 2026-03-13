@@ -1,8 +1,63 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView, StyleSheet,
   KeyboardAvoidingView, Platform, TouchableOpacity,
+  Animated, Dimensions,
 } from 'react-native';
+
+const { width: SW, height: SH } = Dimensions.get('window');
+
+const HEARTS = [
+  { id: 0, x: SW * 0.05, size: 12, duration: 11000, start: 0.1, opacity: 0.09 },
+  { id: 1, x: SW * 0.18, size: 20, duration: 14000, start: 0.55, opacity: 0.07 },
+  { id: 2, x: SW * 0.30, size: 10, duration: 9500,  start: 0.35, opacity: 0.11 },
+  { id: 3, x: SW * 0.45, size: 16, duration: 13000, start: 0.75, opacity: 0.08 },
+  { id: 4, x: SW * 0.58, size: 22, duration: 10500, start: 0.20, opacity: 0.06 },
+  { id: 5, x: SW * 0.68, size: 14, duration: 12000, start: 0.60, opacity: 0.10 },
+  { id: 6, x: SW * 0.80, size: 18, duration: 15000, start: 0.40, opacity: 0.08 },
+  { id: 7, x: SW * 0.90, size: 11, duration: 10000, start: 0.85, opacity: 0.12 },
+];
+
+function FloatingHeart({ x, size, duration, start, opacity: maxOpacity }) {
+  const prog = useRef(new Animated.Value(start)).current;
+
+  useEffect(() => {
+    const first = Animated.timing(prog, {
+      toValue: 1,
+      duration: duration * (1 - start),
+      useNativeDriver: true,
+    });
+    const loop = Animated.loop(
+      Animated.timing(prog, { toValue: 1, duration, useNativeDriver: true })
+    );
+    first.start(() => { prog.setValue(0); loop.start(); });
+    return () => { first.stop(); loop.stop(); };
+  }, []);
+
+  return (
+    <Animated.Text
+      style={{
+        position: 'absolute',
+        left: x,
+        bottom: -20,
+        fontSize: size,
+        color: colors.accent,
+        opacity: prog.interpolate({ inputRange: [0, 0.06, 0.88, 1], outputRange: [0, maxOpacity, maxOpacity, 0] }),
+        transform: [{ translateY: prog.interpolate({ inputRange: [0, 1], outputRange: [0, -(SH + 60)] }) }],
+      }}
+    >
+      ♥
+    </Animated.Text>
+  );
+}
+
+function FloatingHearts() {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {HEARTS.map((h) => <FloatingHeart key={h.id} {...h} />)}
+    </View>
+  );
+}
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { colors, fonts, space, radii } from '../theme/tokens';
@@ -21,10 +76,12 @@ export default function LandingScreen() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
-  const { login, register, loading } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { login, register } = useAuth();
 
   async function handleSubmit() {
     setError('');
+    setSubmitting(true);
     try {
       if (mode === 'login') {
         await login(username, password);
@@ -33,6 +90,8 @@ export default function LandingScreen() {
       }
     } catch (err) {
       setError(err.message || 'Something went wrong');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -47,6 +106,7 @@ export default function LandingScreen() {
   if (mode === null) {
     return (
       <SafeAreaView style={styles.container}>
+        <FloatingHearts />
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <LogoMark size="lg" />
@@ -74,7 +134,6 @@ export default function LandingScreen() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.footer}>Private · Self-hosted · Just you two</Text>
         </ScrollView>
       </SafeAreaView>
     );
@@ -147,7 +206,7 @@ export default function LandingScreen() {
               </View>
             )}
 
-            <Button variant="primary" size="lg" fullWidth onPress={handleSubmit} loading={loading}>
+            <Button variant="primary" size="lg" fullWidth onPress={handleSubmit} loading={submitting}>
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </Button>
           </View>
