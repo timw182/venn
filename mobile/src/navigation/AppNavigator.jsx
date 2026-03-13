@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
 import { useAuth } from '../context/useAuth';
 import { SCREENS } from '../lib/constants';
-import { colors } from '../theme/tokens';
+import { colors, fonts } from '../theme/tokens';
 
 import LandingScreen from '../screens/LandingScreen';
 import PairingScreen from '../screens/PairingScreen';
@@ -17,20 +17,17 @@ import SettingsScreen from '../screens/SettingsScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function TabIcon({ emoji, label, focused }) {
+function TabIcon({ label, focused }) {
   return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
-      <Text style={{ fontSize: 20 }}>{emoji}</Text>
-      <Text style={{
-        fontSize: 9,
-        fontWeight: '500',
-        letterSpacing: 0.5,
-        textTransform: 'uppercase',
-        color: focused ? colors.accent : colors.textLight,
-      }}>
-        {label}
-      </Text>
-    </View>
+    <Text style={{
+      fontFamily: fonts.sansMedium,
+      fontSize: 12,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      color: focused ? colors.accent : colors.textLight,
+    }}>
+      {label}
+    </Text>
   );
 }
 
@@ -40,12 +37,12 @@ function MainTabs({ matchCount = 0 }) {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'rgba(250,246,241,0.96)',
+          backgroundColor: colors.surface,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 72,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 48,
+          paddingBottom: 0,
+          paddingTop: 0,
         },
         tabBarShowLabel: false,
       }}
@@ -54,28 +51,28 @@ function MainTabs({ matchCount = 0 }) {
         name={SCREENS.BROWSE}
         component={BrowseScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔥" label="Browse" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon label="Browse" focused={focused} />,
         }}
       />
       <Tab.Screen
         name={SCREENS.MATCHES}
         component={MatchesScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💛" label={`Matches${matchCount > 0 ? ` · ${matchCount}` : ''}`} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon label={`Matches${matchCount > 0 ? ` · ${matchCount}` : ''}`} focused={focused} />,
         }}
       />
       <Tab.Screen
         name={SCREENS.MOOD}
         component={MoodScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🌙" label="Mood" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon label="Mood" focused={focused} />,
         }}
       />
       <Tab.Screen
         name={SCREENS.SETTINGS}
         component={SettingsScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Settings" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon label="Settings" focused={focused} />,
         }}
       />
     </Tab.Navigator>

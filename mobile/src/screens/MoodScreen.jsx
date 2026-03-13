@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MOODS } from '../lib/constants';
-import { colors, space, radii } from '../theme/tokens';
+import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
 
 export default function MoodScreen() {
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, padding: space[5], gap: space[6] },
 
   header: { gap: space[2] },
-  title: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 26, fontWeight: '400', color: colors.text },
-  subtitle: { fontSize: 14, color: colors.textMuted, lineHeight: 20, fontWeight: '300' },
+  title: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
+  subtitle: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, lineHeight: 20 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
   moodOption: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   moodActive: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   moodEmoji: { fontSize: 30 },
-  moodLabel: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+  moodLabel: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
   moodLabelActive: { color: colors.accent },
 
   submitBtn: {
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  submitText: { color: '#FAF6F1', fontSize: 16, fontWeight: '600', letterSpacing: 0.3 },
+  submitText: { fontFamily: fonts.sansMedium, color: '#FDF5E6', fontSize: 16, letterSpacing: 0.3 },
 
   matchedView: { alignItems: 'center', gap: space[4], paddingVertical: space[8] },
   matchedEmoji: { fontSize: 64 },
-  matchedTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 22, fontWeight: '400', color: colors.text, textAlign: 'center' },
-  matchedSub: { fontSize: 14, color: colors.textMuted },
+  matchedTitle: { fontFamily: fonts.serifItalic, fontSize: 22, color: colors.text, textAlign: 'center' },
+  matchedSub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted },
 
   submittedView: { alignItems: 'center', gap: space[5], paddingVertical: space[8] },
   submittedBadge: {
@@ -178,12 +178,12 @@ const styles = StyleSheet.create({
     gap: space[3],
   },
   submittedEmoji: { fontSize: 28 },
-  submittedLabel: { fontSize: 18, fontWeight: '600', color: colors.accent },
+  submittedLabel: { fontFamily: fonts.sansMedium, fontSize: 18, color: colors.accent },
 
   waiting: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   pulse: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent, opacity: 0.7 },
-  waitingText: { fontSize: 14, color: colors.textMuted },
+  waitingText: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted },
 
   resetBtn: { padding: space[2] },
-  resetText: { fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
+  resetText: { fontFamily: fonts.sans, fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
 });

@@ -1,10 +1,10 @@
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors, radii, space } from '../theme/tokens';
+import { colors, fonts, radii, space } from '../theme/tokens';
 
 const variants = {
   primary: {
     bg: colors.accent,
-    text: '#FAF6F1',
+    text: '#FDF5E6',
     border: colors.accent,
   },
   secondary: {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    fontWeight: '600',
+    fontFamily: fonts.sansMedium,
     letterSpacing: 0.3,
   },
 });

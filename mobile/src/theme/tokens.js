@@ -1,32 +1,36 @@
 export const colors = {
-  bg: '#FAF6F1',
-  surface: '#FFFFFF',
-  surfaceAlt: '#F3EDE4',
-  border: '#E8DFD3',
-  borderStrong: '#D4C8B8',
+  bg: '#F5E8D0',
+  surface: '#FDF5E6',
+  surfaceAlt: '#EDD9BC',
+  border: '#D9C4A0',
+  borderStrong: '#C4A878',
 
-  text: '#2C2520',
-  textMuted: '#8C7E72',
-  textLight: '#B5A898',
+  text: '#1C0E06',
+  textMuted: '#7A4E30',
+  textLight: '#B08868',
 
-  accent: '#C4754B',
-  accentHover: '#B5683F',
-  accentSoft: 'rgba(196,117,75,0.18)',
-  accentBg: 'rgba(196,117,75,0.07)',
+  accent: '#A63D2F',
+  accentHover: '#8C3028',
+  accentSoft: 'rgba(166,61,47,0.12)',
+  accentBg: 'rgba(166,61,47,0.06)',
 
-  yes: '#5DA86B',
-  yesSoft: 'rgba(93,168,107,0.15)',
-  no: '#E07575',
-  noSoft: 'rgba(224,117,117,0.15)',
-  maybe: '#C4A44B',
-  maybeSoft: 'rgba(196,164,75,0.15)',
+  yes: '#3D7A3D',
+  yesSoft: 'rgba(61,122,61,0.12)',
+  no: '#C43C3C',
+  noSoft: 'rgba(196,60,60,0.12)',
+  maybe: '#A07010',
+  maybeSoft: 'rgba(160,112,16,0.12)',
 
-  overlay: 'rgba(250,246,241,0.92)',
+  overlay: 'rgba(28,14,6,0.88)',
 };
 
 export const fonts = {
-  serif: 'serif',
-  sans: 'System',
+  serif: 'PlayfairDisplay_400Regular',
+  serifItalic: 'PlayfairDisplay_400Regular_Italic',
+  serifBoldItalic: 'PlayfairDisplay_700Bold_Italic',
+  sans: 'DMSans_400Regular',
+  sansLight: 'DMSans_300Light',
+  sansMedium: 'DMSans_500Medium',
 };
 
 export const radii = {

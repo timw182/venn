@@ -1,15 +1,15 @@
-import { ScrollView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, radii, space } from '../theme/tokens';
 
 export default function CategoryPicker({ active, onChange, progress = {} }) {
+  const { width } = useWindowDimensions();
+  const H_PAD = space[4] * 2;
+  const GAP = space[2];
+  const chipWidth = Math.floor((width - H_PAD - GAP * 2) / 3);
+
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.row}
-      style={styles.scroll}
-    >
+    <View style={styles.grid}>
       {CATEGORIES.map((cat) => {
         const isActive = active === cat.key;
         const prog = progress[cat.key];
@@ -17,7 +17,7 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
         return (
           <TouchableOpacity
             key={cat.key}
-            style={[styles.chip, isActive && styles.chipActive]}
+            style={[styles.chip, { width: chipWidth }, isActive && styles.chipActive]}
             onPress={() => onChange(cat.key)}
             activeOpacity={0.7}
           >
@@ -31,21 +31,23 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
           </TouchableOpacity>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 0 },
-  row: {
+  grid: {
     flexDirection: 'row',
-    gap: space[2],
-    paddingHorizontal: space[5],
-    paddingVertical: 4,
+    flexWrap: 'wrap',
+    paddingHorizontal: space[4],
+    paddingVertical: space[2],
+    rowGap: space[2],
+    columnGap: space[2],
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
     paddingVertical: 5,
     paddingHorizontal: 10,

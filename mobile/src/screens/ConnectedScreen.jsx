@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
-import { colors, space } from '../theme/tokens';
+import { colors, fonts, space } from '../theme/tokens';
 import Button from '../components/Button';
 
 export default function ConnectedScreen({ navigation }) {
@@ -36,14 +36,12 @@ const styles = StyleSheet.create({
   },
   icon: { fontSize: 64 },
   title: {
-    fontFamily: 'serif',
-    fontStyle: 'italic',
+    fontFamily: fonts.serifItalic,
     fontSize: 32,
-    fontWeight: '400',
     color: colors.text,
     textAlign: 'center',
   },
-  names: { fontSize: 20, textAlign: 'center', color: colors.textMuted },
-  name: { fontWeight: '600', color: colors.text },
-  amp: { fontFamily: 'serif', fontStyle: 'italic', color: colors.accent },
+  names: { fontFamily: fonts.sans, fontSize: 20, textAlign: 'center', color: colors.textMuted },
+  name: { fontFamily: fonts.sansMedium, color: colors.text },
+  amp: { fontFamily: fonts.serifItalic, color: colors.accent },
 });

@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { SCREENS } from '../lib/constants';
-import { colors, space, radii } from '../theme/tokens';
+import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import * as Clipboard from 'expo-clipboard';
 
@@ -129,8 +129,8 @@ const styles = StyleSheet.create({
 
   header: { alignItems: 'center', gap: space[3] },
   emoji: { fontSize: 48 },
-  title: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 28, fontWeight: '400', color: colors.text },
-  subtitle: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20, fontWeight: '300' },
+  title: { fontFamily: fonts.serifItalic, fontSize: 28, color: colors.text },
+  subtitle: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
 
   createSection: { width: '100%', gap: space[5], alignItems: 'center' },
   codeRow: { flexDirection: 'row', gap: space[2] },
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  codeCharText: { fontSize: 22, fontWeight: '700', color: colors.accent, letterSpacing: 1 },
+  codeCharText: { fontFamily: fonts.serifBoldItalic, fontSize: 22, color: colors.accent, letterSpacing: 1 },
 
   waiting: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   pulse: {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     opacity: 0.7,
   },
-  waitingText: { fontSize: 13, color: colors.textMuted },
+  waitingText: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted },
 
   joinSection: { width: '100%', gap: space[4] },
   joinInput: {
@@ -162,15 +162,15 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     paddingVertical: 16,
     paddingHorizontal: space[5],
+    fontFamily: fonts.serifBoldItalic,
     fontSize: 28,
-    fontWeight: '700',
     letterSpacing: 8,
     color: colors.accent,
     textAlign: 'center',
   },
   errorBox: { backgroundColor: colors.noSoft, borderRadius: radii.sm, padding: space[3] },
-  errorText: { fontSize: 13, color: colors.no, textAlign: 'center' },
+  errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no, textAlign: 'center' },
 
   modeToggle: { padding: space[2] },
-  modeToggleText: { fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
+  modeToggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
 });

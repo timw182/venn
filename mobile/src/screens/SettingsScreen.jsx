@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
-import { SCREENS } from '../lib/constants';
-import { colors, space, radii } from '../theme/tokens';
+import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saved, setSaved] = useState(false);
@@ -18,7 +17,6 @@ export default function SettingsScreen({ navigation }) {
 
   async function handleLogout() {
     await logout();
-    navigation.reset({ index: 0, routes: [{ name: SCREENS.LANDING }] });
   }
 
   return (
@@ -77,7 +75,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: space[5], gap: space[5] },
 
-  title: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 26, fontWeight: '400', color: colors.text },
+  title: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
 
   sections: { gap: space[4] },
   section: {
@@ -89,12 +87,15 @@ const styles = StyleSheet.create({
     gap: space[4],
   },
   sectionTitle: {
-    fontSize: 11, fontWeight: '700',
-    letterSpacing: 1, textTransform: 'uppercase', color: colors.textLight,
+    fontFamily: fonts.sansMedium,
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.textLight,
   },
 
   field: { gap: space[2] },
-  label: { fontSize: 14, fontWeight: '500', color: colors.textMuted },
+  label: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.textMuted },
   inputRow: { flexDirection: 'row', gap: space[3], alignItems: 'center' },
   input: {
     flex: 1,
@@ -104,15 +105,16 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     paddingVertical: space[2],
     paddingHorizontal: space[3],
+    fontFamily: fonts.sans,
     fontSize: 16,
     color: colors.text,
   },
 
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  infoLabel: { fontSize: 14, color: colors.textMuted },
-  infoValue: { fontSize: 15, fontWeight: '500', color: colors.text },
+  infoLabel: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
+  infoValue: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
 
   about: { gap: space[2], alignItems: 'center' },
-  aboutName: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 18, color: colors.accent, fontWeight: '300' },
-  aboutDesc: { fontSize: 13, color: colors.textMuted, lineHeight: 19, textAlign: 'center', fontWeight: '300' },
+  aboutName: { fontFamily: fonts.serifItalic, fontSize: 18, color: colors.accent },
+  aboutDesc: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, lineHeight: 19, textAlign: 'center' },
 });

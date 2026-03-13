@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORIES } from '../lib/constants';
-import { colors, space, radii } from '../theme/tokens';
+import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
 
-function MatchCard({ match, onSeen, onRemove }) {
+function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   const [expanded, setExpanded] = useState(false);
   const cat = CATEGORIES.find((c) => c.key === match.category);
 
@@ -19,7 +19,7 @@ function MatchCard({ match, onSeen, onRemove }) {
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, !match.seen && styles.cardNew]}
+        style={[styles.card, { width: cardWidth }, !match.seen && styles.cardNew]}
         onPress={handleOpen}
         activeOpacity={0.75}
       >
@@ -62,6 +62,8 @@ function MatchCard({ match, onSeen, onRemove }) {
 export default function MatchesScreen() {
   const [filter, setFilter] = useState('all');
   const [allMatches, setAllMatches] = useState([]);
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.floor((width - space[4] * 2 - space[3]) / 2);
 
   useEffect(() => {
     client.get('/matches').then(setAllMatches).catch(() => {});
@@ -86,7 +88,7 @@ export default function MatchesScreen() {
         <Text style={styles.subtitle}>{allMatches.length} thing{allMatches.length !== 1 ? 's' : ''} you both want</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.filters}>
         <TouchableOpacity
           style={[styles.filterChip, filter === 'all' && styles.filterActive]}
           onPress={() => setFilter('all')}
@@ -113,7 +115,7 @@ export default function MatchesScreen() {
       {filtered.length > 0 ? (
         <ScrollView contentContainerStyle={styles.grid}>
           {filtered.map((match) => (
-            <MatchCard key={match.id} match={match} onSeen={handleSeen} onRemove={handleRemove} />
+            <MatchCard key={match.id} match={match} onSeen={handleSeen} onRemove={handleRemove} cardWidth={cardWidth} />
           ))}
         </ScrollView>
       ) : (
@@ -130,8 +132,8 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: { padding: space[5], paddingBottom: space[3] },
-  title: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 26, fontWeight: '400', color: colors.text },
-  subtitle: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  title: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
+  subtitle: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   filters: { flexDirection: 'row', gap: space[2], paddingHorizontal: space[5], paddingBottom: space[3] },
   filterChip: {
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   filterActive: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-  filterText: { fontSize: 13, color: colors.textMuted, fontWeight: '500' },
+  filterText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
   filterTextActive: { color: colors.accent },
 
   grid: {
@@ -148,7 +150,6 @@ const styles = StyleSheet.create({
     padding: space[4], gap: space[3],
   },
   card: {
-    width: '47%',
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
@@ -164,41 +165,43 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   cardEmoji: { fontSize: 28 },
-  cardTitle: { fontSize: 14, fontWeight: '600', color: colors.text, lineHeight: 19 },
-  cardCat: { fontSize: 11, color: colors.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardTitle: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text, lineHeight: 19 },
+  cardCat: { fontFamily: fonts.sans, fontSize: 11, color: colors.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   overlay: {
-    flex: 1, backgroundColor: 'rgba(44,37,32,0.5)',
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center', justifyContent: 'center', padding: space[6],
   },
   detail: {
     backgroundColor: colors.surface,
     borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: space[6],
     width: '100%',
     alignItems: 'center',
     gap: space[4],
   },
   detailEmoji: { fontSize: 52 },
-  detailTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 22, fontWeight: '400', color: colors.text, textAlign: 'center' },
-  detailDesc: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 21, fontWeight: '300' },
+  detailTitle: { fontFamily: fonts.serifItalic, fontSize: 22, color: colors.text, textAlign: 'center' },
+  detailDesc: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 21 },
   detailMeta: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  detailCat: { fontSize: 13, color: colors.textMuted },
-  detailDate: { fontSize: 13, color: colors.textLight },
+  detailCat: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },
+  detailDate: { fontFamily: fonts.sans, fontSize: 13, color: colors.textLight },
   detailActions: { flexDirection: 'row', gap: space[3], width: '100%' },
   closeBtn: {
     flex: 1, paddingVertical: 12, borderRadius: radii.full,
     borderWidth: 1, borderColor: colors.border, alignItems: 'center',
   },
-  closeBtnText: { fontSize: 14, color: colors.textMuted, fontWeight: '500' },
+  closeBtnText: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.textMuted },
   removeBtn: {
     flex: 1, paddingVertical: 12, borderRadius: radii.full,
     backgroundColor: colors.noSoft, alignItems: 'center',
   },
-  removeBtnText: { fontSize: 14, color: colors.no, fontWeight: '500' },
+  removeBtnText: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.no },
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[8] },
   emptyIcon: { fontSize: 48 },
-  emptyTitle: { fontFamily: 'serif', fontStyle: 'italic', fontSize: 20, color: colors.text },
-  emptySub: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontFamily: fonts.serifItalic, fontSize: 20, color: colors.text },
+  emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
 });
