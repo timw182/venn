@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import CategoryPicker from "../components/catalog/CategoryPicker";
 import CardStack from "../components/catalog/CardStack";
@@ -27,7 +27,9 @@ export default function Catalog() {
   const [catalog, setCatalog] = useState([]);
   const [responses, setResponses] = useState(loadLocalResponses);
   const [matchItem, setMatchItem] = useState(null);
-  const [lastResponse, setLastResponse] = useState(null); // { item, response }
+  const [lastResponse, setLastResponse] = useState(null);
+  const shownMatchIds = useRef(new Set());
+  const matchTimerRef = useRef(null); // { item, response }
 
   useEffect(() => {
     Promise.all([client.get("/catalog"), client.get("/catalog/responses")])
@@ -89,14 +91,18 @@ export default function Catalog() {
         client
           .get("/matches")
           .then((matches) => {
-            const fresh = matches.find((m) => String(m.id) === String(itemId) && !m.seen);
-            if (fresh) {
+            const isNewMatch = matches.some(
+              (m) => String(m.id) === String(itemId) && !shownMatchIds.current.has(itemId)
+            );
+            if (isNewMatch) {
+              shownMatchIds.current.add(itemId);
               const item = catalog.find((i) => i.id === itemId);
               if (item) {
+                clearTimeout(matchTimerRef.current);
                 setTimeout(() => {
                   setMatchItem(item);
-                  setTimeout(() => setMatchItem(null), 2500);
-                }, 300);
+                  matchTimerRef.current = setTimeout(() => setMatchItem(null), 3000);
+                }, 400);
               }
             }
           })
@@ -109,11 +115,16 @@ export default function Catalog() {
   return (
     <motion.div className="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="catalog-inner">
+        <div className="catalog-header">
+          <h2 className="catalog-title serif">Browse...</h2>
+          <p className="catalog-subtitle text-muted">Over 200 Kinks in 6 Categories. (Every stack is randomized)</p>
+        </div>
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
         <CardStack
           items={categoryItems}
           onRespond={handleRespond}
           matchItem={matchItem}
+          onMatchDismiss={() => { clearTimeout(matchTimerRef.current); setMatchItem(null); }}
           onUndo={lastResponse ? handleUndo : null}
         />
       </div>

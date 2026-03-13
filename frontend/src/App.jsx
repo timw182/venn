@@ -18,9 +18,9 @@ function AuthGuard() {
 }
 
 function PairGuard() {
-  const { user, loading } = useAuth();
+  const { user, isSolo, loading } = useAuth();
   if (loading) return null;
-  if (!user?.coupleId) return <Navigate to={ROUTES.PAIR} replace />;
+  if (!user?.coupleId && !isSolo) return <Navigate to={ROUTES.PAIR} replace />;
   return <Outlet />;
 }
 

@@ -16,6 +16,7 @@ function toUser(raw) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isSolo, setIsSolo] = useState(() => localStorage.getItem('kl_solo') === '1');
   const [loading, setLoading] = useState(true); // true while hydrating
 
   // Hydrate session on mount
@@ -71,8 +72,14 @@ export function AuthProvider({ children }) {
     return data.code;
   }, []);
 
+
+  const enterSolo = useCallback(() => {
+    localStorage.setItem('kl_solo', '1');
+    setIsSolo(true);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, pair, createPairingCode, setUser }}>
+    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,7 +8,7 @@ const SWIPE_UP_THRESHOLD = 80;
 const MAX_ROTATION = 10;
 const VISIBLE_CARDS = 3;
 
-export default function CardStack({ items = [], onRespond, matchItem, onUndo }) {
+export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo }) {
   const [localItems, setLocalItems] = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass] = useState("");
@@ -46,19 +46,25 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
   function triggerResponse(response) {
     if (responding.current || localItems.length === 0) return;
     responding.current = true;
+    setHintClass("");
 
     const dir = response === "yes" ? "right" : response === "no" ? "left" : "up";
     setExitDirection(dir);
     onRespond?.(localItems[0]?.id, response);
 
-    // After exit animation, sync from parent (which already removed the responded item)
+    // Step 1: Remove item after a tick so exitDirection is committed before removal.
+    // AnimatePresence will then play the correct exit animation.
     setTimeout(() => {
-      responding.current = false;
-      setExitDirection(null);
       x.set(0);
       y.set(0);
       setLocalItems(itemsRef.current);
-    }, 350);
+
+      // Step 2: Clear exit state after animation finishes
+      setTimeout(() => {
+        responding.current = false;
+        setExitDirection(null);
+      }, 400);
+    }, 30);
   }
 
   function handleDragEnd(_, info) {
@@ -110,6 +116,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo }) 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={onMatchDismiss}
           >
             <motion.div
               className="card-stack-match-content"

@@ -5,6 +5,7 @@ import { useAuth } from "../context/useAuth";
 import Button from "../components/shared/Button";
 import { ROUTES } from "../lib/constants";
 import "./Landing.css";
+import FloatingHearts from "../components/shared/FloatingHearts";
 
 const features = [
   {
@@ -109,12 +110,20 @@ export default function Landing() {
               <Button variant="primary" size="lg" fullWidth onClick={() => openForm("register")}>
                 Get started
               </Button>
-              <button className="landing-toggle" onClick={() => openForm("login")}>
-                Already have an account? Sign in
-              </button>
+              <div className="landing-toggle">
+                <span className="text-muted">Already have an account?</span>
+                <button className="landing-toggle-link" onClick={() => openForm("login")}>Sign in</button>
+              </div>
             </motion.div>
 
-            <p className="landing-footer text-light">Private &middot; Self-hosted &middot; Just you two</p>
+            <footer className="landing-footer">
+              <span>© 2026 KinkLink</span>
+              <span className="landing-footer-dot">·</span>
+              <a href="/impressum" className="landing-footer-link">Impressum</a>
+              <span className="landing-footer-dot">·</span>
+              <a href="https://instagram.com/kinklink" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Instagram</a>
+            </footer>
+
           </motion.div>
         ) : (
           /* ── AUTH FORM ── */
@@ -198,9 +207,12 @@ export default function Landing() {
               </motion.form>
             </AnimatePresence>
 
-            <button className="landing-toggle" onClick={() => openForm(mode === "login" ? "register" : "login")}>
-              {mode === "login" ? "Don't have an account? Create one" : "Already have an account? Sign in"}
-            </button>
+            <div className="landing-toggle">
+              <span className="text-muted">{mode === "login" ? "Don't have an account?" : "Already have an account?"}</span>
+              <button className="landing-toggle-link" onClick={() => openForm(mode === "login" ? "register" : "login")}>
+                {mode === "login" ? "Create one" : "Sign in"}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

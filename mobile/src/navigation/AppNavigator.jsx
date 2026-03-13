@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import client from '../api/client';
 import { useAuth } from '../context/useAuth';
 import { SCREENS } from '../lib/constants';
 import { colors, fonts } from '../theme/tokens';
@@ -76,6 +78,14 @@ function MainTabs({ matchCount = 0 }) {
 
 export default function AppNavigator() {
   const { user, isSolo, loading } = useAuth();
+  const [unseenCount, setUnseenCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.coupleId) { setUnseenCount(0); return; }
+    client.get('/matches')
+      .then((matches) => setUnseenCount(matches.filter((m) => !m.seen).length))
+      .catch(() => {});
+  }, [user?.coupleId]);
 
   if (loading) return null;
 
@@ -91,7 +101,7 @@ export default function AppNavigator() {
           </>
         ) : (
           <>
-            <Stack.Screen name="Main"              component={MainTabs}        />
+            <Stack.Screen name="Main">{() => <MainTabs matchCount={unseenCount} />}</Stack.Screen>
             <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
           </>

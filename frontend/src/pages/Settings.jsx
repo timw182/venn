@@ -7,15 +7,21 @@ import { ROUTES } from "../lib/constants";
 import "./Settings.css";
 
 export default function Settings() {
-  const { user, logout } = useAuth();
+  const { user, isSolo, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  function handleSave() {
-    // TODO: API call
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    setSaveError('');
+    try {
+      await updateProfile(displayName);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setSaveError(err.message || 'Could not save');
+    }
   }
 
   async function handleLogout() {
@@ -50,15 +56,25 @@ export default function Settings() {
                 {saved ? "Saved!" : "Save"}
               </Button>
             </div>
+            {saveError && <p className="settings-error">{saveError}</p>}
           </div>
         </section>
 
         <section className="settings-section">
           <h3 className="settings-section-title">Your Partner</h3>
-          <div className="settings-info-row">
-            <span className="settings-info-label text-muted">Connected to</span>
-            <span className="settings-info-value">{user?.partnerName || "Not paired yet"}</span>
-          </div>
+          {user?.coupleId ? (
+            <div className="settings-info-row">
+              <span className="settings-info-label text-muted">Connected to</span>
+              <span className="settings-info-value">{user.partnerName}</span>
+            </div>
+          ) : (
+            <div className="settings-pair-prompt">
+              <p className="settings-pair-text text-muted">You're exploring solo. Connect with a partner to see your matches.</p>
+              <Button variant="primary" size="sm" onClick={() => navigate(ROUTES.PAIR)}>
+                Create or enter a code
+              </Button>
+            </div>
+          )}
         </section>
 
         <section className="settings-section">

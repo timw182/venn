@@ -73,8 +73,14 @@ export function AuthProvider({ children }) {
     return data.code;
   }, []);
 
+
+  const updateProfile = useCallback(async (displayName) => {
+    const raw = await client.patch('/auth/profile', { display_name: displayName });
+    setUser(toUser(raw));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser }}>
+    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

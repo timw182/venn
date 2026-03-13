@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/useAuth";
 import Button from "../components/shared/Button";
 import { ROUTES } from "../lib/constants";
+import client from "../api/client";
 import "./Pairing.css";
+import FloatingHearts from "../components/shared/FloatingHearts";
 
 export default function Pairing() {
   const { code: urlCode } = useParams();
@@ -12,7 +14,7 @@ export default function Pairing() {
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState(urlCode || "");
   const [copied, setCopied] = useState(false);
-  const { pair, createPairingCode, loading } = useAuth();
+  const { pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,10 +25,45 @@ export default function Pairing() {
     }
   }, [mode, inviteCode, createPairingCode]);
 
+
+  // Poll for pairing when in create mode
+  const pollRef = useRef(null);
+
+  useEffect(() => {
+    if (mode !== "create" || !inviteCode) return;
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const raw = await client.get("/auth/me");
+        if (raw.couple_id) {
+          clearInterval(pollRef.current);
+          setUser({
+            id: raw.id,
+            username: raw.username,
+            displayName: raw.display_name,
+            avatarColor: raw.avatar_color,
+            coupleId: raw.couple_id,
+            partnerName: raw.partner_name ?? null,
+          });
+          navigate(ROUTES.CONNECTED);
+        }
+      } catch {}
+    }, 3000);
+
+    return () => clearInterval(pollRef.current);
+  }, [mode, inviteCode]);
+
+  const [joinError, setJoinError] = useState("");
+
   async function handleJoin(e) {
     e.preventDefault();
-    await pair(joinCode);
-    navigate(ROUTES.CONNECTED);
+    setJoinError("");
+    try {
+      await pair(joinCode);
+      navigate(ROUTES.CONNECTED);
+    } catch (err) {
+      setJoinError(err.message || "Invalid code");
+    }
   }
 
   function handleCopy() {
@@ -37,6 +74,7 @@ export default function Pairing() {
 
   return (
     <div className="pairing">
+      <FloatingHearts />
       <motion.div
         className="pairing-content"
         initial={{ opacity: 0, y: 20 }}
@@ -89,6 +127,7 @@ export default function Pairing() {
               maxLength={6}
               autoFocus
             />
+            {joinError && <p className="pairing-error">{joinError}</p>}
             <Button
               type="submit"
               variant="primary"
@@ -104,6 +143,10 @@ export default function Pairing() {
 
         <button className="pairing-mode-toggle" onClick={() => setMode(mode === "create" ? "join" : "create")}>
           {mode === "create" ? "I have a code from my partner" : "I need to create an invite"}
+        </button>
+
+        <button className="pairing-solo-skip" onClick={() => { enterSolo(); navigate(ROUTES.BROWSE); }}>
+          Skip for now — explore solo
         </button>
       </motion.div>
     </div>

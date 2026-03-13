@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ScrollView,
+  KeyboardAvoidingView, Platform, ScrollView, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
@@ -19,10 +19,28 @@ export default function PairingScreen({ navigation }) {
   const { pair, createPairingCode, enterSolo, loading } = useAuth();
 
   useEffect(() => {
-    if (mode === 'create' && !inviteCode) {
-      createPairingCode().then(setInviteCode).catch(() => {});
+    if (mode !== 'create') return;
+    let mounted = true;
+    function generate() {
+      createPairingCode().then((c) => { if (mounted) setInviteCode(c); }).catch(() => {});
     }
+    generate();
+    const timer = setInterval(generate, 25 * 60 * 1000); // refresh before 30min expiry
+    return () => { mounted = false; clearInterval(timer); };
   }, [mode]);
+
+  // Pulse animation
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.6, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
 
   async function handleCopy() {
     await Clipboard.setStringAsync(inviteCode);
@@ -67,7 +85,7 @@ export default function PairingScreen({ navigation }) {
                 {copied ? 'Copied!' : 'Copy code'}
               </Button>
               <View style={styles.waiting}>
-                <View style={styles.pulse} />
+                <Animated.View style={[styles.pulse, { transform: [{ scale: pulseAnim }] }]} />
                 <Text style={styles.waitingText}>Waiting for your person...</Text>
               </View>
             </View>

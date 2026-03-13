@@ -6,13 +6,21 @@ import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 
 export default function SettingsScreen({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saved, setSaved] = useState(false);
 
-  function handleSave() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const [saveError, setSaveError] = useState('');
+
+  async function handleSave() {
+    setSaveError('');
+    try {
+      await updateProfile(displayName);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setSaveError(err.message || 'Could not save');
+    }
   }
 
   async function handleLogout() {
@@ -41,6 +49,7 @@ export default function SettingsScreen({ navigation }) {
                   {saved ? 'Saved!' : 'Save'}
                 </Button>
               </View>
+              {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
             </View>
           </View>
 
@@ -123,6 +132,7 @@ const styles = StyleSheet.create({
   unpaired: { gap: space[3] },
   unpairedText: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted },
   infoLabel: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
+  errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no },
   infoValue: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
 
   about: { gap: space[2], alignItems: 'center' },

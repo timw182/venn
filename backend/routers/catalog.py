@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from aiosqlite import Connection
 from typing import List
+import random
 
 from database import get_db
 from models import CatalogItem, RespondRequest
@@ -15,7 +16,9 @@ async def get_catalog(db: Connection = Depends(get_db)):
         "SELECT id, title, category, description, emoji, tier FROM catalog_items ORDER BY id"
     )
     rows = await cur.fetchall()
-    return [dict(r) for r in rows]
+    result = [dict(r) for r in rows]
+    random.shuffle(result)
+    return result
 
 
 @router.get("/responses")

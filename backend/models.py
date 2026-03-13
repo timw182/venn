@@ -122,3 +122,17 @@ class MoodRequest(BaseModel):
 class MoodOut(BaseModel):
     mine: Optional[str]
     partner: Optional[str]   # only set when both have active moods
+
+
+# ── Profile ───────────────────────────────────────────────────────────────────
+
+class UpdateProfileRequest(BaseModel):
+    display_name: str
+
+    @field_validator("display_name")
+    @classmethod
+    def display_name_valid(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Display name is required")
+        return v[:40]

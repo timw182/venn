@@ -51,16 +51,13 @@ export default function Mood() {
     }
   }
 
-  function handleSelect(mood) {
-    setSelected(mood.key === selected ? null : mood.key);
-  }
-
-  async function handleSubmit() {
+  async function handlePick(mood) {
+    setSelected(mood.key);
     try {
-      const data = await client.put("/mood", { mood: selected, expires_hours: 8 });
+      const data = await client.put("/mood", { mood: mood.key, expires_hours: 8 });
       setSubmitted(true);
       if (data.partner) {
-        setMatched(MOODS.find((m) => m.key === selected) ?? null);
+        setMatched(MOODS.find((m) => m.key === mood.key) ?? null);
       } else {
         startPolling();
       }
@@ -128,7 +125,7 @@ export default function Mood() {
                 <motion.button
                   key={mood.key}
                   className={`mood-option ${selected === mood.key ? "active" : ""}`}
-                  onClick={() => handleSelect(mood)}
+                  onClick={() => handlePick(mood)}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04, duration: 0.3 }}

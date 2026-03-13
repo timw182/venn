@@ -5,7 +5,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from database import get_db
-from models import RegisterRequest, LoginRequest, UserOut
+from models import RegisterRequest, LoginRequest, UserOut, UpdateProfileRequest
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -102,4 +102,13 @@ async def logout(request: Request):
 @router.get("/me", response_model=UserOut)
 async def me(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
+    return await _get_user_out(db, uid)
+
+
+
+@router.patch("/profile", response_model=UserOut)
+async def update_profile(body: UpdateProfileRequest, request: Request, db: Connection = Depends(get_db)):
+    uid = _session_user_id(request)
+    await db.execute("UPDATE users SET display_name = ? WHERE id = ?", (body.display_name, uid))
+    await db.commit()
     return await _get_user_out(db, uid)

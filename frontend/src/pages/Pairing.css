@@ -131,3 +131,24 @@
 .pairing-mode-toggle:hover {
   color: var(--color-accent);
 }
+
+.pairing-solo-skip {
+  background: none;
+  border: none;
+  padding: 8px;
+  font-family: var(--font-sans-light);
+  font-size: 13px;
+  color: var(--color-text-light);
+  cursor: pointer;
+  text-align: center;
+}
+
+.pairing-solo-skip:hover {
+  color: var(--color-text-muted);
+}
+
+.pairing-error {
+  font-size: var(--text-sm);
+  color: var(--color-no, #e05a3a);
+  text-align: center;
+}
