@@ -6,6 +6,7 @@ import random
 from database import get_db
 from models import CatalogItem, RespondRequest
 from routers.auth import _session_user_id
+from ws import manager
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -47,3 +48,39 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
         (uid, body.item_id, body.response),
     )
     await db.commit()
+
+    # Check if this created a new match — broadcast to couple if so
+    if body.response == "yes":
+        cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+        user_row = await cur.fetchone()
+        if user_row and user_row["couple_id"]:
+            couple_id = user_row["couple_id"]
+            # Get partner id
+            cur = await db.execute("SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,))
+            couple = await cur.fetchone()
+            partner_id = couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
+            # Check if partner also said yes to this item
+            cur = await db.execute(
+                "SELECT 1 FROM user_responses WHERE user_id = ? AND item_id = ? AND response = 'yes'",
+                (partner_id, body.item_id)
+            )
+            partner_yes = await cur.fetchone()
+            if partner_yes:
+                # It's a match! Get the item details and broadcast
+                cur = await db.execute(
+                    "SELECT id, title, category, description, emoji, tier FROM catalog_items WHERE id = ?",
+                    (body.item_id,)
+                )
+                match_item = await cur.fetchone()
+                if match_item:
+                    await manager.broadcast(couple_id, {
+                        "type": "match",
+                        "item": {
+                            "id": match_item["id"],
+                            "title": match_item["title"],
+                            "category": match_item["category"],
+                            "description": match_item["description"],
+                            "emoji": match_item["emoji"],
+                            "tier": match_item["tier"],
+                        }
+                    })

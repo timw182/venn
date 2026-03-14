@@ -1,27 +1,17 @@
-import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import FloatingHearts from "../shared/FloatingHearts";
-import AnimatedKnot from "../shared/AnimatedKnot";
 import BottomNav from "./BottomNav";
-import client from "../../api/client";
+import { useMatches } from "../../context/MatchContext";
 import "./Shell.css";
 
 export default function Shell() {
-  const [newMatchCount, setNewMatchCount] = useState(0);
-
-  useEffect(() => {
-    client
-      .get("/matches")
-      .then((matches) => setNewMatchCount(matches.filter((m) => !m.seen).length))
-      .catch(() => {});
-  }, []);
+  const { newMatchCount } = useMatches();
 
   return (
     <div className="shell">
       <FloatingHearts />
       <header className="shell-header">
-        <AnimatedKnot size={28} />
-        <span className="shell-wordmark">kinklink</span>
+        <img src="/logo800.svg" alt="kinklink" className="shell-logo" />
       </header>
       <main className="shell-content">
         <Outlet />

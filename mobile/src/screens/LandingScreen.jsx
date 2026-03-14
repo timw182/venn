@@ -110,7 +110,7 @@ export default function LandingScreen() {
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <LogoMark size="lg" />
-            <Text style={styles.tagline}>discover what you <Text style={styles.taglineEm}>both</Text> want</Text>
+            <Text style={styles.tagline}>Turn curiosity into connection.</Text>
           </View>
 
           <View style={styles.features}>
@@ -179,7 +179,7 @@ export default function LandingScreen() {
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
-                placeholder="Pick something just for you"
+                placeholder={mode === 'login' ? 'Enter your username' : 'Pick something just for you'}
                 placeholderTextColor={colors.textLight}
                 autoCapitalize="none"
                 autoCorrect={false}

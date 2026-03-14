@@ -65,24 +65,25 @@ export default function Landing() {
       <div className="landing-orb landing-orb-2" />
       <div className="landing-orb landing-orb-3" />
 
+      {/* ── BRAND — always visible, never moves ── */}
+      <div className="landing-brand">
+        <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg" />
+        <p className="landing-tagline">
+          Turn curiosity into connection.
+        </p>
+      </div>
+
+      {/* ── CONTENT — animates between hero and form ── */}
       <AnimatePresence mode="wait">
         {mode === null ? (
-          /* ── HERO ── */
           <motion.div
             key="hero"
-            className="landing-hero"
-            initial={{ opacity: 0, y: 24 }}
+            className="landing-below-brand"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="landing-brand">
-              <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg" />
-              <p className="landing-tagline">
-                discover what you <em>both</em> want
-              </p>
-            </div>
-
             <div className="landing-features">
               {features.map((f, i) => (
                 <motion.div
@@ -90,7 +91,7 @@ export default function Landing() {
                   className="landing-feature"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + i * 0.1, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ delay: 0.1 + i * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <span className="landing-feature-icon">{f.icon}</span>
                   <div>
@@ -105,7 +106,7 @@ export default function Landing() {
               className="landing-cta"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
+              transition={{ delay: 0.35, duration: 0.4 }}
             >
               <Button variant="primary" size="lg" fullWidth onClick={() => openForm("register")}>
                 Get started
@@ -123,26 +124,20 @@ export default function Landing() {
               <span className="landing-footer-dot">·</span>
               <a href="https://instagram.com/kinklink" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Instagram</a>
             </footer>
-
           </motion.div>
+
         ) : (
-          /* ── AUTH FORM ── */
           <motion.div
             key="form"
-            className="landing-form-wrap"
-            initial={{ opacity: 0, y: 24 }}
+            className="landing-below-brand"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
-            <button className="landing-back" onClick={() => setMode(null)}>
-              ← back
-            </button>
-
-            <div className="landing-brand landing-brand-sm">
-              <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg landing-logo-svg-sm" />
-              <p className="landing-subtitle">{mode === "login" ? "Welcome back" : "Create your account"}</p>
-            </div>
+            <p className="landing-subtitle">
+              {mode === "login" ? "Welcome back" : "Create your account"}
+            </p>
 
             <AnimatePresence mode="wait">
               <motion.form
@@ -176,7 +171,7 @@ export default function Landing() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Pick something just for you"
+                    placeholder={mode === "login" ? "Enter your username" : "Pick something just for you"}
                     required
                     autoComplete="username"
                   />
@@ -208,11 +203,17 @@ export default function Landing() {
             </AnimatePresence>
 
             <div className="landing-toggle">
-              <span className="text-muted">{mode === "login" ? "Don't have an account?" : "Already have an account?"}</span>
+              <span className="text-muted">
+                {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+              </span>
               <button className="landing-toggle-link" onClick={() => openForm(mode === "login" ? "register" : "login")}>
                 {mode === "login" ? "Create one" : "Sign in"}
               </button>
             </div>
+
+            <button className="landing-back" onClick={() => setMode(null)}>
+              ← back
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

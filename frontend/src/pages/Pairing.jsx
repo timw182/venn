@@ -11,17 +11,16 @@ import FloatingHearts from "../components/shared/FloatingHearts";
 export default function Pairing() {
   const { code: urlCode } = useParams();
   const [mode, setMode] = useState(urlCode ? "join" : "create");
-
-  // Already paired — go to browse
-  useEffect(() => {
-    if (user?.coupleId) navigate(ROUTES.BROWSE);
-  }, [user?.coupleId]);
-
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState(urlCode || "");
   const [copied, setCopied] = useState(false);
   const { user, pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Already paired — go to browse
+  useEffect(() => {
+    if (user?.coupleId) navigate(ROUTES.BROWSE);
+  }, [user?.coupleId]);
 
   useEffect(() => {
     if (mode === "create" && !inviteCode) {

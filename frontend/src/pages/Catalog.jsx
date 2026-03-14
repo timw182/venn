@@ -4,6 +4,7 @@ import CategoryPicker from "../components/catalog/CategoryPicker";
 import CardStack from "../components/catalog/CardStack";
 import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
+import { useMatches } from "../context/MatchContext";
 import "./Catalog.css";
 
 const LS_KEY = "kl_responses";
@@ -30,6 +31,21 @@ export default function Catalog() {
   const [lastResponse, setLastResponse] = useState(null);
   const shownMatchIds = useRef(new Set());
   const matchTimerRef = useRef(null); // { item, response }
+  const { latestNewMatch, dismissLatest, refetch } = useMatches();
+  // React to partner-triggered matches detected by polling
+  useEffect(() => {
+    if (!latestNewMatch) return;
+    const item = catalog.find((i) => i.id === latestNewMatch.id);
+    if (item) {
+      clearTimeout(matchTimerRef.current);
+      setTimeout(() => {
+        setMatchItem(item);
+        matchTimerRef.current = setTimeout(() => { setMatchItem(null); dismissLatest(); }, 4000);
+      }, 200);
+    }
+  }, [latestNewMatch]);
+
+
 
   useEffect(() => {
     Promise.all([client.get("/catalog"), client.get("/catalog/responses")])
@@ -95,29 +111,8 @@ export default function Catalog() {
         saveLocalResponses(next);
         return next;
       });
-      client.post("/catalog/respond", { item_id: itemId, response }).catch(() => {});
+      client.post("/catalog/respond", { item_id: itemId, response }).then(() => { if (response === "yes") refetch(); }).catch(() => {});
 
-      if (response === "yes") {
-        client
-          .get("/matches")
-          .then((matches) => {
-            const isNewMatch = matches.some(
-              (m) => String(m.id) === String(itemId) && !shownMatchIds.current.has(itemId)
-            );
-            if (isNewMatch) {
-              shownMatchIds.current.add(itemId);
-              const item = catalog.find((i) => i.id === itemId);
-              if (item) {
-                clearTimeout(matchTimerRef.current);
-                setTimeout(() => {
-                  setMatchItem(item);
-                  matchTimerRef.current = setTimeout(() => setMatchItem(null), 3000);
-                }, 400);
-              }
-            }
-          })
-          .catch(() => {});
-      }
     },
     [catalog],
   );
@@ -131,14 +126,16 @@ export default function Catalog() {
         </div>
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
         <div className="catalog-desktop-layout">
-          <div className="catalog-pile catalog-pile-no">
-            <div className="catalog-pile-stack">
-              {Array.from({ length: Math.min(noCount, 4) }).map((_, i) => (
-                <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * 4}deg) translateY(${i * -2}px)` }} />
-              ))}
+          {noCount > 0 && categoryItems.length > 0 && (
+            <div className="catalog-pile catalog-pile-no">
+              <div className="catalog-pile-stack">
+                {Array.from({ length: Math.min(noCount, 4) }).map((_, i) => (
+                  <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * 4}deg) translateY(${i * -2}px)` }} />
+                ))}
+              </div>
+              <span className="catalog-pile-label">✕ {noCount}</span>
             </div>
-            <span className="catalog-pile-label">✕ {noCount}</span>
-          </div>
+          )}
 
           <CardStack
             items={categoryItems}
@@ -148,14 +145,16 @@ export default function Catalog() {
             onUndo={lastResponse ? handleUndo : null}
           />
 
-          <div className="catalog-pile catalog-pile-yes">
-            <div className="catalog-pile-stack">
-              {Array.from({ length: Math.min(yesCount, 4) }).map((_, i) => (
-                <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * -4}deg) translateY(${i * -2}px)` }} />
-              ))}
+          {yesCount > 0 && categoryItems.length > 0 && (
+            <div className="catalog-pile catalog-pile-yes">
+              <div className="catalog-pile-stack">
+                {Array.from({ length: Math.min(yesCount, 4) }).map((_, i) => (
+                  <div key={i} className="catalog-pile-card" style={{ transform: `rotate(${(i - 1.5) * -4}deg) translateY(${i * -2}px)` }} />
+                ))}
+              </div>
+              <span className="catalog-pile-label">✓ {yesCount}</span>
             </div>
-            <span className="catalog-pile-label">✓ {yesCount}</span>
-          </div>
+          )}
         </div>
       </div>
     </motion.div>

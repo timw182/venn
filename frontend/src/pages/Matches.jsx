@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
+import { useMatches } from "../context/MatchContext";
 import "./Matches.css";
 
 function MatchCard({ match, index, onSeen, onRemove }) {
@@ -81,15 +82,9 @@ function MatchCard({ match, index, onSeen, onRemove }) {
 }
 
 export default function Matches() {
+  const { matches: allMatches, refetch } = useMatches();
   const [filter, setFilter] = useState("all");
-  const [allMatches, setAllMatches] = useState([]);
 
-  useEffect(() => {
-    client
-      .get("/matches")
-      .then(setAllMatches)
-      .catch(() => {});
-  }, []);
 
   function handleSeen(itemId) {
     client.post(`/matches/${itemId}/seen`).catch(() => {});

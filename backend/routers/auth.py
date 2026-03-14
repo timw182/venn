@@ -99,9 +99,11 @@ async def logout(request: Request):
     request.session.clear()
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me")
 async def me(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = request.session.get("user_id")
+    if not uid:
+        return None  # 200 with null body — avoids noisy 401 in browser console
     return await _get_user_out(db, uid)
 
 

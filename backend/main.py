@@ -2,7 +2,7 @@ import os
 import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -15,6 +15,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from database import init_db
 from seed import seed
 from routers import auth, pairing, catalog, matches, mood
+from ws import manager
+from database import get_db
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -65,7 +67,7 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
     session_cookie="kl_session",
-    max_age=60 * 60 * 24 * 7,  # 7 days
+    max_age=60 * 60 * 3,  # 3 hours
     https_only=True,
     same_site="lax",
     domain=COOKIE_DOMAIN,
@@ -84,6 +86,33 @@ app.include_router(pairing.router, prefix="/api")
 app.include_router(catalog.router, prefix="/api")
 app.include_router(matches.router, prefix="/api")
 app.include_router(mood.router, prefix="/api")
+
+
+@app.websocket("/api/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    uid = websocket.session.get("user_id")
+    if not uid:
+        await websocket.close(code=4001)
+        return
+
+    async with get_db() as db:
+        cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+        row = await cur.fetchone()
+
+    if not row or not row["couple_id"]:
+        await websocket.close(code=4002)
+        return
+
+    couple_id = row["couple_id"]
+    await manager.connect(websocket, couple_id)
+    try:
+        while True:
+            # Keep connection alive; server pushes events, client just pings
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, couple_id)
 
 
 @app.get("/api/health")

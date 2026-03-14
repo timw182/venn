@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     client
       .get("/auth/me")
-      .then((raw) => setUser(toUser(raw)))
+      .then((raw) => { if (raw) setUser(toUser(raw)); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
