@@ -5,7 +5,6 @@ import { useAuth } from "../context/useAuth";
 import Button from "../components/shared/Button";
 import { ROUTES } from "../lib/constants";
 import "./Landing.css";
-import FloatingHearts from "../components/shared/FloatingHearts";
 
 const features = [
   {
@@ -60,7 +59,6 @@ export default function Landing() {
 
   return (
     <main className="landing">
-      <FloatingHearts />
       {/* Atmospheric orbs */}
       <div className="landing-orb landing-orb-1" />
       <div className="landing-orb landing-orb-2" />

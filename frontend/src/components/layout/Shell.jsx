@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import FloatingHearts from "../shared/FloatingHearts";
 import BottomNav from "./BottomNav";
 import { useMatches } from "../../context/MatchContext";
 import client from "../../api/client";
@@ -46,7 +45,6 @@ export default function Shell() {
 
   return (
     <div className="shell">
-      <FloatingHearts />
       <header className="shell-header">
         <img src="/venn_hori.png" alt="Venn" className="shell-logo" />
       </header>

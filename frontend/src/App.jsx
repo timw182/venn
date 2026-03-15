@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import FloatingHearts from "./components/shared/FloatingHearts";
 import { useAuth } from "./context/useAuth";
 import Shell from "./components/layout/Shell";
 import Landing from "./pages/Landing";
@@ -28,7 +29,9 @@ function PairGuard() {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <FloatingHearts />
+      <Routes>
       {/* Public */}
       <Route path={ROUTES.LOGIN} element={<Landing />} />
 
@@ -54,5 +57,6 @@ export default function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
     </Routes>
+    </>
   );
 }
