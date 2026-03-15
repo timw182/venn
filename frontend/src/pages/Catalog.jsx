@@ -126,7 +126,7 @@ export default function Catalog() {
   // React to partner-triggered matches
   useEffect(() => {
     if (!latestNewMatch) return;
-    burstConfetti();
+    setTimeout(burstConfetti, 650);
     const item = catalog.find((i) => i.id === latestNewMatch.id);
     if (item) {
       clearTimeout(matchTimerRef.current);
