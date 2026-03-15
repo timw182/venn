@@ -94,10 +94,10 @@
 }
 
 .btn-danger {
-  background: var(--color-no, #e05c5c);
+  background: var(--color-no);
   color: #fff;
   border: none;
 }
 .btn-danger:hover:not(:disabled) {
-  background: #c94444;
+  background: #d4604e;
 }

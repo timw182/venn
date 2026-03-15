@@ -9,17 +9,17 @@ import FloatingHearts from "../components/shared/FloatingHearts";
 
 const features = [
   {
-    icon: "🔒",
+    icon: "/lock-key-duotone.svg",
     title: "No rejection",
     body: "Neither of you ever sees what the other said no to. Only matches surface.",
   },
   {
-    icon: "✨",
+    icon: "/moon-stars-duotone.svg",
     title: "Blind matching",
     body: "Both swipe independently. A match only appears when you both say yes.",
   },
   {
-    icon: "🫂",
+    icon: "/users-duotone.svg",
     title: "Just you two",
     body: "Fully private, self-hosted. No ads, no strangers, no data harvesting.",
   },
@@ -93,7 +93,7 @@ export default function Landing() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + i * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <span className="landing-feature-icon">{f.icon}</span>
+                  <img src={f.icon} alt={f.title} className="landing-feature-icon" />
                   <div>
                     <p className="landing-feature-title">{f.title}</p>
                     <p className="landing-feature-body">{f.body}</p>

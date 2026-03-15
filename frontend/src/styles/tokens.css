@@ -1,38 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 :root {
-  /* Surface palette — warm, not clinical */
-  --color-bg: #FAF6F1;
+  /* Surface palette — soft, modern */
+  --color-bg: #FAF7FC;
   --color-surface: #FFFFFF;
-  --color-surface-alt: #F3EDE4;
-  --color-surface-hover: #EDE5D9;
-  --color-border: #E8DFD3;
-  --color-border-strong: #D4C8B8;
+  --color-surface-alt: #F4EFF8;
+  --color-surface-hover: #EDE5F4;
+  --color-border: #E4D8EE;
+  --color-border-strong: #D0BFE0;
 
-  /* Text — dark but not pure black */
-  --color-text: #2C2520;
-  --color-text-muted: #8C7E72;
-  --color-text-light: #B5A898;
-  --color-text-inverse: #FAF6F1;
+  /* Text — deep violet, not harsh black */
+  --color-text: #2D1F3D;
+  --color-text-muted: #5C4A72;
+  --color-text-light: #7A6490;
+  --color-text-inverse: #FAF7FC;
 
-  /* Accent — terracotta / amber range */
-  --color-accent: #d89848;
-  --color-accent-hover: #be8536;
-  --color-accent-soft: #f0ddb8;
-  --color-accent-glow: rgba(216, 152, 72, 0.15);
-  --color-accent-bg: #fdf8ee;
+  /* Accent — rose */
+  --color-accent: #C4547A;
+  --color-accent-hover: #AD3F65;
+  --color-accent-soft: #F4D0DC;
+  --color-accent-glow: rgba(196, 84, 122, 0.15);
+  --color-accent-bg: #FDF5F8;
 
   /* Semantic */
-  --color-yes: #7B9E6F;
-  --color-yes-soft: rgba(123, 158, 111, 0.12);
-  --color-no: #C47474;
-  --color-no-soft: rgba(196, 116, 116, 0.12);
-  --color-maybe: #D4B878;
-  --color-maybe-soft: rgba(212, 184, 120, 0.12);
-  --color-match: #d89848;
+  --color-yes: #9B80D4;
+  --color-yes-soft: rgba(155, 128, 212, 0.12);
+  --color-no: #F07A6A;
+  --color-no-soft: rgba(240, 122, 106, 0.12);
+  --color-maybe: #E8A8C0;
+  --color-maybe-soft: rgba(232, 168, 192, 0.12);
+  --color-match: #C4547A;
+
+  /* Brand palette */
+  --color-coral: #F07A6A;
+  --color-rose: #C4547A;
+  --color-violet: #9B80D4;
+  --color-deep-violet: #4A3570;
+  --color-dark-bg: #1A0E2E;
 
   /* Typography */
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Comfortaa', 'Varela Round', sans-serif;
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --text-xs: 0.75rem;
@@ -80,15 +87,15 @@
   --radius-xl: 28px;
   --radius-full: 9999px;
 
-  /* Shadows — warm-tinted */
-  --shadow-xs: 0 1px 2px rgba(44, 37, 32, 0.04);
-  --shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.06);
-  --shadow-md: 0 4px 12px rgba(44, 37, 32, 0.08);
-  --shadow-lg: 0 8px 30px rgba(44, 37, 32, 0.12);
-  --shadow-xl: 0 16px 50px rgba(44, 37, 32, 0.16);
-  --shadow-card: 0 2px 8px rgba(44, 37, 32, 0.06), 0 0 1px rgba(44, 37, 32, 0.1);
-  --shadow-card-hover: 0 8px 24px rgba(44, 37, 32, 0.1), 0 0 1px rgba(44, 37, 32, 0.12);
-  --shadow-glow: 0 0 30px rgba(196, 117, 75, 0.2);
+  /* Shadows — violet-tinted */
+  --shadow-xs: 0 1px 2px rgba(45, 31, 61, 0.04);
+  --shadow-sm: 0 1px 3px rgba(45, 31, 61, 0.06);
+  --shadow-md: 0 4px 12px rgba(45, 31, 61, 0.08);
+  --shadow-lg: 0 8px 30px rgba(45, 31, 61, 0.12);
+  --shadow-xl: 0 16px 50px rgba(45, 31, 61, 0.16);
+  --shadow-card: 0 2px 8px rgba(45, 31, 61, 0.06), 0 0 1px rgba(45, 31, 61, 0.1);
+  --shadow-card-hover: 0 8px 24px rgba(45, 31, 61, 0.1), 0 0 1px rgba(45, 31, 61, 0.12);
+  --shadow-glow: 0 0 30px rgba(196, 84, 122, 0.2);
 
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
