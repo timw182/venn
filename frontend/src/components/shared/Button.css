@@ -49,15 +49,21 @@
 }
 
 .btn-secondary {
-  background: var(--color-surface);
+  background: none;
   color: var(--color-text);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  background-image:
+    linear-gradient(var(--color-surface), var(--color-surface)),
+    var(--grad-border);
+  background-origin: padding-box, border-box;
   box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-surface-alt);
-  border-color: var(--color-border-strong);
+  background-image:
+    linear-gradient(var(--color-surface-alt), var(--color-surface-alt)),
+    linear-gradient(135deg, #9B80D4 0%, #F07A6A 100%);
 }
 
 .btn-ghost {
