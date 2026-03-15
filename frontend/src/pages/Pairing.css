@@ -152,3 +152,8 @@
   color: var(--color-no, #e05a3a);
   text-align: center;
 }
+
+.pairing-code-placeholder {
+  color: var(--color-text-light);
+  opacity: 0.4;
+}

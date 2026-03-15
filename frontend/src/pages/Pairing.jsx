@@ -26,7 +26,7 @@ export default function Pairing() {
     if (mode === "create" && !inviteCode) {
       createPairingCode()
         .then(setInviteCode)
-        .catch(() => {});
+        .catch((err) => setCodeError(err?.message || "Failed to generate code. Please refresh."));
     }
   }, [mode, inviteCode, createPairingCode]);
 
@@ -58,6 +58,7 @@ export default function Pairing() {
   }, [mode, inviteCode]);
 
   const [joinError, setJoinError] = useState("");
+  const [codeError, setCodeError] = useState("");
 
   async function handleJoin(e) {
     e.preventDefault();
@@ -97,19 +98,23 @@ export default function Pairing() {
 
         {mode === "create" ? (
           <div className="pairing-create">
-            <div className="pairing-code-display">
-              {inviteCode.split("").map((char, i) => (
-                <motion.span
-                  key={i}
-                  className="pairing-code-char"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 + 0.2 }}
-                >
-                  {char}
-                </motion.span>
-              ))}
-            </div>
+            {codeError ? (
+              <p className="pairing-error">{codeError}</p>
+            ) : (
+              <div className="pairing-code-display">
+                {(inviteCode || "------").split("").map((char, i) => (
+                  <motion.span
+                    key={i}
+                    className={"pairing-code-char" + (!inviteCode ? " pairing-code-placeholder" : "")}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: inviteCode ? i * 0.05 + 0.2 : 0 }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </div>
+            )}
 
             <Button variant="primary" size="md" fullWidth onClick={handleCopy}>
               {copied ? "Copied!" : "Copy code"}
