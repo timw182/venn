@@ -9,6 +9,7 @@ import { useAuth } from '../context/useAuth';
 import { useMatches } from '../context/MatchContext';
 import { TabDirectionProvider, useTabDirection } from '../context/TabDirectionContext';
 import { SCREENS } from '../lib/constants';
+import FloatingParticles from '../components/FloatingParticles';
 import { colors, fonts } from '../theme/tokens';
 
 import LandingScreen from '../screens/LandingScreen';
@@ -116,6 +117,7 @@ function MainTabs() {
   return (
     <TabDirectionProvider>
     <View style={{ flex: 1 }}>
+      <FloatingParticles />
       <Tab.Navigator
         screenOptions={{ headerShown: false }}
         tabBar={(props) => <CustomTabBar {...props} matchCount={newMatchCount} />}
