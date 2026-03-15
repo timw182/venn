@@ -42,12 +42,14 @@ export default function App() {
         <Route path={`${ROUTES.JOIN}/:code?`} element={<Pairing />} />
         <Route path={ROUTES.CONNECTED} element={<Connected />} />
 
+        {/* Admin — no pairing required */}
+        <Route path="/admin" element={<Admin />} />
+
         {/* Paired required */}
         <Route element={<PairGuard />}>
           <Route element={<Shell />}>
             <Route path={ROUTES.BROWSE} element={<Catalog />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/admin" element={<Admin />} />
             <Route path="/experts" element={<Experts />} />
             <Route path={ROUTES.MATCHES} element={<Matches />} />
             <Route path={ROUTES.MOOD} element={<Mood />} />
