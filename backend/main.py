@@ -109,6 +109,7 @@ async def websocket_endpoint(websocket: WebSocket):
     print("[WS DEBUG] cookies:", list(websocket.cookies.keys()), "session:", dict(websocket.session), flush=True)
     uid = websocket.session.get("user_id")
     if not uid:
+        await websocket.accept()
         await websocket.close(code=4001)
         return
 
@@ -117,6 +118,7 @@ async def websocket_endpoint(websocket: WebSocket):
         row = await cur.fetchone()
 
     if not row or not row["couple_id"]:
+        await websocket.accept()
         await websocket.close(code=4002)
         return
 
