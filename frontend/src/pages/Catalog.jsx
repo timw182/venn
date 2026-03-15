@@ -6,6 +6,7 @@ import CardStack from "../components/catalog/CardStack";
 import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
 import { useMatches } from "../context/MatchContext";
+import { useAuth } from "../context/useAuth";
 import "./Catalog.css";
 
 const LS_KEY = "kl_responses";
@@ -87,6 +88,8 @@ function CardPile({ items, side, totalCount }) {
 
 // ── Catalog ────────────────────────────────────────────────────────────────────
 export default function Catalog() {
+  const { user } = useAuth();
+  const isLocked = !user?.coupleId;
   const [activeCategory, setActiveCategory] = useState("foreplay");
   const [catalog, setCatalog] = useState([]);
   const [responses, setResponses] = useState(loadLocalResponses);
@@ -232,6 +235,7 @@ export default function Catalog() {
           {showPiles && <CardPile items={recentNo}  side="no"  totalCount={catalog.filter(i => i.category === activeCategory && responses[String(i.id)] === "no").length} />}
 
           <CardStack
+            locked={isLocked}
             items={categoryItems}
             onRespond={handleRespond}
             matchItem={matchItem}

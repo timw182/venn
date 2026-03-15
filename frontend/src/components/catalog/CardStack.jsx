@@ -9,7 +9,7 @@ const MAX_ROTATION = 12;
 const VISIBLE_CARDS = 3;
 
 // ── TopCard: own x/y per card, so each new card starts at origin ──────────────
-function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwipe, isAnimating }) {
+function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwipe, isAnimating, locked }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
@@ -49,7 +49,7 @@ function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwip
       animate={controls}
       style={{ x, y, rotate, zIndex: VISIBLE_CARDS, userSelect: "none", cursor: isAnimating ? "default" : "grab" }}
       whileDrag={{ cursor: "grabbing" }}
-      drag={!isAnimating}
+      drag={!isAnimating && !locked}
       dragMomentum={false}
       dragElastic={0.6}
       onDrag={handleDrag}
@@ -80,7 +80,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
   useEffect(() => { itemsRef.current = items; }, [items]);
 
   useEffect(() => {
-    if (!responding.current) setLocalItems(items);
+    if (!responding.current) setLocalItems(locked ? items.slice(0,1) : items);
   }, [items]);
 
   const handleDragUpdate = useCallback((ox, oy) => {
@@ -173,6 +173,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
               onDragUpdate={handleDragUpdate}
               onSwipe={triggerResponse}
               isAnimating={isAnimating}
+                locked={locked}
             />
           )}
         </AnimatePresence>
