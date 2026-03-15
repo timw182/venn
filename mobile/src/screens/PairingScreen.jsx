@@ -9,6 +9,7 @@ import { SCREENS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import * as Clipboard from 'expo-clipboard';
+import { Feather } from '@expo/vector-icons';
 import client from '../api/client';
 
 export default function PairingScreen({ navigation }) {
@@ -77,6 +78,11 @@ export default function PairingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {navigation.canGoBack() && (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Feather name="arrow-left" size={22} color={colors.text} />
+        </TouchableOpacity>
+      )}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
 
   header: { alignItems: 'center', gap: space[3] },
   emoji: { fontSize: 48 },
-  title: { fontFamily: fonts.serifItalic, fontSize: 28, color: colors.text },
+  title: { fontFamily: fonts.serif, fontSize: 28, color: colors.text },
   subtitle: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
 
   createSection: { width: '100%', gap: space[5], alignItems: 'center' },
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  codeCharText: { fontFamily: fonts.serifBoldItalic, fontSize: 22, color: colors.accent, letterSpacing: 1 },
+  codeCharText: { fontFamily: fonts.serifBold, fontSize: 22, color: colors.accent, letterSpacing: 1 },
 
   waiting: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   pulse: {
@@ -201,7 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     paddingVertical: 16,
     paddingHorizontal: space[5],
-    fontFamily: fonts.serifBoldItalic,
+    fontFamily: fonts.serifBold,
     fontSize: 28,
     letterSpacing: 8,
     color: colors.accent,
@@ -214,5 +220,6 @@ const styles = StyleSheet.create({
   modeToggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.accent, textDecorationLine: 'underline' },
 
   skipBtn: { padding: space[2] },
+  backBtn: { padding: space[4], alignSelf: 'flex-start' },
   skipText: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textLight, textAlign: 'center' },
 });
