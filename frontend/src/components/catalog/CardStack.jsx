@@ -147,17 +147,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
 
   return (
     <div className="card-stack-wrapper">
-      {/* Confetti burst */}
-      {confetti.map((p) => (
-        <motion.div
-          key={p.id}
-          style={{ left: `${p.x}%`, backgroundColor: p.color, width: p.size, height: p.size * 0.6, borderRadius: 2, position: "fixed", top: "40%", zIndex: 10001, pointerEvents: "none" }}
-          initial={{ y: 0, x: 0, opacity: 1, rotate: p.angle, scale: 1 }}
-          animate={{ y: p.drop, x: p.drift, opacity: 0, rotate: p.angle + 360, scale: 0.4 }}
-          transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
-        />
-      ))}
-
       {/* Match overlay */}
       <AnimatePresence>
         {matchItem && (
