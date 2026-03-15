@@ -81,12 +81,39 @@
 }
 
 .bottom-nav-dot {
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent);
+  display: none; /* replaced by slime blob on desktop */
+}
+
+/* ── Slime blob SVG overlay ─────────────────────────────────────────────── */
+.bottom-nav-slime {
+  display: none; /* mobile: off */
+}
+
+@media (min-width: 768px) {
+  .bottom-nav-slime {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+  }
+
+  /* tabs sit above the SVG layer */
+  .bottom-nav-tab {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* active tab: icon uses white/light tint when blob is behind it */
+  .bottom-nav-tab.active .bottom-nav-icon svg {
+    stroke: #fff;
+    filter: drop-shadow(0 0 1px rgba(0,0,0,0.15));
+  }
+  .bottom-nav-tab.active .bottom-nav-label {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
 }
