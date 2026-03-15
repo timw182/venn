@@ -17,7 +17,7 @@ export default function Privacy() {
 
         <section className="privacy-section">
           <h2 className="privacy-section-title">Who we are</h2>
-          <p>KinkLink is a private couples app designed to help partners explore shared interests together. It is not affiliated with any third-party advertising or data broker.</p>
+          <p>Venn is a private couples app designed to help partners explore shared interests together. It is not affiliated with any third-party advertising or data broker.</p>
         </section>
 
         <section className="privacy-section">
@@ -54,7 +54,7 @@ export default function Privacy() {
 
         <section className="privacy-section">
           <h2 className="privacy-section-title">Contact</h2>
-          <p>Questions about this policy? Reach us at <a href="mailto:hello@kinklink.lu">hello@kinklink.lu</a>.</p>
+          <p>Questions about this policy? Reach us at <a href="mailto:hello@venn.lu">hello@venn.lu</a>.</p>
         </section>
 
       </div>
