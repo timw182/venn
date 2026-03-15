@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
 
   brand: { alignItems: 'center', gap: space[3] },
   tagline: { fontFamily: fonts.sansLight, fontSize: 18, color: colors.textMuted, letterSpacing: 0.3 },
-  taglineEm: { fontFamily: fonts.serifItalic, color: colors.accent },
+  taglineEm: { fontFamily: fonts.serif, color: colors.accent },
 
   features: { gap: space[3] },
   featureCard: {

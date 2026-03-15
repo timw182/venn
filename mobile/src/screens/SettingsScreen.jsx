@@ -10,7 +10,6 @@ export default function SettingsScreen({ navigation }) {
   const { user, logout, updateProfile } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saved, setSaved] = useState(false);
-
   const [saveError, setSaveError] = useState('');
 
   async function handleSave() {
@@ -31,63 +30,67 @@ export default function SettingsScreen({ navigation }) {
   return (
     <SlideView>
       <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Settings</Text>
+        <ScrollView contentContainerStyle={styles.scroll}>
 
-        <View style={styles.sections}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Profile</Text>
-            <View style={styles.field}>
-              <Text style={styles.label}>Display Name</Text>
-              <View style={styles.inputRow}>
-                <TextInput
-                  style={styles.input}
-                  value={displayName}
-                  onChangeText={setDisplayName}
-                  placeholder="Your name"
-                  placeholderTextColor={colors.textLight}
-                />
-                <Button variant="secondary" size="sm" onPress={handleSave}>
-                  {saved ? 'Saved!' : 'Save'}
-                </Button>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>Settings</Text>
+            <TouchableOpacity onPress={handleLogout} style={styles.signOutBtn}>
+              <Text style={styles.signOutText}>Sign out</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.sections}>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Profile</Text>
+              <View style={styles.field}>
+                <Text style={styles.label}>Display Name</Text>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={styles.input}
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    placeholder="Your name"
+                    placeholderTextColor={colors.textLight}
+                  />
+                  <Button variant="secondary" size="sm" onPress={handleSave}>
+                    {saved ? 'Saved!' : 'Save'}
+                  </Button>
+                </View>
+                {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
               </View>
-              {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Partner</Text>
-            {user?.coupleId ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Connected to</Text>
-                <Text style={styles.infoValue}>{user.partnerName}</Text>
-              </View>
-            ) : (
-              <View style={styles.unpaired}>
-                <Text style={styles.unpairedText}>You're not connected to a partner yet.</Text>
-                <Button variant="primary" size="sm" onPress={() => navigation.navigate('Pairing')}>
-                  Connect with a partner
-                </Button>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
-            <View style={styles.about}>
-              <Text style={styles.aboutName}>kinklink</Text>
-              <Text style={styles.aboutDesc}>
-                Discover what you both want — without the awkwardness. Your responses are never shared unless you both say yes.
-              </Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Partner</Text>
+              {user?.coupleId ? (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Connected to</Text>
+                  <Text style={styles.infoValue}>{user.partnerName}</Text>
+                </View>
+              ) : (
+                <View style={styles.unpaired}>
+                  <Text style={styles.unpairedText}>You're not connected to a partner yet.</Text>
+                  <Button variant="primary" size="sm" onPress={() => navigation.navigate('Pairing')}>
+                    Connect with a partner
+                  </Button>
+                </View>
+              )}
             </View>
-          </View>
 
-          <Button variant="ghost" fullWidth onPress={handleLogout}>
-            Sign out
-          </Button>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>About Venn</Text>
+              <View style={styles.about}>
+                <Text style={styles.aboutName}>Venn</Text>
+                <Text style={styles.aboutDesc}>
+                  Discover what you both want — without the awkwardness. Your responses are never shared unless you both say yes.
+                </Text>
+              </View>
+            </View>
+
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </SlideView>
   );
 }
@@ -96,7 +99,21 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: space[5], gap: space[5] },
 
-  title: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text },
+  signOutBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  signOutText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
 
   sections: { gap: space[4] },
   section: {
@@ -133,12 +150,12 @@ const styles = StyleSheet.create({
 
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   unpaired: { gap: space[3] },
-  unpairedText: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted },
+  unpairedText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
   infoLabel: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
-  errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no },
   infoValue: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
+  errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no },
 
   about: { gap: space[2], alignItems: 'center' },
-  aboutName: { fontFamily: fonts.serifItalic, fontSize: 18, color: colors.accent },
-  aboutDesc: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, lineHeight: 19, textAlign: 'center' },
+  aboutName: { fontFamily: fonts.serifBold, fontSize: 18, color: colors.accent },
+  aboutDesc: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted, lineHeight: 19, textAlign: 'center' },
 });

@@ -1,76 +1,85 @@
-import { TouchableOpacity, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, radii, space } from '../theme/tokens';
 
 export default function CategoryPicker({ active, onChange, progress = {} }) {
-  const { width } = useWindowDimensions();
-  const H_PAD = space[4] * 2;
-  const GAP = space[2];
-  const chipWidth = Math.floor((width - H_PAD - GAP * 2) / 3);
+  const activeIdx = CATEGORIES.findIndex((c) => c.key === active);
+  const cat = CATEGORIES[activeIdx] || CATEGORIES[0];
+  const prog = progress[cat.key] || {};
+
+  function prev() {
+    const idx = (activeIdx - 1 + CATEGORIES.length) % CATEGORIES.length;
+    onChange(CATEGORIES[idx].key);
+  }
+  function next() {
+    const idx = (activeIdx + 1) % CATEGORIES.length;
+    onChange(CATEGORIES[idx].key);
+  }
 
   return (
-    <View style={styles.grid}>
-      {CATEGORIES.map((cat) => {
-        const isActive = active === cat.key;
-        const prog = progress[cat.key];
+    <View style={styles.row}>
+      <TouchableOpacity onPress={prev} style={styles.arrow} activeOpacity={0.6}>
+        <Text style={styles.arrowText}>‹</Text>
+      </TouchableOpacity>
 
-        return (
-          <TouchableOpacity
-            key={cat.key}
-            style={[styles.chip, { width: chipWidth }, isActive && styles.chipActive]}
-            onPress={() => onChange(cat.key)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.chipEmoji}>{cat.emoji}</Text>
-            <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>{cat.label}</Text>
-            {prog && prog.total > 0 && (
-              <Text style={[styles.chipCount, isActive && styles.chipCountActive]}>
-                {prog.done}/{prog.total}
-              </Text>
-            )}
-          </TouchableOpacity>
-        );
-      })}
+      <View style={styles.center}>
+        <Text style={styles.emoji}>{cat.emoji}</Text>
+        <Text style={styles.label}>{cat.label}</Text>
+        {prog.total > 0 && (
+          <Text style={styles.count}>{prog.done}/{prog.total}</Text>
+        )}
+      </View>
+
+      <TouchableOpacity onPress={next} style={styles.arrow} activeOpacity={0.6}>
+        <Text style={styles.arrowText}>›</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: space[4],
-    paddingVertical: space[2],
-    rowGap: space[2],
-    columnGap: space[2],
-  },
-  chip: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space[4],
+    paddingVertical: space[3],
+  },
+  arrow: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
     borderRadius: radii.full,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
   },
-  chipActive: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
+  arrowText: {
+    fontSize: 22,
+    color: colors.textMuted,
+    lineHeight: 26,
   },
-  chipEmoji: { fontSize: 12 },
-  chipLabel: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted },
-  chipLabelActive: { color: colors.accent },
-  chipCount: {
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emoji: { fontSize: 18 },
+  label: {
+    fontFamily: fonts.serifBold,
+    fontSize: 16,
+    color: colors.text,
+  },
+  count: {
     fontFamily: fonts.sans,
-    fontSize: 10,
+    fontSize: 12,
     color: colors.textLight,
     backgroundColor: colors.surfaceAlt,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: radii.full,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
   },
-  chipCountActive: { color: colors.accent, backgroundColor: colors.accentBg },
 });

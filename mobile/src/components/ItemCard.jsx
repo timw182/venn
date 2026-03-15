@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   title: {
-    fontFamily: fonts.serifItalic,
+    fontFamily: fonts.serif,
     fontSize: 22,
     color: colors.text,
     letterSpacing: -0.3,

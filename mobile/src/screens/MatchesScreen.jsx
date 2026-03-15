@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
+import { useMatches } from '../context/MatchContext';
 import { useAuth } from '../context/useAuth';
 import SlideView from '../components/SlideView';
 
@@ -63,23 +64,18 @@ function MatchCard({ match, onSeen, onRemove, cardWidth }) {
 
 export default function MatchesScreen() {
   const [filter, setFilter] = useState('all');
-  const [allMatches, setAllMatches] = useState([]);
   const { width } = useWindowDimensions();
   const cardWidth = Math.floor((width - space[4] * 2 - space[3]) / 2);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user?.coupleId) return;
-    client.get('/matches').then(setAllMatches).catch(() => {});
-  }, [user?.coupleId]);
+  const { matches: allMatches, setMatches } = useMatches();
 
   function handleSeen(id) {
     client.post(`/matches/${id}/seen`).catch(() => {});
-    setAllMatches((prev) => prev.map((m) => m.id === id ? { ...m, seen: true } : m));
+    setMatches((prev) => prev.map((m) => m.id === id ? { ...m, seen: true } : m));
   }
 
   function handleRemove(id) {
-    setAllMatches((prev) => prev.filter((m) => m.id !== id));
+    setMatches((prev) => prev.filter((m) => m.id !== id));
     client.delete(`/matches/${id}`).catch(() => {});
   }
 
@@ -144,7 +140,7 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: { padding: space[5], paddingBottom: space[3] },
-  title: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
+  title: { fontFamily: fonts.serif, fontSize: 26, color: colors.text },
   subtitle: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   filters: { flexDirection: 'row', gap: space[2], paddingHorizontal: space[5], paddingBottom: space[3] },
@@ -169,6 +165,7 @@ const styles = StyleSheet.create({
     padding: space[4],
     gap: 6,
     position: 'relative',
+    alignItems: 'center',
   },
   cardNew: { borderColor: colors.accent, backgroundColor: colors.accentBg },
   newDot: {
@@ -195,7 +192,7 @@ const styles = StyleSheet.create({
     gap: space[4],
   },
   detailEmoji: { fontSize: 52 },
-  detailTitle: { fontFamily: fonts.serifItalic, fontSize: 22, color: colors.text, textAlign: 'center' },
+  detailTitle: { fontFamily: fonts.serif, fontSize: 22, color: colors.text, textAlign: 'center' },
   detailDesc: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 21 },
   detailMeta: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   detailCat: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },
@@ -214,7 +211,7 @@ const styles = StyleSheet.create({
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[8] },
   emptyIcon: { fontSize: 48 },
-  emptyTitle: { fontFamily: fonts.serifItalic, fontSize: 20, color: colors.text },
+  emptyTitle: { fontFamily: fonts.serif, fontSize: 20, color: colors.text },
   emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
 
   soloPrompt: {

@@ -36,12 +36,12 @@ const styles = StyleSheet.create({
   },
   icon: { fontSize: 64 },
   title: {
-    fontFamily: fonts.serifItalic,
+    fontFamily: fonts.serif,
     fontSize: 32,
     color: colors.text,
     textAlign: 'center',
   },
   names: { fontFamily: fonts.sans, fontSize: 20, textAlign: 'center', color: colors.textMuted },
   name: { fontFamily: fonts.sansMedium, color: colors.text },
-  amp: { fontFamily: fonts.serifItalic, color: colors.accent },
+  amp: { fontFamily: fonts.serif, color: colors.accent },
 });

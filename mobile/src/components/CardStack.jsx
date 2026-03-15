@@ -9,7 +9,7 @@ import Animated, {
   runOnJS,
   interpolate,
 } from 'react-native-reanimated';
-import ItemCard, { CARD_WIDTH, CARD_HEIGHT, getCardHeight } from './ItemCard';
+import ItemCard, { CARD_WIDTH, getCardHeight } from './ItemCard';
 import { colors, fonts, radii, space } from '../theme/tokens';
 
 const SWIPE_X = 100;
@@ -19,8 +19,10 @@ const VISIBLE = 3;
 
 export default function CardStack({ items = [], onRespond, matchItem, onUndo, availableHeight = 0 }) {
   const [localItems, setLocalItems] = useState(items);
-  const [hint, setHint] = useState(null); // 'yes' | 'no' | 'maybe' | null
+  const [hint, setHint] = useState(null);
   const [exiting, setExiting] = useState(false);
+  const [lastTag, setLastTag] = useState(null); // { label, color }
+  const tagTimer = useRef(null);
   const itemsRef = useRef(items);
   const respondingRef = useRef(false);
 
@@ -28,21 +30,23 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
   const ty = useSharedValue(0);
 
   useEffect(() => { itemsRef.current = items; }, [items]);
-
   useEffect(() => {
     if (!respondingRef.current) setLocalItems(items);
   }, [items]);
 
+  function showTag(response) {
+    clearTimeout(tagTimer.current);
+    const label = response === 'yes' ? '✓  Yes' : response === 'no' ? '✕  No' : '~  Maybe';
+    const color = response === 'yes' ? colors.yes : response === 'no' ? colors.no : colors.maybe;
+    setLastTag({ label, color });
+    tagTimer.current = setTimeout(() => setLastTag(null), 1400);
+  }
+
   function updateHint(x, y) {
-    if (y < -SWIPE_Y && Math.abs(y) > Math.abs(x)) {
-      setHint('maybe');
-    } else if (x > SWIPE_X * 0.6) {
-      setHint('yes');
-    } else if (x < -SWIPE_X * 0.6) {
-      setHint('no');
-    } else {
-      setHint(null);
-    }
+    if (y < -SWIPE_Y && Math.abs(y) > Math.abs(x)) setHint('maybe');
+    else if (x > SWIPE_X * 0.6) setHint('yes');
+    else if (x < -SWIPE_X * 0.6) setHint('no');
+    else setHint(null);
   }
 
   function doRespond(response) {
@@ -51,6 +55,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     setExiting(true);
     setHint(null);
     onRespond?.(localItems[0]?.id, response);
+    showTag(response);
 
     const targetX = response === 'yes' ? 500 : response === 'no' ? -500 : 0;
     const targetY = response === 'maybe' ? -500 : 0;
@@ -62,11 +67,14 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
   }
 
   function finishExit() {
-    tx.value = 0;
-    ty.value = 0;
-    respondingRef.current = false;
-    setExiting(false);
+    // Update items first to avoid blink (old card jumping back to center)
     setLocalItems([...itemsRef.current]);
+    setTimeout(() => {
+      tx.value = 0;
+      ty.value = 0;
+      respondingRef.current = false;
+      setExiting(false);
+    }, 16);
   }
 
   const panGesture = Gesture.Pan()
@@ -76,16 +84,12 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
       runOnJS(updateHint)(e.translationX, e.translationY);
     })
     .onEnd((e) => {
-      const { translationX: x, translationY: y, velocityX, velocityY } = e;
+      const { translationX: x, translationY: y, velocityX } = e;
       const yUp = -y;
-
-      if (yUp > SWIPE_Y && yUp > Math.abs(x)) {
-        runOnJS(doRespond)('maybe');
-      } else if (x > SWIPE_X || velocityX > 500) {
-        runOnJS(doRespond)('yes');
-      } else if (x < -SWIPE_X || velocityX < -500) {
-        runOnJS(doRespond)('no');
-      } else {
+      if (yUp > SWIPE_Y && yUp > Math.abs(x)) runOnJS(doRespond)('maybe');
+      else if (x > SWIPE_X || velocityX > 500) runOnJS(doRespond)('yes');
+      else if (x < -SWIPE_X || velocityX < -500) runOnJS(doRespond)('no');
+      else {
         tx.value = withSpring(0);
         ty.value = withSpring(0);
         runOnJS(setHint)(null);
@@ -100,9 +104,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     ],
   }));
 
-  const hintLabel = hint === 'yes' ? 'YES' : hint === 'no' ? 'NOPE' : hint === 'maybe' ? 'MAYBE' : null;
-  const hintColor = hint === 'yes' ? colors.yes : hint === 'no' ? colors.no : colors.maybe;
-
   if (localItems.length === 0 && !exiting) {
     return (
       <View style={styles.empty}>
@@ -112,6 +113,8 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
       </View>
     );
   }
+
+  const cardH = getCardHeight(availableHeight);
 
   return (
     <View style={styles.wrapper}>
@@ -126,42 +129,41 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
         </View>
       )}
 
-      <View style={[styles.stack, { width: CARD_WIDTH, height: getCardHeight(availableHeight) }]}>
-        {localItems.slice(0, VISIBLE).map((item, i) => {
-          const isTop = i === 0;
-          const scale = 1 - i * 0.04;
-          const yOff = i * 10;
+      {/* Swipe tag */}
+      {lastTag && (
+        <View style={[styles.swipeTag, { backgroundColor: lastTag.color }]}>
+          <Text style={styles.swipeTagText}>{lastTag.label}</Text>
+        </View>
+      )}
 
-          if (isTop) {
+      {/* Card stack */}
+      <View style={[styles.stack, { width: CARD_WIDTH, height: cardH }]}>
+        {localItems.slice(0, VISIBLE).map((item, i) => {
+          if (i === 0) {
             return (
               <GestureDetector key={item.id} gesture={panGesture}>
                 <Animated.View style={[styles.cardPos, { zIndex: VISIBLE - i }, topCardStyle]}>
-                  <ItemCard item={item} hintLabel={hintLabel} hintColor={hintColor} cardHeight={availableHeight} />
+                  <ItemCard item={item}
+                    hintLabel={hint === 'yes' ? 'YES' : hint === 'no' ? 'NOPE' : hint === 'maybe' ? 'MAYBE' : null}
+                    hintColor={hint === 'yes' ? colors.yes : hint === 'no' ? colors.no : colors.maybe}
+                    cardHeight={availableHeight}
+                  />
                 </Animated.View>
               </GestureDetector>
             );
           }
-
           return (
-            <Animated.View
-              key={item.id}
-              style={[styles.cardPos, {
-                zIndex: VISIBLE - i,
-                transform: [{ scale }, { translateY: yOff }],
-              }]}
-            >
+            <Animated.View key={item.id} style={[styles.cardPos, {
+              zIndex: VISIBLE - i,
+              transform: [{ scale: 1 - i * 0.04 }, { translateY: i * 10 }],
+            }]}>
               <ItemCard item={item} cardHeight={availableHeight} />
             </Animated.View>
           );
         })}
       </View>
 
-      <View style={styles.hints}>
-        <Text style={[styles.hintLabel, { color: colors.no, opacity: hint === 'no' ? 1 : 0 }]}>NOPE</Text>
-        <Text style={[styles.hintLabel, { color: colors.maybe, opacity: hint === 'maybe' ? 1 : 0 }]}>MAYBE</Text>
-        <Text style={[styles.hintLabel, { color: colors.yes, opacity: hint === 'yes' ? 1 : 0 }]}>YES!</Text>
-      </View>
-
+      {/* Buttons — flex-end pushes them toward tab bar */}
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.btn, styles.btnUndo, !onUndo && styles.btnDisabled]}
@@ -170,15 +172,12 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
         >
           <Text style={styles.btnIcon}>↩</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={[styles.btn, styles.btnNo]} onPress={() => doRespond('no')}>
-          <Text style={[styles.btnIcon, { color: colors.no }]}>✕</Text>
+          <Text style={[styles.btnIcon, { color: colors.no, fontSize: 22 }]}>✕</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={[styles.btn, styles.btnMaybe]} onPress={() => doRespond('maybe')}>
-          <Text style={[styles.btnIcon, { color: colors.maybe }]}>🔖</Text>
+          <Text style={[styles.btnIcon, { color: colors.maybe, fontSize: 18 }]}>~</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={[styles.btn, styles.btnYes]} onPress={() => doRespond('yes')}>
           <Text style={[styles.btnIcon, { color: colors.yes, fontSize: 22 }]}>✓</Text>
         </TouchableOpacity>
@@ -188,29 +187,31 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
 }
 
 const styles = StyleSheet.create({
-  wrapper: { alignItems: 'center', gap: space[5] },
+  wrapper: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingVertical: space[3] },
 
   stack: { position: 'relative' },
   cardPos: { position: 'absolute', top: 0, left: 0 },
 
-  hints: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: CARD_WIDTH,
-    paddingHorizontal: 4,
+  swipeTag: {
+    position: 'absolute',
+    top: -8,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+    borderRadius: radii.full,
+    zIndex: 200,
   },
-  hintLabel: {
+  swipeTagText: {
     fontFamily: fonts.sansMedium,
     fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
 
   buttons: {
     flexDirection: 'row',
     gap: space[3],
     alignItems: 'center',
+    paddingBottom: space[2],
   },
   btn: {
     borderRadius: radii.full,
@@ -220,22 +221,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  btnUndo: { width: 44, height: 44 },
-  btnNo: { width: 56, height: 56 },
+  btnUndo:  { width: 44, height: 44 },
+  btnNo:    { width: 56, height: 56 },
   btnMaybe: { width: 52, height: 52 },
-  btnYes: { width: 64, height: 64 },
+  btnYes:   { width: 64, height: 64 },
   btnDisabled: { opacity: 0.3 },
   btnIcon: { fontSize: 20, color: colors.textMuted },
 
-  empty: { alignItems: 'center', gap: space[3], paddingTop: space[10] },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3] },
   emptyIcon: { fontSize: 40, color: colors.accent },
-  emptyTitle: { fontFamily: fonts.serifItalic, fontSize: 20, color: colors.text },
-  emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  emptyTitle: { fontFamily: fonts.serif, fontSize: 20, color: colors.text },
+  emptySub: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 
   matchOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   },
   matchContent: { alignItems: 'center', gap: space[3] },
   matchEmoji: { fontSize: 56 },
-  matchTitle: { fontFamily: fonts.serifItalic, fontSize: 26, color: colors.text },
-  matchItem: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.accent },
-  matchSub: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted },
+  matchTitle: { fontFamily: fonts.serif, fontSize: 26, color: '#fff' },
+  matchItem: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.accentSoft },
+  matchSub: { fontFamily: fonts.sans, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 });

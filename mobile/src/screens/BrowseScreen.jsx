@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
 import CardStack from '../components/CardStack';
-import LogoMark from '../components/LogoMark';
 import { CATEGORIES } from '../lib/constants';
-import { colors, space } from '../theme/tokens';
+import { colors, fonts, space } from '../theme/tokens';
 import client from '../api/client';
 import SlideView from '../components/SlideView';
 
@@ -74,7 +73,8 @@ export default function BrowseScreen() {
     <SlideView>
       <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <LogoMark size="sm" />
+        <Text style={styles.headerTitle}>Browse</Text>
+        <Text style={styles.headerSub}>Over 200 kinks in 6 categories</Text>
       </View>
       <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
       <View style={styles.stackArea} onLayout={(e) => setStackHeight(e.nativeEvent.layout.height)}>
@@ -95,10 +95,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: {
     paddingHorizontal: space[5],
-    paddingVertical: space[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    alignItems: 'center',
+    paddingTop: space[4],
+    paddingBottom: space[2],
+  },
+  headerTitle: {
+    fontFamily: fonts.serifBold,
+    fontSize: 24,
+    color: colors.text,
+  },
+  headerSub: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   stackArea: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: space[4], paddingBottom: space[4] },
 });
