@@ -114,6 +114,7 @@ export default function Catalog() {
   const [recentNo, setRecentNo]   = useState(() => loadPiles("foreplay").no);
   const shownMatchIds = useRef(new Set());
   const matchTimerRef = useRef(null);
+  const lastResponseTimerRef = useRef(null);
   const { latestNewMatch, dismissLatest, refetch } = useMatches();
 
   // Load piles from storage when category changes
@@ -189,6 +190,8 @@ export default function Catalog() {
       const item = catalog.find((i) => i.id === itemId);
       if (item) {
         setLastResponse({ item, response });
+        clearTimeout(lastResponseTimerRef.current);
+        lastResponseTimerRef.current = setTimeout(() => setLastResponse(null), 1500);
         if (response === "yes") setRecentYes((prev) => [item, ...prev].slice(0, MAX_PILE));
         if (response === "no")  setRecentNo((prev)  => [item, ...prev].slice(0, MAX_PILE));
       }
@@ -227,6 +230,20 @@ export default function Catalog() {
           <h2 className="catalog-title serif">Browse...</h2>
           <p className="catalog-subtitle text-muted">Over 200 Kinks in 6 Categories. (Every stack is randomized)</p>
         </div>
+        <AnimatePresence>
+          {lastResponse && (
+            <motion.div
+              className="catalog-swipe-tag"
+              style={{ background: lastResponse.response === "yes" ? "#9B80D4" : lastResponse.response === "no" ? "#F07A6A" : "#C4547A" }}
+              initial={{ opacity: 0, y: -10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+            >
+              {lastResponse.response === "yes" ? "✓ Yes" : lastResponse.response === "no" ? "✗ No" : "~ Maybe"}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
         <div className="catalog-desktop-layout">
           {showPiles && <CardPile items={recentNo}  side="no"  totalCount={catalog.filter(i => i.category === activeCategory && responses[String(i.id)] === "no").length} />}

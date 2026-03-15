@@ -156,7 +156,7 @@
 .card-stack-match-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(250, 246, 241, 0.92);
+  background: rgba(250, 247, 252, 0.92);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;

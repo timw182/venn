@@ -47,9 +47,6 @@ export default function Shell() {
   return (
     <div className="shell">
       <FloatingHearts />
-      <header className="shell-header">
-        <img src="/venn_hori.png" alt="Venn" className="shell-logo" />
-      </header>
 
       {resetState === "pending_partner" && (
         <div className="reset-banner">
