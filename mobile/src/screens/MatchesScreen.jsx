@@ -7,6 +7,7 @@ import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
 import { useAuth } from '../context/useAuth';
+import SlideView from '../components/SlideView';
 
 function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   const [expanded, setExpanded] = useState(false);
@@ -85,7 +86,8 @@ export default function MatchesScreen() {
   const filtered = filter === 'all' ? allMatches : allMatches.filter((m) => m.category === filter);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SlideView>
+      <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Your Matches</Text>
         <Text style={styles.subtitle}>{allMatches.length} thing{allMatches.length !== 1 ? 's' : ''} you both want</Text>
@@ -135,6 +137,7 @@ export default function MatchesScreen() {
         </View>
       )}
     </SafeAreaView>
+    </SlideView>
   );
 }
 

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
+import SlideView from '../components/SlideView';
 
 export default function SettingsScreen({ navigation }) {
   const { user, logout, updateProfile } = useAuth();
@@ -28,7 +29,8 @@ export default function SettingsScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SlideView>
+      <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Settings</Text>
 
@@ -86,6 +88,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </SlideView>
   );
 }
 

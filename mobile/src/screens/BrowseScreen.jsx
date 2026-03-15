@@ -7,6 +7,7 @@ import LogoMark from '../components/LogoMark';
 import { CATEGORIES } from '../lib/constants';
 import { colors, space } from '../theme/tokens';
 import client from '../api/client';
+import SlideView from '../components/SlideView';
 
 export default function BrowseScreen() {
   const [activeCategory, setActiveCategory] = useState('foreplay');
@@ -70,7 +71,8 @@ export default function BrowseScreen() {
   }, [catalog]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SlideView>
+      <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <LogoMark size="sm" />
       </View>
@@ -85,6 +87,7 @@ export default function BrowseScreen() {
         />
       </View>
     </SafeAreaView>
+    </SlideView>
   );
 }
 

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MOODS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import client from '../api/client';
+import SlideView from '../components/SlideView';
 
 export default function MoodScreen() {
   const [selected, setSelected] = useState(null);
@@ -65,7 +66,8 @@ export default function MoodScreen() {
   const currentMood = MOODS.find((m) => m.key === selected);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SlideView>
+      <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Text style={styles.title}>How are you feeling?</Text>
@@ -126,6 +128,7 @@ export default function MoodScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+    </SlideView>
   );
 }
 
