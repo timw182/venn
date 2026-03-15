@@ -74,7 +74,7 @@ const FEATURE_ICONS = [LockKeyIcon, MoonStarsIcon, UsersIcon];
 const features = [
   { title: 'No rejection', body: "Neither of you ever sees what the other said no to. Only matches surface." },
   { title: 'Blind matching', body: "Both swipe independently. A match only appears when you both say yes." },
-  { title: 'Just you two', body: "Fully private, self-hosted. No ads, no strangers, no data harvesting." },
+  { title: 'Just you two', body: "Fully private. No ads, no strangers, no data harvesting." },
 ];
 
 function GlitterIcon({ Icon }) {

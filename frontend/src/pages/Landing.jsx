@@ -20,7 +20,7 @@ const features = [
   {
     icon: "/users-duotone.svg",
     title: "Just you two",
-    body: "Fully private, self-hosted. No ads, no strangers, no data harvesting.",
+    body: "Fully private. No ads, no strangers, no data harvesting.",
   },
 ];
 
