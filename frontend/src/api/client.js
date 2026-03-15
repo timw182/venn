@@ -1,4 +1,4 @@
-const API_BASE = "https://apikinklink.amoreapp.net/api";
+const API_BASE = "/api";
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {

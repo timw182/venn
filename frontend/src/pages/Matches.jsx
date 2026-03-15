@@ -82,6 +82,10 @@ function MatchCard({ match, index, onSeen, onRemove }) {
 }
 
 export default function Matches() {
+  useEffect(() => {
+    document.body.classList.add("matches-active");
+    return () => document.body.classList.remove("matches-active");
+  }, []);
   const { matches: allMatches, refetch } = useMatches();
   const [filter, setFilter] = useState("all");
 

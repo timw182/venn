@@ -8,6 +8,8 @@ import Catalog from "./pages/Catalog";
 import Matches from "./pages/Matches";
 import Mood from "./pages/Mood";
 import Settings from "./pages/Settings";
+import Privacy from "./pages/Privacy";
+import Experts from "./pages/Experts";
 import { ROUTES } from "./lib/constants";
 
 function AuthGuard() {
@@ -40,6 +42,8 @@ export default function App() {
         <Route element={<PairGuard />}>
           <Route element={<Shell />}>
             <Route path={ROUTES.BROWSE} element={<Catalog />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/experts" element={<Experts />} />
             <Route path={ROUTES.MATCHES} element={<Matches />} />
             <Route path={ROUTES.MOOD} element={<Mood />} />
             <Route path={ROUTES.SETTINGS} element={<Settings />} />

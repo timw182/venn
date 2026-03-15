@@ -18,6 +18,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .catalog-inner {
@@ -33,11 +34,12 @@
 
 /* ── Desktop layout ≥1024px ───────────────────────────────────── */
 .catalog-desktop-layout {
-  display: contents; /* mobile: transparent wrapper */
+  display: contents; /* mobile: transparent wrapper, children go to catalog-inner */
 }
 
+/* Piles hidden on mobile */
 .catalog-pile {
-  display: none; /* hidden on mobile */
+  display: none;
 }
 
 @media (min-width: 1024px) {
@@ -49,57 +51,131 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-16, 4rem);
+    gap: 4rem;
     flex: 1;
     min-height: 0;
     padding: 0 var(--space-8);
+    width: 100%;
   }
 
   .catalog-pile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-4);
-    width: 120px;
+    gap: var(--space-3);
     flex-shrink: 0;
   }
-
-  .catalog-pile-stack {
-    position: relative;
-    width: 90px;
-    height: 120px;
-  }
-
-  .catalog-pile-card {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    border: 1.5px solid var(--color-border);
-    background: var(--color-surface);
-  }
-
-  .catalog-pile-no .catalog-pile-card {
-    border-color: var(--color-no);
-    background: var(--color-no-soft);
-  }
-
-  .catalog-pile-yes .catalog-pile-card {
-    border-color: var(--color-yes);
-    background: var(--color-yes-soft);
-  }
-
-  .catalog-pile-label {
-    font-family: var(--font-serif);
-    font-size: var(--text-lg);
-    font-style: italic;
-    color: var(--color-text-muted);
-  }
-
-  .catalog-pile-no .catalog-pile-label { color: var(--color-no); }
-  .catalog-pile-yes .catalog-pile-label { color: var(--color-yes); }
 }
 
-/* ── Hide cards on very cramped mid-sizes (hide stack behind cards) ── */
+/* ── Hide behind cards on very narrow screens ─────────────────── */
 @media (max-width: 380px) {
   .card-stack-behind { display: none; }
+}
+
+/* ── Pile card stack ──────────────────────────────────────────── */
+.catalog-pile-stack {
+  position: relative;
+  width: 62px;
+  height: 82px;   /* extra height for offset cards peeking below */
+  overflow: visible;
+}
+
+.catalog-pile-card-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 62px;
+  height: 78px;
+  border-radius: 10px;
+  border: 1.5px solid #ddd;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 6px;
+  overflow: hidden;
+}
+
+.catalog-pile-card-wrap.pile-no {
+  border-color: #C47474;
+  background: #fdf0f0;
+}
+
+.catalog-pile-card-wrap.pile-yes {
+  border-color: #7B9E6F;
+  background: #f0f7ee;
+}
+
+.catalog-pile-emoji {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.catalog-pile-title {
+  font-size: 8px;
+  text-align: center;
+  line-height: 1.25;
+  color: #666;
+  overflow: hidden;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.catalog-pile-count {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.catalog-pile-no .catalog-pile-count  { color: #C47474; }
+.catalog-pile-yes .catalog-pile-count { color: #7B9E6F; }
+/* ═══════════════════════════════════════════════════════
+   CATALOG MOBILE — appended to Catalog.css
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .catalog {
+    overflow: visible;
+    flex: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .catalog-inner {
+    flex: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .catalog-header {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+
+  .catalog-subtitle {
+    display: none;
+  }
+
+  .catalog-title {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (max-width: 374px) {
+  .catalog-header {
+    padding: var(--space-2) var(--space-3) var(--space-1);
+  }
+
+  .catalog-categories {
+    padding: 0 var(--space-3) var(--space-2);
+    gap: var(--space-1);
+  }
+
+  .catalog-category-btn {
+    font-size: var(--text-xs);
+    padding: 4px 10px;
+  }
 }

@@ -1,159 +1,148 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MOODS } from "../lib/constants";
+import { useAuth } from "../context/useAuth";
+import { useMatches } from "../context/MatchContext";
 import client from "../api/client";
 import "./Mood.css";
 
 export default function Mood() {
-  const [selected, setSelected] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [matched, setMatched] = useState(null);
-  const pollRef = useRef(null);
+  const { user } = useAuth();
+  const { partnerMood: wsMood, setPartnerMood } = useMatches();
 
-  // Restore existing mood on mount
+  const [myMood, setMyMood]               = useState(null);
+  const [partnerMood, setPartnerMoodLocal] = useState(null);
+  const [picking, setPicking]             = useState(null);
+  const [loading, setLoading]             = useState(false);
+  const [error, setError]               = useState(null);
+  const [toast, setToast]                 = useState(null);
+  const toastRef                          = useRef(null);
+
   useEffect(() => {
-    client
-      .get("/mood")
+    client.get("/mood")
       .then((data) => {
-        if (data.mine) {
-          setSelected(data.mine.mood);
-          setSubmitted(true);
-          if (data.partner) {
-            setMatched(MOODS.find((m) => m.key === data.mine.mood) ?? null);
-          } else {
-            startPolling();
-          }
-        }
+        setMyMood(data.mine || null);
+        setPartnerMoodLocal(data.partner || null);
       })
       .catch(() => {});
-    return () => stopPolling();
   }, []);
 
-  function startPolling() {
-    if (pollRef.current) return;
-    pollRef.current = setInterval(() => {
-      client
-        .get("/mood")
-        .then((data) => {
-          if (data.partner) {
-            stopPolling();
-            setMatched(MOODS.find((m) => m.key === data.mine?.mood) ?? null);
-          }
-        })
-        .catch(() => {});
-    }, 10000);
-  }
+  // Real-time WS push from partner
+  useEffect(() => {
+    if (!wsMood) return;
+    const moodObj = MOODS.find((m) => m.key === wsMood);
+    setPartnerMoodLocal(wsMood);
+    clearTimeout(toastRef.current);
+    setToast(moodObj ? `${moodObj.emoji} ${user?.partnerName || "Partner"} is feeling ${moodObj.label}` : null);
+    toastRef.current = setTimeout(() => { setToast(null); setPartnerMood(null); }, 4000);
+  }, [wsMood]);
 
-  function stopPolling() {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  }
-
-  async function handlePick(mood) {
-    setSelected(mood.key);
+  async function handleSet() {
+    if (!picking || loading) return;
+    setLoading(true);
+    setError(null);
     try {
-      const data = await client.put("/mood", { mood: mood.key, expires_hours: 8 });
-      setSubmitted(true);
-      if (data.partner) {
-        setMatched(MOODS.find((m) => m.key === mood.key) ?? null);
-      } else {
-        startPolling();
-      }
-    } catch {}
+      const data = await client.put("/mood", { mood: picking, expires_hours: 24 });
+      setMyMood(data.mine || null);
+      setPartnerMoodLocal(data.partner || null);
+      setPicking(null);
+    } catch (e) {
+      const msg = e?.detail || e?.message || "";
+      setError(msg.includes("Wait") ? msg : "Couldn\'t update mood. Try again.");
+    }
+    setLoading(false);
   }
 
-  async function handleReset() {
-    stopPolling();
+  async function handleClear() {
     await client.delete("/mood").catch(() => {});
-    setSelected(null);
-    setSubmitted(false);
-    setMatched(null);
+    setMyMood(null);
+    setPicking(null);
   }
+
+  const myMoodObj      = MOODS.find((m) => m.key === myMood);
+  const partnerMoodObj = MOODS.find((m) => m.key === partnerMood);
+  const partnerName    = user?.partnerName || "Partner";
 
   return (
     <motion.div className="mood-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="mood-header">
-        <h2 className="mood-title serif">How are you feeling?</h2>
-        <p className="mood-subtitle text-muted">
-          {submitted
-            ? "Your mood is set. You'll see if you match."
-            : "What are you in the mood for? You'll only see theirs if it matches."}
-        </p>
-      </div>
 
-      <AnimatePresence mode="wait">
-        {matched ? (
-          <motion.div
-            key="matched"
-            className="mood-matched"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          >
-            <span className="mood-matched-emoji">{matched.emoji}</span>
-            <h3 className="mood-matched-title serif">You're both feeling {matched.label.toLowerCase()}</h3>
-            <p className="mood-matched-sub text-muted">Sounds like a plan</p>
-            <button className="mood-reset" onClick={handleReset}>
-              Set a new mood
-            </button>
-          </motion.div>
-        ) : submitted ? (
-          <motion.div
-            key="submitted"
-            className="mood-submitted"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="mood-submitted-badge">
-              <span className="mood-submitted-emoji">{MOODS.find((m) => m.key === selected)?.emoji}</span>
-              <span className="mood-submitted-label">{MOODS.find((m) => m.key === selected)?.label}</span>
-            </div>
-            <div className="mood-waiting">
-              <span className="mood-pulse" />
-              <span className="text-muted">Waiting for a match...</span>
-            </div>
-            <button className="mood-reset" onClick={handleReset}>
-              Change mood
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div key="picker" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="mood-grid">
-              {MOODS.map((mood, i) => (
-                <motion.button
-                  key={mood.key}
-                  className={`mood-option ${selected === mood.key ? "active" : ""}`}
-                  onClick={() => handlePick(mood)}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04, duration: 0.3 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="mood-option-emoji">{mood.emoji}</span>
-                  <span className="mood-option-label">{mood.label}</span>
-                </motion.button>
-              ))}
-            </div>
-
-            <AnimatePresence>
-              {selected && (
-                <motion.div
-                  className="mood-submit-area"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                >
-                  <motion.button className="mood-submit-btn" onClick={handleSubmit} whileTap={{ scale: 0.96 }}>
-                    Set my mood
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      <AnimatePresence>
+        {toast && (
+          <motion.div className="mood-toast"
+            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+            {toast}
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="mood-header">
+        <h2 className="mood-title serif">Mood</h2>
+        <p className="mood-subtitle text-muted">Let your partner know how you're feeling right now.</p>
+      </div>
+
+      <div className="mood-sections">
+
+        {/* ── Your mood ─────────────────────────────────── */}
+        <section className="mood-section">
+          <p className="mood-section-title">Your mood</p>
+
+          {myMood && !picking ? (
+            <div className="mood-current">
+              <div className="mood-current-badge">
+                <span className="mood-current-emoji">{myMoodObj?.emoji}</span>
+                <span className="mood-current-label">{myMoodObj?.label}</span>
+              </div>
+              <button className="mood-change-btn" onClick={() => setPicking(myMood)}>Change</button>
+            </div>
+          ) : (
+            <>
+              <div className="mood-buttons">
+                {MOODS.map((m) => (
+                  <motion.button
+                    key={m.key}
+                    className={`mood-btn${picking === m.key ? " active" : ""}`}
+                    onClick={() => setPicking(m.key)}
+                    whileTap={{ scale: 0.93 }}
+                  >
+                    <span className="mood-btn-emoji">{m.emoji}</span>
+                    <span className="mood-btn-label">{m.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+
+              <AnimatePresence>
+                {picking && (
+                  <motion.div className="mood-confirm-row"
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
+                    <button className="mood-set-btn" onClick={handleSet} disabled={loading}>
+                      {loading ? "Sending…" : "Send to partner"}
+                    </button>
+                    {myMood && (
+                      <button className="mood-cancel-btn" onClick={() => setPicking(null)}>Cancel</button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {error && <p className="mood-error text-muted">{error}</p>}
+            </>
+          )}
+        </section>
+
+        {/* ── Partner's mood ────────────────────────────── */}
+        <section className="mood-section">
+          <p className="mood-section-title">{partnerName}'s mood</p>
+          {partnerMoodObj ? (
+            <div className="mood-current-badge">
+              <span className="mood-current-emoji">{partnerMoodObj.emoji}</span>
+              <span className="mood-current-label">{partnerMoodObj.label}</span>
+            </div>
+          ) : (
+            <p className="mood-partner-empty text-muted">Nothing set yet</p>
+          )}
+        </section>
+
+      </div>
     </motion.div>
   );
 }

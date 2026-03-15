@@ -1,3 +1,4 @@
+from ws import manager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from aiosqlite import Connection
 from datetime import datetime, timedelta, timezone
@@ -46,6 +47,20 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
         datetime.now(timezone.utc) + timedelta(hours=body.expires_hours)
     ).isoformat()
 
+    # Rate-limit: only allow change every 5 minutes
+    cur = await db.execute(
+        "SELECT updated_at FROM user_mood WHERE user_id = ?", (uid,)
+    )
+    existing = await cur.fetchone()
+    if existing and existing["updated_at"]:
+        last_update = datetime.fromisoformat(existing["updated_at"])
+        if last_update.tzinfo is None:
+            last_update = last_update.replace(tzinfo=timezone.utc)
+        elapsed = (datetime.now(timezone.utc) - last_update).total_seconds()
+        if elapsed < 300:
+            wait = int(300 - elapsed)
+            raise HTTPException(429, f"Wait {wait} seconds before changing your mood again.")
+
     await db.execute(
         """INSERT INTO user_mood (user_id, mood, expires_at)
            VALUES (?,?,?)
@@ -53,6 +68,12 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
         (uid, body.mood, expires_at),
     )
     await db.commit()
+
+    # Broadcast mood update to couple room
+    await manager.broadcast(couple_id, {
+        "type": "mood_update",
+        "mood": body.mood,
+    })
 
     cur = await db.execute(
         "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (partner_id,)
@@ -62,8 +83,7 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
 
     return MoodOut(
         mine=body.mood,
-        # Only reveal partner mood when both are set
-        partner=partner_mood if partner_mood else None,
+        partner=partner_mood,
     )
 
 
@@ -87,8 +107,7 @@ async def get_mood(request: Request, db: Connection = Depends(get_db)):
 
     return MoodOut(
         mine=my_mood,
-        # Blind: only show partner's mood when both have an active mood set
-        partner=partner_mood if (my_mood and partner_mood) else None,
+        partner=partner_mood,
     )
 
 

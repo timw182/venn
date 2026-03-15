@@ -12,6 +12,8 @@ export function MatchProvider({ children }) {
   const { user } = useAuth();
   const [matches, setMatches]           = useState([]);
   const [latestNewMatch, setLatestNewMatch] = useState(null);
+  const [resetState, setResetState]       = useState("none"); // none | pending_mine | pending_partner
+  const [partnerMood, setPartnerMood]       = useState(null);
   const timerRef    = useRef(null);
   const wsRef       = useRef(null);
   const retryRef    = useRef(0);
@@ -33,6 +35,12 @@ export function MatchProvider({ children }) {
     fetchMatches().then((data) => {
       (data || []).forEach((m) => knownIds.current.add(m.id));
     });
+    // Load pending reset state
+    client.get("/reset/status").then((s) => {
+      if (s.status === "pending") {
+        setResetState(s.requested_by_me ? "pending_mine" : "pending_partner");
+      }
+    }).catch(() => {});
   }, [user]);
 
   // Show match popup
@@ -63,12 +71,20 @@ export function MatchProvider({ children }) {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "match" && msg.item) {
-          // Refresh matches list
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
-          // Show popup
           showMatch(msg.item);
+        } else if (msg.type === "mood_update") {
+          setPartnerMood(msg.mood || null);
+        } else if (msg.type === "reset_requested") {
+          setResetState("pending_partner");
+        } else if (msg.type === "reset_cancelled" || msg.type === "reset_declined") {
+          setResetState("none");
+        } else if (msg.type === "reset_done") {
+          setResetState("none");
+          try { localStorage.removeItem("kl_responses"); } catch {}
+          window.location.reload();
         }
       } catch {}
     };
@@ -108,7 +124,7 @@ export function MatchProvider({ children }) {
   const newMatchCount = matches.filter((m) => !m.seen).length;
 
   return (
-    <MatchContext.Provider value={{ matches, latestNewMatch, newMatchCount, dismissLatest, refetch }}>
+    <MatchContext.Provider value={{ matches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood }}>
       {children}
     </MatchContext.Provider>
   );

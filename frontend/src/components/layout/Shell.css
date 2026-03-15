@@ -1,7 +1,7 @@
 .shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
   position: relative;
   overflow: hidden;
 }
@@ -78,12 +78,11 @@ nav {
   min-height: 0;
   padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
   overflow-y: auto;
-  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
 }
 
-.shell-content > *:not(.catalog) {
+.shell-content > *:not(.catalog):not(.matches-page) {
   width: 100%;
   max-width: 480px;
   margin-left: auto;
@@ -94,4 +93,138 @@ nav {
   width: 100%;
   flex: 1;
   min-height: 0;
+}
+
+.shell-content > .matches-page {
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Reset banner ─────────────────────────────────────────────── */
+.reset-banner {
+  position: relative;
+  z-index: 10;
+  background: var(--color-no-soft, #fdeaea);
+  border-bottom: 1px solid var(--color-no, #e05c5c);
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.reset-banner-waiting {
+  background: var(--color-surface-alt, #f5f0ea);
+  border-bottom-color: var(--color-border);
+}
+
+.reset-banner-text {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  flex: 1;
+}
+
+.reset-banner-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.reset-banner-btn {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reset-banner-confirm {
+  background: var(--color-no, #e05c5c);
+  color: #fff;
+}
+
+.reset-banner-decline {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.reset-banner-btn:hover {
+  opacity: 0.8;
+}
+
+
+/* Only Matches page needs scroll */
+body.matches-active .shell-content {
+  overflow-y: auto;
+}
+/* ═══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — appended to Shell.css
+   At ≤767px: natural block flow, body scrolls
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  html, body {
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .shell {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+  }
+
+  .shell-content {
+    overflow-y: visible;
+    flex: none;
+    height: auto;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
+  }
+
+  .shell-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .shell-logo {
+    width: 120px;
+  }
+}
+
+/* ── Below 375px: everything scrollable + compact ─────────── */
+@media (max-width: 374px) {
+  html, body {
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .shell {
+    min-width: 0;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .shell-content {
+    flex: none;
+    height: auto;
+    overflow-y: visible;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
+  }
+
+  .shell-header {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .shell-logo {
+    width: 100px;
+  }
+
+  .shell-content > *:not(.catalog):not(.matches-page) {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
 }

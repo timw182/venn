@@ -7,12 +7,14 @@
   padding: var(--space-4) var(--space-6) var(--space-2);
   flex: 1;
   min-height: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .card-stack {
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 540px;
   aspect-ratio: 3 / 4;
   max-height: 660px;
 }
@@ -87,7 +89,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-6);
+  gap: var(--space-5);
   padding: var(--space-2) 0;
 }
 
@@ -101,8 +103,8 @@
 }
 
 .response-no {
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   color: var(--color-no);
@@ -113,30 +115,18 @@
   border-color: var(--color-no);
 }
 
-.response-maybe {
-  width: 48px;
-  height: 48px;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  color: var(--color-maybe);
-}
-
-.response-maybe:hover {
-  background: var(--color-maybe-soft);
-  border-color: var(--color-maybe);
-}
-
 .response-yes {
-  width: 60px;
-  height: 60px;
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  border: none;
+  width: 58px;
+  height: 58px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-yes, #4caf80);
+  color: var(--color-yes, #4caf80);
 }
 
 .response-yes:hover {
-  background: var(--color-accent-hover);
-  box-shadow: var(--shadow-md);
+  background: var(--color-yes, #4caf80);
+  color: #fff;
+  border-color: var(--color-yes, #4caf80);
 }
 
 .response-undo {
@@ -148,7 +138,8 @@
   opacity: 1;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
 }
 
 .response-undo:disabled {
@@ -245,4 +236,146 @@
 
 .card-stack-empty-sub {
   font-size: var(--text-sm);
+}
+
+@media (min-width: 1024px) {
+  .card-stack-wrapper {
+    flex: 0 0 auto;
+    width: auto;
+  }
+}
+
+.response-maybe {
+  width: 50px;
+  height: 50px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: #D4870A;
+}
+
+.response-maybe:hover {
+  background: #FFF8EE;
+  border-color: #D4870A;
+}
+/* ═══════════════════════════════════════════════════════
+   CARD STACK MOBILE — appended to CardStack.css
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .card-stack-wrapper {
+    flex: none;
+    height: auto;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4) var(--space-3);
+  }
+
+  .card-stack {
+    /* Natural size from aspect-ratio, max 80vw wide */
+    max-width: min(80vw, 380px);
+    max-height: none;
+  }
+
+  .card-stack-hints {
+    display: none;
+  }
+
+  .card-stack-buttons {
+    gap: var(--space-4);
+  }
+
+  .response-no,
+  .response-yes {
+    width: 52px;
+    height: 52px;
+  }
+
+  .response-maybe {
+    width: 44px;
+    height: 44px;
+  }
+
+  .response-undo {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ITEM CARD CONTENT — scale down on small cards
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .item-card-hero {
+    width: 72px;
+    height: 72px;
+  }
+
+  .item-card-emoji {
+    font-size: 36px;
+  }
+
+  .item-card-title {
+    font-size: var(--text-lg);
+  }
+
+  .item-card-desc {
+    font-size: var(--text-sm);
+    max-width: 220px;
+  }
+
+  .item-card-inner {
+    padding: var(--space-5) var(--space-4);
+    gap: var(--space-3);
+  }
+}
+
+/* ── Tablet (768–1023px): cap card height ─────────────── */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .card-stack {
+    max-height: min(44vh, 360px);
+    max-width: 300px;
+  }
+
+  .card-stack-wrapper {
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-6) var(--space-2);
+  }
+}
+
+/* ── All non-desktop: sensible max ───────────────────────── */
+@media (max-width: 1023px) {
+  .card-stack {
+    max-width: min(100%, 400px);
+    max-height: min(55vh, 480px);
+  }
+}
+
+@media (max-width: 374px) {
+  .card-stack-wrapper {
+    padding: var(--space-2) var(--space-3) var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .card-stack {
+    max-width: 100%;
+    max-height: none;
+  }
+
+  .card-stack-buttons {
+    gap: var(--space-3);
+  }
+
+  .response-no,
+  .response-yes {
+    width: 46px;
+    height: 46px;
+  }
+
+  .response-maybe {
+    width: 38px;
+    height: 38px;
+  }
+
+  .response-undo {
+    width: 32px;
+    height: 32px;
+  }
 }

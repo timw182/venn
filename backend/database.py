@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import aiosqlite
 import os
 
@@ -74,3 +75,15 @@ async def init_db():
             );
         """)
         await db.commit()
+
+
+@asynccontextmanager
+async def get_db_ctx():
+    db = await aiosqlite.connect(DB_PATH)
+    db.row_factory = aiosqlite.Row
+    try:
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute("PRAGMA foreign_keys=ON")
+        yield db
+    finally:
+        await db.close()

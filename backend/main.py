@@ -14,9 +14,9 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from database import init_db
 from seed import seed
-from routers import auth, pairing, catalog, matches, mood
+from routers import auth, pairing, catalog, matches, mood, reset
 from ws import manager
-from database import get_db
+from database import get_db, get_db_ctx
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -67,7 +67,7 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
     session_cookie="kl_session",
-    max_age=60 * 60 * 3,  # 3 hours
+    max_age=60 * 60 * 24 * 7,  # 7 days
     https_only=True,
     same_site="lax",
     domain=COOKIE_DOMAIN,
@@ -86,6 +86,7 @@ app.include_router(pairing.router, prefix="/api")
 app.include_router(catalog.router, prefix="/api")
 app.include_router(matches.router, prefix="/api")
 app.include_router(mood.router, prefix="/api")
+app.include_router(reset.router, prefix="/api")
 
 
 @app.websocket("/api/ws")
@@ -95,7 +96,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=4001)
         return
 
-    async with get_db() as db:
+    async with get_db_ctx() as db:
         cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
         row = await cur.fetchone()
 

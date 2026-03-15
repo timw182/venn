@@ -6,8 +6,27 @@
 }
 
 .settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: var(--space-6);
-  text-align: center;
+}
+
+.settings-signout-btn {
+  font-size: var(--text-sm);
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1.5px solid #f5c2c2;
+  background: #fff5f5;
+  color: #c0392b;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}
+
+.settings-signout-btn:hover {
+  background: #ffe0e0;
+  border-color: #e08080;
 }
 
 .settings-title {
@@ -59,8 +78,8 @@
   flex: 1;
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface-alt);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 4px;
   font-size: var(--text-base);
   color: var(--color-text);
   transition: all var(--duration-fast) var(--ease-out);
@@ -125,4 +144,112 @@
   font-size: var(--text-sm);
   color: var(--color-no, #e05a3a);
   margin-top: var(--space-1);
+}
+
+.settings-reset-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.settings-input-readonly {
+  color: var(--color-text-muted);
+  cursor: default;
+  user-select: none;
+  border-radius: 4px;
+}
+
+.settings-about-links {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.settings-reset-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-light);
+  cursor: default;
+}
+
+.settings-info-icon:hover {
+  color: var(--color-text-muted);
+}
+
+.settings-info-tooltip {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  white-space: normal;
+  width: 220px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.settings-info-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-text);
+}
+
+.settings-info-icon:hover .settings-info-tooltip {
+  display: block;
+}
+
+/* ── Settings-page button overrides ─────────────────────────── */
+.settings-page .btn {
+  border-radius: 4px;
+  color: var(--color-text) !important;
+  background: var(--color-surface-alt, #f0ebe4);
+  border-color: var(--color-border-strong);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+.settings-page .btn:hover:not(:disabled) {
+  background: #e2dbd2;
+  color: var(--color-text) !important;
+}
+
+.settings-page .btn-danger {
+  background: #f0ebe4;
+  border-color: var(--color-no, #e05c5c);
+}
+
+.settings-page .btn-danger:hover:not(:disabled) {
+  background: #e2dbd2;
+}
+
+.settings-page a.btn {
+  text-decoration: none;
+}
+
+.settings-section-danger .btn {
+  border: 1.5px solid var(--color-border-strong) !important;
+}
+
+.settings-reset-actions .btn {
+  border: 1.5px solid var(--color-border-strong) !important;
 }

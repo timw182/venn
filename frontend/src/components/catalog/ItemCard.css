@@ -100,7 +100,9 @@
 }
 
 .item-card.hint-maybe {
+  background: #FFF8EE;
   box-shadow:
     var(--shadow-card),
-    inset 0 0 60px var(--color-maybe-soft);
+    inset 0 0 80px rgba(212, 135, 10, 0.18);
+  border-color: #D4870A;
 }

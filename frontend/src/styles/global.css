@@ -1,6 +1,18 @@
 @import './tokens.css';
 @import './reset.css';
 
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
+@media (max-width: 767px) {
+  html, body {
+    overflow-y: auto;
+    height: auto;
+  }
+}
+
 /* ---- Background texture ---- */
 body::before {
   content: '';

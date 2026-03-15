@@ -271,3 +271,28 @@
     font-size: 12px;
   }
 }
+
+@media (min-width: 1024px) {
+  .matches-page {
+    max-width: 960px;
+  }
+
+  .matches-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 425px) and (max-width: 767px) {
+  .matches-page {
+    max-width: 100%;
+  }
+  .matches-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .matches-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
