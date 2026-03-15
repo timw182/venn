@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/useAuth';
 import { useMatches } from '../context/MatchContext';
 import { TabDirectionProvider, useTabDirection } from '../context/TabDirectionContext';
@@ -83,6 +84,7 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
             key={route.key}
             style={styles.tabItem}
             onPress={() => {
+              Haptics.selectionAsync();
               if (!focused) {
                 if (directionRef) directionRef.current = index > state.index ? 'right' : 'left';
                 navigation.navigate(route.name);
