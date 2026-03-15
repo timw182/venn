@@ -166,6 +166,8 @@ body.matches-active .shell-content {
    At ≤767px: natural block flow, body scrolls
    ═══════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
+  .shell-header { display: none; }
+
   html, body {
     overflow-y: auto;
     height: auto;
