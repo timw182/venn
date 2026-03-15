@@ -269,12 +269,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: space[6],
     paddingTop: space[4],
-    paddingBottom: space[12],
+    paddingBottom: space[6],
     gap: space[8],
   },
 
   brand: { alignItems: 'center', gap: space[3] },
-  tagline: { fontFamily: fonts.sansLight, fontSize: 15, color: colors.textMuted, letterSpacing: 0.3 },
+  tagline: { fontFamily: fonts.sansLight, fontSize: 18, color: colors.textMuted, letterSpacing: 0.3 },
   taglineEm: { fontFamily: fonts.serifItalic, color: colors.accent },
 
   features: { gap: space[3] },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: space[6],
     paddingTop: space[6],
-    paddingBottom: space[12],
+    paddingBottom: space[6],
     gap: space[7],
   },
 
