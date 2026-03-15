@@ -60,6 +60,7 @@ function FloatingHearts() {
 }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
+import * as Haptics from 'expo-haptics';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import LogoMark from '../components/LogoMark';
@@ -126,7 +127,7 @@ export default function LandingScreen() {
           </View>
 
           <View style={styles.cta}>
-            <Button variant="primary" size="lg" fullWidth onPress={() => openForm('register')}>
+            <Button variant="primary" size="lg" fullWidth onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); openForm('register'); }}>
               Get started
             </Button>
             <TouchableOpacity onPress={() => openForm('login')} style={styles.toggleBtn}>
@@ -206,7 +207,7 @@ export default function LandingScreen() {
               </View>
             )}
 
-            <Button variant="primary" size="lg" fullWidth onPress={handleSubmit} loading={submitting}>
+            <Button variant="primary" size="lg" fullWidth onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleSubmit(); }} loading={submitting}>
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </Button>
           </View>
