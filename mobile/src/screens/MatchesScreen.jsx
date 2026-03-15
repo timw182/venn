@@ -10,6 +10,71 @@ import { useMatches } from '../context/MatchContext';
 import { useAuth } from '../context/useAuth';
 import SlideView from '../components/SlideView';
 
+function FilterPicker({ filter, onChange, matches }) {
+  const activeCategories = [
+    { key: 'all', label: 'All', emoji: '\u2726', count: matches.length },
+    ...CATEGORIES
+      .filter((cat) => matches.some((m) => m.category === cat.key))
+      .map((cat) => ({ ...cat, count: matches.filter((m) => m.category === cat.key).length })),
+  ];
+
+  const activeIdx = Math.max(0, activeCategories.findIndex((c) => c.key === filter));
+  const current = activeCategories[activeIdx];
+
+  function prev() {
+    const idx = (activeIdx - 1 + activeCategories.length) % activeCategories.length;
+    onChange(activeCategories[idx].key);
+  }
+  function next() {
+    const idx = (activeIdx + 1) % activeCategories.length;
+    onChange(activeCategories[idx].key);
+  }
+
+  if (activeCategories.length <= 1) return null;
+
+  return (
+    <View style={fpStyles.row}>
+      <TouchableOpacity onPress={prev} style={fpStyles.arrow} activeOpacity={0.6}>
+        <Text style={fpStyles.arrowText}>‹</Text>
+      </TouchableOpacity>
+      <View style={fpStyles.center}>
+        <Text style={fpStyles.emoji}>{current.emoji}</Text>
+        <Text style={fpStyles.label}>{current.label}</Text>
+        <Text style={fpStyles.count}>{current.count}</Text>
+      </View>
+      <TouchableOpacity onPress={next} style={fpStyles.arrow} activeOpacity={0.6}>
+        <Text style={fpStyles.arrowText}>›</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const fpStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space[4],
+    paddingVertical: space[3],
+  },
+  arrow: {
+    width: 44, height: 44,
+    alignItems: 'center', justifyContent: 'center',
+    borderRadius: radii.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  arrowText: { fontSize: 22, color: colors.textMuted, lineHeight: 26 },
+  center: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  emoji: { fontSize: 16 },
+  label: { fontFamily: fonts.serifBold, fontSize: 16, color: colors.text },
+  count: {
+    fontFamily: fonts.sans, fontSize: 12, color: colors.textLight,
+    backgroundColor: colors.surfaceAlt, borderRadius: radii.full,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+});
+
 function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   const [expanded, setExpanded] = useState(false);
   const cat = CATEGORIES.find((c) => c.key === match.category);
@@ -95,29 +160,7 @@ export default function MatchesScreen() {
         </View>
       )}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.filters}>
-        <TouchableOpacity
-          style={[styles.filterChip, filter === 'all' && styles.filterActive]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>All</Text>
-        </TouchableOpacity>
-        {CATEGORIES.map((cat) => {
-          const count = allMatches.filter((m) => m.category === cat.key).length;
-          if (count === 0) return null;
-          return (
-            <TouchableOpacity
-              key={cat.key}
-              style={[styles.filterChip, filter === cat.key && styles.filterActive]}
-              onPress={() => setFilter(cat.key)}
-            >
-              <Text style={[styles.filterText, filter === cat.key && styles.filterTextActive]}>
-                {cat.emoji} {cat.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <FilterPicker filter={filter} onChange={setFilter} matches={allMatches} />
 
       {filtered.length > 0 ? (
         <ScrollView contentContainerStyle={styles.grid}>
