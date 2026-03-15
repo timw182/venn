@@ -31,11 +31,11 @@ async def _require_superadmin(request: Request, db: Connection = Depends(get_db)
 async def get_stats(db: Connection = Depends(get_db), admin=Depends(_require_admin)):
     total_users   = (await (await db.execute("SELECT COUNT(*) FROM users")).fetchone())[0]
     paired_users  = (await (await db.execute("SELECT COUNT(*) FROM users WHERE couple_id IS NOT NULL")).fetchone())[0]
-    total_swipes  = (await (await db.execute("SELECT COUNT(*) FROM responses")).fetchone())[0]
+    total_swipes  = (await (await db.execute("SELECT COUNT(*) FROM user_responses")).fetchone())[0]
     total_matches = (await (await db.execute(
-        "SELECT COUNT(*) FROM responses r1 JOIN responses r2 "
+        "SELECT COUNT(*) FROM user_responses r1 JOIN user_responses r2 "
         "ON r1.item_id=r2.item_id AND r1.user_id!=r2.user_id "
-        "WHERE r1.answer=1 AND r2.answer=1"
+        "WHERE r1.response='yes' AND r2.response='yes'"
     )).fetchone())[0]
     open_tickets  = (await (await db.execute("SELECT COUNT(*) FROM tickets WHERE status='open'")).fetchone())[0]
     return {
@@ -74,7 +74,7 @@ async def delete_user(user_id: int, db: Connection = Depends(get_db), admin=Depe
         raise HTTPException(404, "User not found")
     if row["is_superadmin"] and not admin["is_superadmin"]:
         raise HTTPException(403, "Cannot delete a superadmin")
-    await db.execute("DELETE FROM responses WHERE user_id=?", (user_id,))
+    await db.execute("DELETE FROM user_responses WHERE user_id=?", (user_id,))
     await db.execute("DELETE FROM tickets WHERE user_id=?", (user_id,))
     await db.execute("UPDATE users SET couple_id=NULL WHERE id=?", (user_id,))
     await db.execute("DELETE FROM users WHERE id=?", (user_id,))
@@ -132,7 +132,7 @@ async def update_ticket(ticket_id: int, body: TicketUpdate, db: Connection = Dep
 # ── Cards ──────────────────────────────────────────────────────
 @router.get("/cards")
 async def list_cards(db: Connection = Depends(get_db), _=Depends(_require_admin)):
-    cur = await db.execute("SELECT id, category, title, description FROM items ORDER BY category, id")
+    cur = await db.execute("SELECT id, category, title, description FROM catalog_items ORDER BY category, id")
     rows = await cur.fetchall()
     return [{"id": r["id"], "category": r["category"], "title": r["title"], "description": r["description"]} for r in rows]
 
@@ -146,7 +146,7 @@ class CardBody(BaseModel):
 @router.post("/cards")
 async def create_card(body: CardBody, db: Connection = Depends(get_db), _=Depends(_require_admin)):
     cur = await db.execute(
-        "INSERT INTO items (category, title, description) VALUES (?,?,?)",
+        "INSERT INTO catalog_items (category, title, description) VALUES (?,?,?)",
         (body.category, body.title, body.description)
     )
     await db.commit()
@@ -156,7 +156,7 @@ async def create_card(body: CardBody, db: Connection = Depends(get_db), _=Depend
 @router.patch("/cards/{card_id}")
 async def update_card(card_id: int, body: CardBody, db: Connection = Depends(get_db), _=Depends(_require_admin)):
     await db.execute(
-        "UPDATE items SET category=?, title=?, description=? WHERE id=?",
+        "UPDATE catalog_items SET category=?, title=?, description=? WHERE id=?",
         (body.category, body.title, body.description, card_id)
     )
     await db.commit()
@@ -165,7 +165,7 @@ async def update_card(card_id: int, body: CardBody, db: Connection = Depends(get
 
 @router.delete("/cards/{card_id}")
 async def delete_card(card_id: int, db: Connection = Depends(get_db), _=Depends(_require_admin)):
-    await db.execute("DELETE FROM responses WHERE item_id=?", (card_id,))
-    await db.execute("DELETE FROM items WHERE id=?", (card_id,))
+    await db.execute("DELETE FROM user_responses WHERE item_id=?", (card_id,))
+    await db.execute("DELETE FROM catalog_items WHERE id=?", (card_id,))
     await db.commit()
     return {"ok": True}
