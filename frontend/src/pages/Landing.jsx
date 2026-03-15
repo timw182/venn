@@ -60,6 +60,7 @@ export default function Landing() {
 
   return (
     <main className="landing">
+      <FloatingHearts />
       {/* Atmospheric orbs */}
       <div className="landing-orb landing-orb-1" />
       <div className="landing-orb landing-orb-2" />
