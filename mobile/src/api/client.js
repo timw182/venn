@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://apikinklink.amoreapp.net/api';
+const API_BASE = 'https://vennapi.amoreapp.net/api';
 const COOKIE_KEY = 'kl_session';
 
 // Store cookie from Set-Cookie header

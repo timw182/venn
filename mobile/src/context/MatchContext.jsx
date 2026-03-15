@@ -5,7 +5,7 @@ import { useAuth } from "./useAuth";
 
 const MatchContext = createContext(null);
 
-const WS_URL = "wss://kinklink.amoreapp.net/api/ws";
+const WS_URL = "wss://venn.amoreapp.net/api/ws";
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 
