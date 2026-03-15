@@ -47,7 +47,7 @@ export default function MoodScreen() {
       setPicking(null);
     } catch (e) {
       const msg = e?.detail || e?.message || '';
-      setError(msg.includes('Wait') ? msg : 'Couldn't update mood. Try again.');
+      setError(msg.includes('Wait') ? msg : "Couldn't update mood. Try again.");
     }
     setLoading(false);
   }
