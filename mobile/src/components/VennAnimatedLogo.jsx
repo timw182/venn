@@ -88,18 +88,19 @@ export default function VennAnimatedLogo({ size = 200 }) {
         </AnimatedG>
       </AnimatedG>
 
-      {/* "venn" fades in after both circles have settled */}
-      <AnimatedText
-        x="128"
-        y="142"
-        fontFamily="Comfortaa_700Bold"
-        fontSize="38"
-        fill="#3a3a3a"
-        textAnchor="middle"
-        opacity={textOpacity}
-      >
-        venn
-      </AnimatedText>
+      {/* "venn" fades in — wrap in AnimatedG since Text opacity is unreliable */}
+      <AnimatedG opacity={textOpacity}>
+        <SvgText
+          x="128"
+          y="142"
+          fontFamily="Comfortaa_700Bold"
+          fontSize="38"
+          fill="#3a3a3a"
+          textAnchor="middle"
+        >
+          venn
+        </SvgText>
+      </AnimatedG>
     </Svg>
   );
 }
