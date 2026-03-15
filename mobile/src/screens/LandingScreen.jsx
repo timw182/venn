@@ -2,23 +2,25 @@ import { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView, StyleSheet,
   KeyboardAvoidingView, Platform, TouchableOpacity,
-  Animated, Dimensions,
+  Animated, Dimensions, Image,
 } from 'react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
+const HEART_COLORS = ['#F07A6A', '#9B80D4', '#C4547A', '#9B80D4', '#F07A6A', '#C4547A', '#9B80D4', '#F07A6A'];
+
 const HEARTS = [
-  { id: 0, x: SW * 0.05, size: 12, duration: 11000, start: 0.1, opacity: 0.09 },
-  { id: 1, x: SW * 0.18, size: 20, duration: 14000, start: 0.55, opacity: 0.07 },
-  { id: 2, x: SW * 0.30, size: 10, duration: 9500,  start: 0.35, opacity: 0.11 },
-  { id: 3, x: SW * 0.45, size: 16, duration: 13000, start: 0.75, opacity: 0.08 },
-  { id: 4, x: SW * 0.58, size: 22, duration: 10500, start: 0.20, opacity: 0.06 },
-  { id: 5, x: SW * 0.68, size: 14, duration: 12000, start: 0.60, opacity: 0.10 },
-  { id: 6, x: SW * 0.80, size: 18, duration: 15000, start: 0.40, opacity: 0.08 },
-  { id: 7, x: SW * 0.90, size: 11, duration: 10000, start: 0.85, opacity: 0.12 },
+  { id: 0, x: SW * 0.05, size: 12, duration: 11000, start: 0.1, opacity: 0.18 },
+  { id: 1, x: SW * 0.18, size: 20, duration: 14000, start: 0.55, opacity: 0.14 },
+  { id: 2, x: SW * 0.30, size: 10, duration: 9500,  start: 0.35, opacity: 0.20 },
+  { id: 3, x: SW * 0.45, size: 16, duration: 13000, start: 0.75, opacity: 0.16 },
+  { id: 4, x: SW * 0.58, size: 22, duration: 10500, start: 0.20, opacity: 0.12 },
+  { id: 5, x: SW * 0.68, size: 14, duration: 12000, start: 0.60, opacity: 0.18 },
+  { id: 6, x: SW * 0.80, size: 18, duration: 15000, start: 0.40, opacity: 0.15 },
+  { id: 7, x: SW * 0.90, size: 11, duration: 10000, start: 0.85, opacity: 0.20 },
 ];
 
-function FloatingHeart({ x, size, duration, start, opacity: maxOpacity }) {
+function FloatingHeart({ x, size, duration, start, opacity: maxOpacity, color }) {
   const prog = useRef(new Animated.Value(start)).current;
 
   useEffect(() => {
@@ -41,7 +43,7 @@ function FloatingHeart({ x, size, duration, start, opacity: maxOpacity }) {
         left: x,
         bottom: -20,
         fontSize: size,
-        color: colors.accent,
+        color: color || colors.accent,
         opacity: prog.interpolate({ inputRange: [0, 0.06, 0.88, 1], outputRange: [0, maxOpacity, maxOpacity, 0] }),
         transform: [{ translateY: prog.interpolate({ inputRange: [0, 1], outputRange: [0, -(SH + 60)] }) }],
       }}
@@ -54,7 +56,7 @@ function FloatingHeart({ x, size, duration, start, opacity: maxOpacity }) {
 function FloatingHearts() {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {HEARTS.map((h) => <FloatingHeart key={h.id} {...h} />)}
+      {HEARTS.map((h, i) => <FloatingHeart key={h.id} {...h} color={HEART_COLORS[i]} />)}
     </View>
   );
 }
@@ -64,12 +66,44 @@ import * as Haptics from 'expo-haptics';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import LogoMark from '../components/LogoMark';
+import { LockKeyIcon, MoonStarsIcon, UsersIcon } from '../components/FeatureIcons';
+
+const FEATURE_ICONS = [LockKeyIcon, MoonStarsIcon, UsersIcon];
 
 const features = [
-  { icon: '🔒', title: 'No rejection', body: "Neither of you ever sees what the other said no to. Only matches surface." },
-  { icon: '✨', title: 'Blind matching', body: "Both swipe independently. A match only appears when you both say yes." },
-  { icon: '🫂', title: 'Just you two', body: "Fully private, self-hosted. No ads, no strangers, no data harvesting." },
+  { title: 'No rejection', body: "Neither of you ever sees what the other said no to. Only matches surface." },
+  { title: 'Blind matching', body: "Both swipe independently. A match only appears when you both say yes." },
+  { title: 'Just you two', body: "Fully private, self-hosted. No ads, no strangers, no data harvesting." },
 ];
+
+function GlitterIcon({ Icon }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(0.85)).current;
+
+  useEffect(() => {
+    const glitter = () => {
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(scale,   { toValue: 1.18, duration: 180, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 1,    duration: 180, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scale,   { toValue: 1,    duration: 250, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.85, duration: 250, useNativeDriver: true }),
+        ]),
+      ]).start();
+    };
+    const initial = setTimeout(glitter, Math.random() * 3000);
+    const interval = setInterval(glitter, 3500 + Math.random() * 1500);
+    return () => { clearTimeout(initial); clearInterval(interval); };
+  }, []);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }], opacity }}>
+      <Icon size={36} />
+    </Animated.View>
+  );
+}
 
 export default function LandingScreen() {
   const [mode, setMode] = useState(null);
@@ -117,7 +151,7 @@ export default function LandingScreen() {
           <View style={styles.features}>
             {features.map((f) => (
               <View key={f.title} style={styles.featureCard}>
-                <Text style={styles.featureIcon}>{f.icon}</Text>
+                <GlitterIcon Icon={FEATURE_ICONS[features.indexOf(f)]} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.featureTitle}>{f.title}</Text>
                   <Text style={styles.featureBody}>{f.body}</Text>
