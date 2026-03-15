@@ -119,13 +119,6 @@ export default function Catalog() {
   const matchTimerRef = useRef(null);
   const { latestNewMatch, dismissLatest, refetch } = useMatches();
 
-  // Load piles from storage when category changes
-  useEffect(() => {
-    const saved = loadPiles(activeCategory);
-    setRecentYes(saved.yes);
-    setRecentNo(saved.no);
-  }, [activeCategory]);
-
   // React to partner-triggered matches
   useEffect(() => {
     if (!latestNewMatch) return;
@@ -157,11 +150,6 @@ export default function Catalog() {
     catalog.filter((item) => item.category === activeCategory && !responses[String(item.id)]),
     [catalog, activeCategory, responses]
   );
-
-  // Persist piles to localStorage
-  useEffect(() => {
-    savePiles(activeCategory, recentYes, recentNo);
-  }, [activeCategory, recentYes, recentNo]);
 
   const progress = useMemo(() => {
     const prog = {};

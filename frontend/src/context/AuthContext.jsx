@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
   const updateUserFromRaw = useCallback((raw) => setUser(toUser(raw)), []);
 
   const updateProfile = useCallback(async (displayName) => {
-    const raw = await client.patch(/auth/profile, { display_name: displayName });
+    const raw = await client.patch("/auth/profile", { display_name: displayName });
     setUser(toUser(raw));
   }, []);
 
