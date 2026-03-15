@@ -1,4 +1,4 @@
-import ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategoryPicker from "../components/catalog/CategoryPicker";
