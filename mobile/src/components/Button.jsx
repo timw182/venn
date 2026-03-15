@@ -17,6 +17,11 @@ const variants = {
     text: colors.textMuted,
     border: 'transparent',
   },
+  danger: {
+    bg: 'transparent',
+    text: colors.no,
+    border: colors.no,
+  },
 };
 
 const sizes = {

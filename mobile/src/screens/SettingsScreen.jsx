@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { useMatches } from '../context/MatchContext';
 import { colors, fonts, space, radii } from '../theme/tokens';
+import Button from '../components/Button';
 import client from '../api/client';
 import SlideView from '../components/SlideView';
 
@@ -46,10 +47,9 @@ export default function SettingsScreen({ navigation }) {
             setDisconnectError(null);
             try {
               await client.post('/auth/disconnect');
-              // Reload auth state
               await logout();
             } catch (e) {
-              setDisconnectError(e?.message || "Couldn\'t disconnect. Try again.");
+              setDisconnectError(e?.message || "Couldn't disconnect. Try again.");
             }
             setDisconnecting(false);
           },
@@ -64,31 +64,18 @@ export default function SettingsScreen({ navigation }) {
     setResetConfirm(false);
   }
 
-  async function handleConfirmReset() {
-    await client.post('/reset/confirm');
-  }
-
-  async function handleDeclineReset() {
-    await client.post('/reset/decline');
-    setResetState('none');
-  }
-
-  async function handleCancelReset() {
-    await client.post('/reset/cancel');
-    setResetState('none');
-  }
+  async function handleConfirmReset() { await client.post('/reset/confirm'); }
+  async function handleDeclineReset()  { await client.post('/reset/decline');  setResetState('none'); }
+  async function handleCancelReset()   { await client.post('/reset/cancel');   setResetState('none'); }
 
   return (
     <SlideView>
       <SafeAreaView style={styles.container} edges={['top']}>
         <ScrollView contentContainerStyle={styles.scroll}>
 
-          {/* Header */}
           <View style={styles.headerRow}>
             <Text style={styles.title}>Settings</Text>
-            <TouchableOpacity onPress={handleLogout} style={styles.signOutBtn}>
-              <Text style={styles.signOutText}>Sign out</Text>
-            </TouchableOpacity>
+            <Button variant="secondary" size="sm" onPress={handleLogout}>Sign out</Button>
           </View>
 
           {/* Profile */}
@@ -105,9 +92,9 @@ export default function SettingsScreen({ navigation }) {
                   placeholder="Your name"
                   placeholderTextColor={colors.textLight}
                 />
-                <TouchableOpacity style={styles.btn} onPress={handleSave}>
-                  <Text style={styles.btnText}>{saved ? 'Saved!' : 'Save'}</Text>
-                </TouchableOpacity>
+                <Button variant="secondary" size="sm" onPress={handleSave}>
+                  {saved ? 'Saved!' : 'Save'}
+                </Button>
               </View>
               {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
             </View>
@@ -119,13 +106,15 @@ export default function SettingsScreen({ navigation }) {
                   <View style={[styles.input, styles.inputReadonly]}>
                     <Text style={styles.inputReadonlyText}>{user.partnerName}</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.btn, disconnecting && styles.btnDisabled]}
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onPress={handleDisconnect}
                     disabled={disconnecting}
+                    loading={disconnecting}
                   >
-                    <Text style={styles.btnText}>{disconnecting ? '…' : 'Disconnect'}</Text>
-                  </TouchableOpacity>
+                    Disconnect
+                  </Button>
                 </View>
                 {!!disconnectError && <Text style={styles.errorText}>{disconnectError}</Text>}
               </View>
@@ -134,12 +123,9 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={styles.pairText}>
                   {'You\'re exploring solo. Connect with a partner to see your matches.'}
                 </Text>
-                <TouchableOpacity
-                  style={[styles.btn, styles.btnPrimary]}
-                  onPress={() => navigation.navigate('Pairing')}
-                >
-                  <Text style={[styles.btnText, styles.btnPrimaryText]}>Create or enter a code</Text>
-                </TouchableOpacity>
+                <Button variant="primary" size="sm" onPress={() => navigation.navigate('Pairing')}>
+                  Create or enter a code
+                </Button>
               </View>
             )}
 
@@ -149,10 +135,12 @@ export default function SettingsScreen({ navigation }) {
 
                 {resetState === 'none' && !resetConfirm && (
                   <View style={styles.resetRow}>
-                    <TouchableOpacity style={styles.btn} onPress={() => setResetConfirm(true)}>
-                      <Text style={styles.btnText}>Request reset</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.resetHint}>Clears all swipes and matches. Both partners must confirm.</Text>
+                    <Button variant="secondary" size="sm" onPress={() => setResetConfirm(true)}>
+                      Request reset
+                    </Button>
+                    <Text style={styles.resetHint}>
+                      Clears all swipes and matches. Both partners must confirm.
+                    </Text>
                   </View>
                 )}
 
@@ -162,12 +150,8 @@ export default function SettingsScreen({ navigation }) {
                       Are you sure? Your partner will also need to confirm before anything is deleted.
                     </Text>
                     <View style={styles.resetActions}>
-                      <TouchableOpacity style={[styles.btn, styles.btnDanger]} onPress={handleRequestReset}>
-                        <Text style={[styles.btnText, styles.btnDangerText]}>Yes, send request</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.btnGhost} onPress={() => setResetConfirm(false)}>
-                        <Text style={styles.btnGhostText}>Cancel</Text>
-                      </TouchableOpacity>
+                      <Button variant="danger" size="sm" onPress={handleRequestReset}>Yes, send request</Button>
+                      <Button variant="ghost"  size="sm" onPress={() => setResetConfirm(false)}>Cancel</Button>
                     </View>
                   </View>
                 )}
@@ -175,9 +159,7 @@ export default function SettingsScreen({ navigation }) {
                 {resetState === 'pending_mine' && (
                   <View>
                     <Text style={styles.resetPending}>⏳ Waiting for your partner to confirm…</Text>
-                    <TouchableOpacity style={styles.btnGhost} onPress={handleCancelReset}>
-                      <Text style={styles.btnGhostText}>Cancel request</Text>
-                    </TouchableOpacity>
+                    <Button variant="ghost" size="sm" onPress={handleCancelReset}>Cancel request</Button>
                   </View>
                 )}
 
@@ -185,12 +167,8 @@ export default function SettingsScreen({ navigation }) {
                   <View>
                     <Text style={styles.resetWarning}>⚠️ Your partner wants to reset all swipes and matches.</Text>
                     <View style={styles.resetActions}>
-                      <TouchableOpacity style={[styles.btn, styles.btnDanger]} onPress={handleConfirmReset}>
-                        <Text style={[styles.btnText, styles.btnDangerText]}>Confirm reset</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.btnGhost} onPress={handleDeclineReset}>
-                        <Text style={styles.btnGhostText}>Decline</Text>
-                      </TouchableOpacity>
+                      <Button variant="danger" size="sm" onPress={handleConfirmReset}>Confirm reset</Button>
+                      <Button variant="ghost"  size="sm" onPress={handleDeclineReset}>Decline</Button>
                     </View>
                   </View>
                 )}
@@ -206,18 +184,12 @@ export default function SettingsScreen({ navigation }) {
             </Text>
             <Text style={styles.aboutDesc}>Learn more about our motivations and expert opinions:</Text>
             <View style={styles.aboutLinks}>
-              <TouchableOpacity
-                style={styles.btn}
-                onPress={() => Linking.openURL('https://venn.amoreapp.net/privacy')}
-              >
-                <Text style={styles.btnText}>Privacy Policy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.btn}
-                onPress={() => Linking.openURL('https://venn.amoreapp.net/experts')}
-              >
-                <Text style={styles.btnText}>What Experts say</Text>
-              </TouchableOpacity>
+              <Button variant="secondary" size="sm" onPress={() => Linking.openURL('https://venn.amoreapp.net/privacy')}>
+                Privacy Policy
+              </Button>
+              <Button variant="secondary" size="sm" onPress={() => Linking.openURL('https://venn.amoreapp.net/experts')}>
+                What Experts say
+              </Button>
             </View>
           </View>
 
@@ -233,12 +205,6 @@ const styles = StyleSheet.create({
 
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text },
-  signOutBtn: {
-    paddingVertical: 6, paddingHorizontal: 14,
-    borderRadius: radii.full, borderWidth: 1, borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  signOutText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
 
   section: {
     backgroundColor: colors.surface, borderRadius: radii.lg,
@@ -263,23 +229,6 @@ const styles = StyleSheet.create({
   },
   inputReadonly: { justifyContent: 'center' },
   inputReadonlyText: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
-
-  btn: {
-    paddingVertical: 8, paddingHorizontal: 14,
-    borderRadius: radii.full, borderWidth: 1, borderColor: colors.border,
-    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
-  },
-  btnText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
-  btnDisabled: { opacity: 0.4 },
-
-  btnPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  btnPrimaryText: { color: '#fff' },
-
-  btnDanger: { backgroundColor: 'transparent', borderColor: colors.no },
-  btnDangerText: { color: colors.no },
-
-  btnGhost: { padding: space[2] },
-  btnGhostText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
 
   pairPrompt: { gap: space[3] },
   pairText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
