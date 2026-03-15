@@ -181,7 +181,7 @@ export default function Settings() {
 
 
         <section className="settings-section">
-          <h3 className="settings-section-title">About Venn</h3>
+          <h3 className="settings-section-title">About Kinklink</h3>
           <div className="settings-about">
             <p className="settings-about-desc text-muted">
               Discover what you both want — without the awkwardness. Your responses are never shared unless you both say yes.

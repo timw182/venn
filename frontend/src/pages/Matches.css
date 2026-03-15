@@ -12,7 +12,8 @@
 .matches-title {
   font-size: var(--text-2xl);
   font-weight: var(--weight-medium);
-    margin-bottom: var(--space-1);
+  font-style: italic;
+  margin-bottom: var(--space-1);
 }
 
 .matches-subtitle {
@@ -103,7 +104,8 @@
   font-family: var(--font-serif);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
-    color: var(--color-text);
+  font-style: italic;
+  color: var(--color-text);
   line-height: var(--leading-tight);
 }
 
@@ -118,7 +120,7 @@
 .match-detail-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(250, 247, 252, 0.92);
+  background: rgba(250, 246, 241, 0.9);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
@@ -149,7 +151,8 @@
 .match-detail-title {
   font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
-  }
+  font-style: italic;
+}
 
 .match-detail-desc {
   font-size: var(--text-base);
@@ -219,7 +222,8 @@
 
 .matches-empty-text {
   font-size: var(--text-xl);
-  }
+  font-style: italic;
+}
 
 /* ── Filter dropdown (≤375px) ───────────────────────────────── */
 .matches-filter-dropdown-wrap {

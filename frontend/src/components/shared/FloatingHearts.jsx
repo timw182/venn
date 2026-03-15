@@ -2,7 +2,7 @@ import { useRef } from "react";
 import "./FloatingHearts.css";
 
 const HEART_COUNT = 12;
-const HEART_COLORS = ["#F07A6A", "#9B80D4", "#C4547A", "#9B80D4", "#F07A6A"];
+const HEART_COLORS = ["#ff6a2f", "#ff3c6e", "#e8002a"];
 
 export default function FloatingHearts() {
   const hearts = useRef(
