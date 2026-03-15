@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import client from '../api/client';
 import { useAuth } from '../context/useAuth';
+import { useMatches } from '../context/MatchContext';
 import { SCREENS } from '../lib/constants';
 import { colors, fonts } from '../theme/tokens';
 
@@ -27,6 +27,46 @@ const TABS = [
   { name: SCREENS.SETTINGS, label: 'Settings',icon: 'sun'    },
 ];
 
+const MOOD_LABELS = {
+  passionate: { emoji: '🔥', label: 'Passionate' },
+  tender:     { emoji: '🌸', label: 'Tender' },
+  playful:    { emoji: '😜', label: 'Playful' },
+  dominant:   { emoji: '👑', label: 'Dominant' },
+  submissive: { emoji: '🌊', label: 'Submissive' },
+  curious:    { emoji: '🔭', label: 'Curious' },
+  lazy:       { emoji: '🛋️', label: 'Lazy' },
+  wild:       { emoji: '⚡', label: 'Wild' },
+};
+
+function MoodToast({ mood, partnerName }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(-20)).current;
+
+  useEffect(() => {
+    if (!mood) return;
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start();
+    const t = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: -20, duration: 300, useNativeDriver: true }),
+      ]).start();
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [mood]);
+
+  if (!mood) return null;
+  const m = MOOD_LABELS[mood] || { emoji: '💫', label: mood };
+
+  return (
+    <Animated.View style={[styles.toast, { opacity, transform: [{ translateY }] }]}>
+      <Text style={styles.toastText}>{partnerName} is feeling {m.emoji} {m.label}</Text>
+    </Animated.View>
+  );
+}
+
 function CustomTabBar({ state, descriptors, navigation, matchCount }) {
   return (
     <View style={styles.tabBar}>
@@ -40,9 +80,7 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
           <TouchableOpacity
             key={route.key}
             style={styles.tabItem}
-            onPress={() => {
-              if (!focused) navigation.navigate(route.name);
-            }}
+            onPress={() => { if (!focused) navigation.navigate(route.name); }}
             activeOpacity={0.7}
           >
             <View style={styles.iconWrap}>
@@ -62,30 +100,30 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
   );
 }
 
-function MainTabs({ matchCount = 0 }) {
+function MainTabs() {
+  const { newMatchCount, partnerMood } = useMatches();
+  const { user } = useAuth();
+
   return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} matchCount={matchCount} />}
-    >
-      <Tab.Screen name={SCREENS.BROWSE}   component={BrowseScreen}   />
-      <Tab.Screen name={SCREENS.MATCHES}  component={MatchesScreen}  />
-      <Tab.Screen name={SCREENS.MOOD}     component={MoodScreen}     />
-      <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={{ headerShown: false }}
+        tabBar={(props) => <CustomTabBar {...props} matchCount={newMatchCount} />}
+      >
+        <Tab.Screen name={SCREENS.BROWSE}   component={BrowseScreen}   />
+        <Tab.Screen name={SCREENS.MATCHES}  component={MatchesScreen}  />
+        <Tab.Screen name={SCREENS.MOOD}     component={MoodScreen}     />
+        <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
+      </Tab.Navigator>
+      {partnerMood && (
+        <MoodToast mood={partnerMood} partnerName={user?.partnerName || 'Your partner'} />
+      )}
+    </View>
   );
 }
 
 export default function AppNavigator() {
   const { user, isSolo, loading } = useAuth();
-  const [unseenCount, setUnseenCount] = useState(0);
-
-  useEffect(() => {
-    if (!user?.coupleId) { setUnseenCount(0); return; }
-    client.get('/matches')
-      .then((matches) => setUnseenCount(matches.filter((m) => !m.seen).length))
-      .catch(() => {});
-  }, [user?.coupleId]);
 
   if (loading) return null;
 
@@ -101,7 +139,7 @@ export default function AppNavigator() {
           </>
         ) : (
           <>
-            <Stack.Screen name="Main">{() => <MainTabs matchCount={unseenCount} />}</Stack.Screen>
+            <Stack.Screen name="Main" component={MainTabs} />
             <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
           </>
@@ -127,18 +165,14 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingTop: 8,
   },
-  iconWrap: {
-    position: 'relative',
-  },
+  iconWrap: { position: 'relative' },
   tabLabel: {
     fontFamily: fonts.sans,
     fontSize: 11,
     color: colors.textLight,
     letterSpacing: 0.3,
   },
-  tabLabelActive: {
-    color: colors.accent,
-  },
+  tabLabelActive: { color: colors.accent },
   activeDot: {
     width: 4,
     height: 4,
@@ -149,7 +183,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -10,
-    backgroundColor: '#E05A3A',
+    backgroundColor: colors.rose,
     borderRadius: 8,
     minWidth: 16,
     height: 16,
@@ -162,5 +196,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#fff',
     lineHeight: 14,
+  },
+  toast: {
+    position: 'absolute',
+    top: 12,
+    alignSelf: 'center',
+    backgroundColor: colors.deepViolet,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  toastText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 13,
+    color: '#fff',
   },
 });

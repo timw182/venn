@@ -12,6 +12,7 @@ import {
   DMSans_500Medium,
 } from '@expo-google-fonts/dm-sans';
 import { AuthProvider } from './src/context/AuthContext';
+import { MatchProvider } from './src/context/MatchContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -29,7 +30,9 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <AuthProvider>
+        <MatchProvider>
         <AppNavigator />
+        </MatchProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
