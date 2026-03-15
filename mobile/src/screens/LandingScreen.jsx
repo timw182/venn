@@ -110,7 +110,7 @@ export default function LandingScreen() {
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <LogoMark size="lg" />
-            <Text style={styles.tagline}>Turn curiosity into connection.</Text>
+            <Text style={styles.tagline}>Find your overlap.</Text>
           </View>
 
           <View style={styles.features}>
