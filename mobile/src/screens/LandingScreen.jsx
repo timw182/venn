@@ -66,6 +66,7 @@ import * as Haptics from 'expo-haptics';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import LogoMark from '../components/LogoMark';
+import VennAnimatedLogo from '../components/VennAnimatedLogo';
 import { LockKeyIcon, MoonStarsIcon, UsersIcon } from '../components/FeatureIcons';
 
 const FEATURE_ICONS = [LockKeyIcon, MoonStarsIcon, UsersIcon];
@@ -144,7 +145,7 @@ export default function LandingScreen() {
         <FloatingHearts />
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <LogoMark size="lg" />
+            <VennAnimatedLogo size={220} />
             <Text style={styles.tagline}>Find your overlap.</Text>
           </View>
 

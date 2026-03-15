@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400&amp;display=swap');
+
+      /* ── Left circle: slide in from left ── */
+      .slide-left {
+        opacity: 0;
+        transform: translateX(-120px);
+        animation: slideFromLeft 1.2s ease-out 0.2s forwards;
+      }
+      .spin-left {
+        transform-origin: 82px 128px;
+        transform: rotate(-180deg);
+        animation: spin 1.2s ease-in-out 1.4s forwards;
+      }
+
+      /* ── Right circle: slide in from right ── */
+      .slide-right {
+        opacity: 0;
+        transform: translateX(120px);
+        animation: slideFromRight 1.2s ease-out 0.2s forwards;
+      }
+      .spin-right {
+        transform-origin: 174px 128px;
+        transform: rotate(-180deg);
+        animation: spin 1.2s ease-in-out 1.4s forwards;
+      }
+
+      /* ── Title: centred inside the circles, fades in after spin ── */
+      .title {
+        font-family: 'Comfortaa', sans-serif;
+        font-size: 38px;
+        fill: #3a3a3a;
+        text-anchor: middle;
+        opacity: 0;
+        animation: fadeIn 0.8s ease-in 2.7s forwards;
+      }
+
+      /* ── Keyframes ── */
+      @keyframes slideFromLeft {
+        0%   { opacity: 0; transform: translateX(-120px); }
+        35%  { opacity: 1; }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes slideFromRight {
+        0%   { opacity: 0; transform: translateX(120px); }
+        35%  { opacity: 1; }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes spin {
+        0%   { transform: rotate(-180deg); }
+        100% { transform: rotate(0deg); }
+      }
+      @keyframes fadeIn {
+        0%   { opacity: 0; }
+        100% { opacity: 1; }
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="13.71" y1="128" x2="145.3" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset=".15" stop-color="#f07a6a"/>
+      <stop offset=".34" stop-color="#f3807a"/>
+      <stop offset=".79" stop-color="#fa8e9e"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="110.7" y1="128" x2="242.29" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset=".11" stop-color="#fa8e9e"/>
+      <stop offset=".71" stop-color="#9b80d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left circle (orange-pink) -->
+  <g class="slide-left">
+    <g class="spin-left">
+      <path fill="url(#linear-gradient)" d="M82.08,196.37c-37.7,0-68.37-30.67-68.37-68.37S44.38,59.63,82.08,59.63c27.54,0,52.26,16.39,62.99,41.75.62,1.47-.07,3.17-1.54,3.8s-3.17-.07-3.8-1.54c-9.82-23.22-32.45-38.22-57.66-38.22-34.5,0-62.57,28.07-62.57,62.57s28.07,62.57,62.57,62.57c23.77,0,45.19-13.19,55.9-34.43.72-1.43,2.46-2,3.89-1.28,1.43.72,2,2.46,1.28,3.89-5.62,11.13-14.17,20.53-24.74,27.17-10.87,6.83-23.43,10.44-36.33,10.44Z"/>
+    </g>
+  </g>
+
+  <!-- Right circle (pink-purple) -->
+  <g class="slide-right">
+    <g class="spin-right">
+      <path fill="url(#linear-gradient-2)" d="M173.92,196.37c-12.9,0-25.46-3.61-36.33-10.44-10.57-6.64-19.13-16.04-24.74-27.17-.72-1.43-.15-3.17,1.28-3.89,1.43-.72,3.17-.15,3.89,1.28,10.71,21.24,32.13,34.43,55.9,34.43,34.5,0,62.57-28.07,62.57-62.57s-28.07-62.57-62.57-62.57c-25.21,0-47.84,15-57.66,38.22-.62,1.47-2.32,2.16-3.8,1.54-1.47-.62-2.16-2.32-1.54-3.8,10.73-25.36,35.45-41.75,62.99-41.75,37.7,0,68.37,30.67,68.37,68.37s-30.67,68.37-68.37,68.37Z"/>
+    </g>
+  </g>
+
+  <!-- Title centred in the overlap zone -->
+  <text class="title" x="128" y="142">venn</text>
+</svg>
