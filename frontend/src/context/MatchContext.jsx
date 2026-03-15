@@ -19,23 +19,27 @@ export function MatchProvider({ children }) {
   const retryRef    = useRef(0);
   const retryTimer  = useRef(null);
   const knownIds    = useRef(new Set());
+  const userRef     = useRef(user);
 
-  // Initial fetch — populates matches list and seeds known IDs (no false positives)
+  // Keep userRef in sync so stable callbacks always see the latest user
+  useEffect(() => { userRef.current = user; });
+
+  // fetchMatches is stable (no user dep) — reads userRef at call time
   const fetchMatches = useCallback(async () => {
-    if (!user?.coupleId) return;
+    if (!userRef.current?.coupleId) return;
     try {
       const data = await client.get("/matches");
       setMatches(data);
       return data;
     } catch { return []; }
-  }, [user]);
+  }, []);
 
+  // Initial fetch + reset status — re-runs when user changes (e.g. after pairing)
   useEffect(() => {
     if (!user?.coupleId) return;
     fetchMatches().then((data) => {
       (data || []).forEach((m) => knownIds.current.add(m.id));
     });
-    // Load pending reset state
     client.get("/reset/status").then((s) => {
       if (s.status === "pending") {
         setResetState(s.requested_by_me ? "pending_mine" : "pending_partner");
@@ -43,17 +47,18 @@ export function MatchProvider({ children }) {
     }).catch(() => {});
   }, [user]);
 
-  // Show match popup
+  // showMatch is stable
   const showMatch = useCallback((item) => {
     setLatestNewMatch(item);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setLatestNewMatch(null), 4000);
   }, []);
 
-  // WebSocket connection
+  // connect is stable — uses refs so it never needs to be recreated
   const connect = useCallback(() => {
-    if (!user?.coupleId) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (!userRef.current?.coupleId) return;
+    const state = wsRef.current?.readyState;
+    if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
 
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
@@ -90,7 +95,9 @@ export function MatchProvider({ children }) {
     };
 
     ws.onclose = () => {
-      if (!user) return;
+      // If wsRef was replaced/cleared (intentional cleanup), don't reconnect
+      if (wsRef.current !== ws) return;
+      if (!userRef.current?.coupleId) return;
       // Exponential backoff reconnect
       const delay = Math.min(RECONNECT_BASE * 2 ** retryRef.current, RECONNECT_MAX);
       retryRef.current++;
@@ -98,16 +105,21 @@ export function MatchProvider({ children }) {
     };
 
     ws.onerror = () => ws.close();
-  }, [user, fetchMatches, showMatch]);
+  }, []); // stable — no deps, reads everything via refs
 
+  // Only fires when paired status changes (unpaired→paired or paired→unpaired/logout)
+  const paired = !!user?.coupleId;
   useEffect(() => {
-    if (!user) return;
+    if (!paired) return;
     connect();
     return () => {
       clearTimeout(retryTimer.current);
-      wsRef.current?.close();
+      // Disown before closing so stale onclose handlers skip reconnect
+      const ws = wsRef.current;
+      wsRef.current = null;
+      ws?.close();
     };
-  }, [user, connect]);
+  }, [paired]);
 
   const dismissLatest = useCallback(() => {
     clearTimeout(timerRef.current);

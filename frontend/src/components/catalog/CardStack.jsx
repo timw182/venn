@@ -62,7 +62,7 @@ function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwip
 }
 
 // ── CardStack ─────────────────────────────────────────────────────────────────
-export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo }) {
+export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo, locked = false }) {
   const [localItems, setLocalItems]   = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass]     = useState("");
