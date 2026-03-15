@@ -6,6 +6,7 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../context/useAuth';
 import { useMatches } from '../context/MatchContext';
+import { TabDirectionProvider, useTabDirection } from '../context/TabDirectionContext';
 import { SCREENS } from '../lib/constants';
 import { colors, fonts } from '../theme/tokens';
 
@@ -68,6 +69,7 @@ function MoodToast({ mood, partnerName }) {
 }
 
 function CustomTabBar({ state, descriptors, navigation, matchCount }) {
+  const directionRef = useTabDirection();
   return (
     <View style={styles.tabBar}>
       {state.routes.map((route, index) => {
@@ -80,7 +82,12 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
           <TouchableOpacity
             key={route.key}
             style={styles.tabItem}
-            onPress={() => { if (!focused) navigation.navigate(route.name); }}
+            onPress={() => {
+              if (!focused) {
+                if (directionRef) directionRef.current = index > state.index ? 'right' : 'left';
+                navigation.navigate(route.name);
+              }
+            }}
             activeOpacity={0.7}
           >
             <View style={styles.iconWrap}>
@@ -105,6 +112,7 @@ function MainTabs() {
   const { user } = useAuth();
 
   return (
+    <TabDirectionProvider>
     <View style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={{ headerShown: false }}
@@ -119,6 +127,7 @@ function MainTabs() {
         <MoodToast mood={partnerMood} partnerName={user?.partnerName || 'Your partner'} />
       )}
     </View>
+    </TabDirectionProvider>
   );
 }
 

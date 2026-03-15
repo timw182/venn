@@ -1,18 +1,17 @@
 import { useRef, useCallback } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTabDirection } from '../context/TabDirectionContext';
 
-/**
- * Wrap your screen's root view with <SlideView> to get a
- * smooth slide-in + fade animation each time the tab is focused.
- */
-export default function SlideView({ children, style, direction = 'right' }) {
-  const translateX = useRef(new Animated.Value(direction === 'right' ? 24 : -24)).current;
+export default function SlideView({ children, style }) {
+  const directionRef = useTabDirection();
+  const translateX = useRef(new Animated.Value(24)).current;
   const opacity    = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
-      translateX.setValue(direction === 'right' ? 24 : -24);
+      const dir = directionRef?.current ?? 'right';
+      translateX.setValue(dir === 'right' ? 24 : -24);
       opacity.setValue(0);
 
       Animated.parallel([
