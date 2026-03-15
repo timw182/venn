@@ -21,7 +21,7 @@ export default function Admin() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    if (user && !user.is_admin) navigate("/browse");
+    if (user && !user.isAdmin) navigate("/browse");
   }, [user]);
 
   const load = useCallback(async () => {
@@ -83,7 +83,7 @@ export default function Admin() {
     <div className="admin">
       <div className="admin-header">
         <h1 className="admin-title">Admin</h1>
-        <span className="admin-badge">{user.is_superadmin ? "Superadmin" : "Admin"}</span>
+        <span className="admin-badge">{user.isSuperadmin ? "Superadmin" : "Admin"}</span>
         <button className="admin-back" onClick={() => navigate("/browse")}>← Back to app</button>
       </div>
 
@@ -136,7 +136,7 @@ export default function Admin() {
                     <td>{u.created_at?.slice(0,10)}</td>
                     <td>{u.is_superadmin ? "Superadmin" : u.is_admin ? "Admin" : "User"}</td>
                     <td className="admin-actions">
-                      {user.is_superadmin && !u.is_superadmin && (
+                      {user.isSuperadmin && !u.is_superadmin && (
                         <button className="btn-tiny" onClick={() => toggleAdmin(u.id, u.is_admin)}>
                           {u.is_admin ? "Revoke admin" : "Make admin"}
                         </button>

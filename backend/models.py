@@ -50,6 +50,8 @@ class UserOut(BaseModel):
     avatar_color: str
     couple_id: Optional[int]
     partner_name: Optional[str] = None
+    is_admin: bool = False
+    is_superadmin: bool = False
 
 
 # ── Pairing ───────────────────────────────────────────────────────────────────

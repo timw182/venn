@@ -11,6 +11,8 @@ function toUser(raw) {
     avatarColor: raw.avatar_color,
     coupleId: raw.couple_id ?? null,
     partnerName: raw.partner_name ?? null,
+    isAdmin: Boolean(raw.is_admin),
+    isSuperadmin: Boolean(raw.is_superadmin),
   };
 }
 

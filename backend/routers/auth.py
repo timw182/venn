@@ -56,6 +56,8 @@ async def _get_user_out(db: Connection, user_id: int) -> UserOut:
         avatar_color=row["avatar_color"],
         couple_id=row["couple_id"],
         partner_name=partner_name,
+        is_admin=bool(row["is_admin"]),
+        is_superadmin=bool(row["is_superadmin"]),
     )
 
 
