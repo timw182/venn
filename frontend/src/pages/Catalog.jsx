@@ -1,3 +1,4 @@
+import ReactDOM from "react-dom";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategoryPicker from "../components/catalog/CategoryPicker";
@@ -91,6 +92,24 @@ export default function Catalog() {
   const [responses, setResponses] = useState(loadLocalResponses);
   const [matchItem, setMatchItem] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
+
+  // Confetti
+  const [confetti, setConfetti] = useState([]);
+  const burstConfetti = useCallback(() => {
+    const pieces = Array.from({ length: 32 }, (_, i) => ({
+      id: i,
+      x: 20 + Math.random() * 60,
+      color: ["#F07A6A","#9B80D4","#C4547A","#fa8e9e","#f3c6d0","#d4b8f0"][i % 6],
+      size: 7 + Math.random() * 8,
+      angle: Math.random() * 360,
+      delay: Math.random() * 0.25,
+      duration: 1.0 + Math.random() * 0.7,
+      drift: (Math.random() - 0.5) * 200,
+      drop: 220 + Math.random() * 160,
+    }));
+    setConfetti(pieces);
+    setTimeout(() => setConfetti([]), 2200);
+  }, []);
   const [recentYes, setRecentYes] = useState(() => loadPiles("foreplay").yes);
   const [recentNo, setRecentNo]   = useState(() => loadPiles("foreplay").no);
   const shownMatchIds = useRef(new Set());
@@ -107,6 +126,7 @@ export default function Catalog() {
   // React to partner-triggered matches
   useEffect(() => {
     if (!latestNewMatch) return;
+    burstConfetti();
     const item = catalog.find((i) => i.id === latestNewMatch.id);
     if (item) {
       clearTimeout(matchTimerRef.current);
@@ -115,7 +135,7 @@ export default function Catalog() {
         matchTimerRef.current = setTimeout(() => { setMatchItem(null); dismissLatest(); }, 4000);
       }, 200);
     }
-  }, [latestNewMatch]);
+  }, [latestNewMatch, burstConfetti]);
 
   useEffect(() => {
     Promise.all([client.get("/catalog"), client.get("/catalog/responses")])
@@ -188,6 +208,20 @@ export default function Catalog() {
 
   return (
     <motion.div className="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      {confetti.length > 0 && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
+          {confetti.map((p) => (
+            <motion.div
+              key={p.id}
+              style={{ position: 'absolute', left: p.x + '%', top: '35%', width: p.size, height: p.size * 0.55, borderRadius: 2, backgroundColor: p.color }}
+              initial={{ y: 0, x: 0, opacity: 1, rotate: p.angle, scale: 1 }}
+              animate={{ y: p.drop, x: p.drift, opacity: 0, rotate: p.angle + 540, scale: 0.3 }}
+              transition={{ duration: p.duration, delay: p.delay, ease: 'easeOut' }}
+            />
+          ))}
+        </div>,
+        document.body
+      )}
       <div className="catalog-inner">
         <div className="catalog-header">
           <h2 className="catalog-title serif">Browse...</h2>

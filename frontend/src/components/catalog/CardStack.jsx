@@ -67,23 +67,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass]     = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
-  const [confetti, setConfetti] = useState([]);
-
-  const burstConfetti = useCallback(() => {
-    const pieces = Array.from({ length: 28 }, (_, i) => ({
-      id: i,
-      x: 30 + Math.random() * 40,   // % from left
-      color: ["#F07A6A","#9B80D4","#C4547A","#fa8e9e","#f3c6d0"][i % 5],
-      size: 6 + Math.random() * 8,
-      angle: Math.random() * 360,
-      delay: Math.random() * 0.3,
-      duration: 0.9 + Math.random() * 0.6,
-      drift: (Math.random() - 0.5) * 160,
-      drop: 180 + Math.random() * 140,
-    }));
-    setConfetti(pieces);
-    setTimeout(() => setConfetti([]), 1800);
-  }, []);
   const [maybeIds, setMaybeIds]       = useState(new Set());
   const responding = useRef(false);
   const itemsRef   = useRef(items);
