@@ -42,7 +42,7 @@ if not SECRET_KEY:
         SECRET_KEY = secrets.token_hex(32)  # Allow ephemeral key in dev only
     else:
         raise RuntimeError("SECRET_KEY environment variable must be set in production")
-FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://kinklink.amoreapp.net")
+FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://venn.amoreapp.net")
 EXTRA_ORIGINS = [o.strip() for o in os.environ.get("EXTRA_ORIGINS", "").split(",") if o.strip()]
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
@@ -66,7 +66,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Explicit host (no leading dot) so the cookie is never sent to other subdomains.
-COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "kinklink.amoreapp.net")
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "venn.amoreapp.net")
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
