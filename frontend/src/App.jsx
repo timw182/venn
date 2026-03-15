@@ -10,6 +10,7 @@ import Matches from "./pages/Matches";
 import Mood from "./pages/Mood";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
+import Admin from "./pages/Admin";
 import Experts from "./pages/Experts";
 import { ROUTES } from "./lib/constants";
 
@@ -46,6 +47,7 @@ export default function App() {
           <Route element={<Shell />}>
             <Route path={ROUTES.BROWSE} element={<Catalog />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/experts" element={<Experts />} />
             <Route path={ROUTES.MATCHES} element={<Matches />} />
             <Route path={ROUTES.MOOD} element={<Mood />} />

@@ -6,7 +6,7 @@
   font-family: var(--font-sans);
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-wide);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--ease-out);
   cursor: pointer;
   position: relative;
@@ -40,7 +40,9 @@
 .btn-primary {
   background: var(--color-accent);
   color: var(--color-text-inverse);
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -53,9 +55,7 @@
   color: var(--color-text);
   border: 1.5px solid transparent;
   background-clip: padding-box;
-  background-image:
-    linear-gradient(var(--color-surface), var(--color-surface)),
-    var(--grad-border);
+  background-image: linear-gradient(var(--color-surface), var(--color-surface)), var(--grad-border);
   background-origin: padding-box, border-box;
   box-shadow: var(--shadow-xs);
 }
@@ -63,7 +63,7 @@
 .btn-secondary:hover:not(:disabled) {
   background-image:
     linear-gradient(var(--color-surface-alt), var(--color-surface-alt)),
-    linear-gradient(135deg, #9B80D4 0%, #F07A6A 100%);
+    linear-gradient(135deg, #9b80d4 0%, #f07a6a 100%);
 }
 
 .btn-ghost {
@@ -93,7 +93,7 @@
 .btn-spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: spin-slow 0.6s linear infinite;
