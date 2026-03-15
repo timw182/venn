@@ -112,4 +112,15 @@
   --z-modal: 200;
   --z-toast: 300;
   --z-particle: 400;
+
+  /* Layout */
+  --nav-height: 70px;
+
+  /* ── Canonical breakpoints ─────────────────────────────────
+     CSS variables cannot be used inside @media rules.
+     Use these raw values consistently across all files:
+       480px  — large phones (replaces scattered 374/375/380px)
+       768px  — tablet / desktop (replaces 767px/768px off-by-one)
+       1024px — wide desktop
+     ──────────────────────────────────────────────────────── */
 }

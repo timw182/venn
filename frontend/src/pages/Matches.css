@@ -225,12 +225,12 @@
   font-style: italic;
 }
 
-/* ── Filter dropdown (≤375px) ───────────────────────────────── */
+/* ── Filter dropdown (smallest phones) ─────────────────────── */
 .matches-filter-dropdown-wrap {
   display: none;
 }
 
-@media (max-width: 375px) {
+@media (--below-sm) {
   .matches-filters {
     display: none;
   }
@@ -272,27 +272,19 @@
   }
 }
 
-@media (min-width: 1024px) {
+/* 3-column grid from 480px up (replaces two range queries) */
+@media (--bp-sm) {
+  .matches-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (--bp-lg) {
   .matches-page {
     max-width: 960px;
   }
 
   .matches-grid {
     grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (min-width: 425px) and (max-width: 767px) {
-  .matches-page {
-    max-width: 100%;
-  }
-  .matches-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .matches-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }

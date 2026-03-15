@@ -1,15 +1,12 @@
 @import './tokens.css';
 @import './reset.css';
 
-html, body {
-  overflow: hidden;
-  height: 100%;
-}
-
-@media (max-width: 767px) {
+/* Mobile (base): natural document flow, body scrolls */
+/* Desktop: shell takes full viewport, body scroll locked */
+@media (--bp-md) {
   html, body {
-    overflow-y: auto;
-    height: auto;
+    overflow: hidden;
+    height: 100%;
   }
 }
 

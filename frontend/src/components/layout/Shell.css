@@ -1,45 +1,9 @@
+/* ── Mobile-first layout ────────────────────────────────────── */
 .shell {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  min-height: 100dvh;
   position: relative;
-  overflow: hidden;
-}
-
-/* ── Floating hearts background ─────────────────────────────── */
-.hearts-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.heart-float {
-  position: absolute;
-  bottom: -80px;
-  color: var(--color-primary, #e05c8a);
-  opacity: 0.12;
-  animation: heartRise linear infinite;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes heartRise {
-  0% {
-    transform: translateY(0) translateX(0) scale(0.8);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.12;
-  }
-  85% {
-    opacity: 0.12;
-  }
-  100% {
-    transform: translateY(-110dvh) translateX(var(--drift)) scale(1.1);
-    opacity: 0;
-  }
 }
 
 /* keep all content above hearts */
@@ -55,12 +19,12 @@ nav {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-6);
-  padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0));
+  padding: var(--space-3) var(--space-4);
+  padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0));
 }
 
 .shell-logo {
-  width: 300px;
+  width: 240px;
   height: auto;
 }
 
@@ -75,11 +39,9 @@ nav {
 
 .shell-content {
   flex: 1;
-  min-height: 0;
-  padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  padding-bottom: calc(var(--nav-height) + var(--space-4) + env(safe-area-inset-bottom, 0));
 }
 
 .shell-content > *:not(.catalog):not(.matches-page) {
@@ -101,7 +63,32 @@ nav {
   margin-right: auto;
 }
 
-/* ── Reset banner ─────────────────────────────────────────────── */
+/* ── Desktop: locked height with internal scroll ─────────── */
+@media (--bp-md) {
+  .shell {
+    height: 100dvh;
+    min-height: unset;
+    overflow: hidden;
+  }
+
+  .shell-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0));
+  }
+
+  .shell-header {
+    padding: var(--space-4) var(--space-6);
+    padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0));
+  }
+
+  .shell-logo {
+    width: 300px;
+  }
+}
+
+/* ── Reset banner ─────────────────────────────────────────── */
 .reset-banner {
   position: relative;
   z-index: 10;
@@ -154,76 +141,4 @@ nav {
 
 .reset-banner-btn:hover {
   opacity: 0.8;
-}
-
-
-/* Only Matches page needs scroll */
-body.matches-active .shell-content {
-  overflow-y: auto;
-}
-/* ═══════════════════════════════════════════════════════
-   MOBILE RESPONSIVE — appended to Shell.css
-   At ≤767px: natural block flow, body scrolls
-   ═══════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
-  html, body {
-    overflow-y: auto;
-    height: auto;
-  }
-
-  .shell {
-    min-height: 100dvh;
-    height: auto;
-    overflow: visible;
-  }
-
-  .shell-content {
-    overflow-y: visible;
-    flex: none;
-    height: auto;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
-  }
-
-  .shell-header {
-    padding: var(--space-3) var(--space-4);
-  }
-
-  .shell-logo {
-    width: 240px;
-  }
-}
-
-/* ── Below 375px: everything scrollable + compact ─────────── */
-@media (max-width: 374px) {
-  html, body {
-    overflow-y: auto;
-    height: auto;
-  }
-
-  .shell {
-    min-width: 0;
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-
-  .shell-content {
-    flex: none;
-    height: auto;
-    overflow-y: visible;
-    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
-  }
-
-  .shell-header {
-    padding: var(--space-2) var(--space-3);
-  }
-
-  .shell-logo {
-    width: 200px;
-  }
-
-  .shell-content > *:not(.catalog):not(.matches-page) {
-    padding-left: var(--space-3);
-    padding-right: var(--space-3);
-  }
 }

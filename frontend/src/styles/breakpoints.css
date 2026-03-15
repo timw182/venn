@@ -1,0 +1,11 @@
+/* ── Canonical breakpoints ───────────────────────────────────
+   Single source of truth. PostCSS resolves these at build time.
+   Usage: @media (--bp-md) { ... }
+   ─────────────────────────────────────────────────────────── */
+@custom-media --bp-sm   (min-width: 480px);
+@custom-media --bp-md   (min-width: 768px);
+@custom-media --bp-lg   (min-width: 1024px);
+
+/* Inverse aliases — for the few genuinely mobile-only blocks */
+@custom-media --below-sm  (max-width: 479px);
+@custom-media --below-md  (max-width: 767px);

@@ -1,24 +1,7 @@
-.catalog-header {
-  padding: var(--space-5) var(--space-5) var(--space-3);
-  text-align: center;
-}
-
-.catalog-title {
-  font-size: var(--text-2xl);
-  color: var(--color-text);
-}
-
-.catalog-subtitle {
-  font-size: var(--text-sm);
-  margin-top: var(--space-1);
-}
-
+/* ── Mobile-first ──────────────────────────────────────────── */
 .catalog {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
 }
 
 .catalog-inner {
@@ -28,21 +11,61 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  flex: 1;
-  min-height: 0;
 }
 
-/* ── Desktop layout ≥1024px ───────────────────────────────────── */
+.catalog-header {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  text-align: center;
+}
+
+.catalog-title {
+  font-size: var(--text-xl);
+  color: var(--color-text);
+}
+
+/* subtitle hidden on small screens */
+.catalog-subtitle {
+  display: none;
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+
+/* ── Tablet / Desktop: locked layout with internal scroll ── */
+@media (--bp-md) {
+  .catalog {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .catalog-inner {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .catalog-header {
+    padding: var(--space-5) var(--space-5) var(--space-3);
+  }
+
+  .catalog-title {
+    font-size: var(--text-2xl);
+  }
+
+  .catalog-subtitle {
+    display: block;
+  }
+}
+
+/* ── Wide Desktop: side pile layout ────────────────────────── */
 .catalog-desktop-layout {
-  display: contents; /* mobile: transparent wrapper, children go to catalog-inner */
+  display: contents; /* transparent on mobile — children go to catalog-inner */
 }
 
-/* Piles hidden on mobile */
 .catalog-pile {
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (--bp-lg) {
   .catalog-inner {
     max-width: 100%;
   }
@@ -67,16 +90,16 @@
   }
 }
 
-/* ── Hide behind cards on very narrow screens ─────────────────── */
-@media (max-width: 380px) {
+/* ── Hide behind-cards on small phones ────────────────────── */
+@media (--below-sm) {
   .card-stack-behind { display: none; }
 }
 
-/* ── Pile card stack ──────────────────────────────────────────── */
+/* ── Pile card stack ──────────────────────────────────────── */
 .catalog-pile-stack {
   position: relative;
   width: 62px;
-  height: 82px;   /* extra height for offset cards peeking below */
+  height: 82px;
   overflow: visible;
 }
 
@@ -134,48 +157,3 @@
 
 .catalog-pile-no .catalog-pile-count  { color: #C47474; }
 .catalog-pile-yes .catalog-pile-count { color: #7B9E6F; }
-/* ═══════════════════════════════════════════════════════
-   CATALOG MOBILE — appended to Catalog.css
-   ═══════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
-  .catalog {
-    overflow: visible;
-    flex: none;
-    height: auto;
-    min-height: 0;
-  }
-
-  .catalog-inner {
-    flex: none;
-    height: auto;
-    min-height: 0;
-  }
-
-  .catalog-header {
-    padding: var(--space-3) var(--space-4) var(--space-2);
-  }
-
-  .catalog-subtitle {
-    display: none;
-  }
-
-  .catalog-title {
-    font-size: var(--text-xl);
-  }
-}
-
-@media (max-width: 374px) {
-  .catalog-header {
-    padding: var(--space-2) var(--space-3) var(--space-1);
-  }
-
-  .catalog-categories {
-    padding: 0 var(--space-3) var(--space-2);
-    gap: var(--space-1);
-  }
-
-  .catalog-category-btn {
-    font-size: var(--text-xs);
-    padding: 4px 10px;
-  }
-}

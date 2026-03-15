@@ -315,7 +315,7 @@
 }
 
 /* ── Mobile: fit everything above fold ───────────────────────── */
-@media (max-width: 767px) {
+@media (--below-md) {
   .landing {
     padding: var(--space-8) var(--space-5) var(--space-6);
     justify-content: center;
@@ -343,7 +343,7 @@
   }
 }
 
-@media (max-width: 767px) and (max-height: 680px) {
+@media (--below-md) and (max-height: 680px) {
   .landing {
     padding: var(--space-5) var(--space-5) var(--space-4);
   }

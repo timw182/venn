@@ -90,7 +90,7 @@
   display: none; /* mobile: off */
 }
 
-@media (min-width: 768px) {
+@media (--bp-md) {
   .bottom-nav-slime {
     display: block;
     position: absolute;
