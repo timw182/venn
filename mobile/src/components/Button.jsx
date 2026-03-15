@@ -3,9 +3,9 @@ import { colors, fonts, radii, space } from '../theme/tokens';
 
 const variants = {
   primary: {
-    bg: colors.accent,
-    text: '#FDF5E6',
-    border: colors.accent,
+    bg: 'rgba(196, 84, 122, 0.15)',
+    text: colors.rose,
+    border: 'rgba(196, 84, 122, 0.3)',
   },
   secondary: {
     bg: colors.surfaceAlt,
@@ -68,7 +68,7 @@ export default function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radii.full,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
