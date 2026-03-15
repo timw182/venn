@@ -22,7 +22,7 @@ export function MatchProvider({ children }) {
 
   // Initial fetch — populates matches list and seeds known IDs (no false positives)
   const fetchMatches = useCallback(async () => {
-    if (!user) return;
+    if (!user?.coupleId) return;
     try {
       const data = await client.get("/matches");
       setMatches(data);
@@ -31,7 +31,7 @@ export function MatchProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.coupleId) return;
     fetchMatches().then((data) => {
       (data || []).forEach((m) => knownIds.current.add(m.id));
     });
@@ -52,7 +52,7 @@ export function MatchProvider({ children }) {
 
   // WebSocket connection
   const connect = useCallback(() => {
-    if (!user) return;
+    if (!user?.coupleId) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     const ws = new WebSocket(WS_URL);
