@@ -2,10 +2,10 @@ import 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 import { useFonts,
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_400Regular_Italic,
-  PlayfairDisplay_700Bold_Italic,
-} from '@expo-google-fonts/playfair-display';
+  Comfortaa_400Regular,
+  Comfortaa_600SemiBold,
+  Comfortaa_700Bold,
+} from '@expo-google-fonts/comfortaa';
 import {
   DMSans_300Light,
   DMSans_400Regular,
@@ -16,9 +16,9 @@ import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_400Regular_Italic,
-    PlayfairDisplay_700Bold_Italic,
+    Comfortaa_400Regular,
+    Comfortaa_600SemiBold,
+    Comfortaa_700Bold,
     DMSans_300Light,
     DMSans_400Regular,
     DMSans_500Medium,
