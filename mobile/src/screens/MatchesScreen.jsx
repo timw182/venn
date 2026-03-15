@@ -143,11 +143,14 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.serif, fontSize: 26, color: colors.text },
   subtitle: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
-  filters: { flexDirection: 'row', gap: space[2], paddingHorizontal: space[5], paddingBottom: space[3] },
+  filters: { flexDirection: 'row', gap: space[2], paddingHorizontal: space[5], paddingBottom: space[3], alignItems: 'center' },
   filterChip: {
     paddingVertical: 6, paddingHorizontal: 12,
     borderRadius: radii.full, borderWidth: 1, borderColor: colors.border,
     backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
   },
   filterActive: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   filterText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
