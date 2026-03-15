@@ -24,6 +24,7 @@ def _gen_code(length: int = 6) -> str:
 
 
 @router.post("/create", response_model=PairingCodeOut)
+@limiter.limit("10/minute")
 async def create_pairing_code(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
 

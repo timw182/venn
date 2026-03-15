@@ -12,6 +12,10 @@ limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Pre-computed dummy hash — ensures bcrypt always runs on login, preventing
+# timing-based username enumeration (unknown user vs wrong password).
+_DUMMY_HASH = pwd_ctx.hash("__dummy__")
+
 AVATAR_COLORS = [
     "#C4754B", "#7B9E6F", "#D4B878", "#8E7BB5",
     "#5B9BB5", "#C47474", "#74A899", "#B5875B",
@@ -83,11 +87,15 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
 
 
 @router.post("/login", response_model=UserOut)
-@limiter.limit("10/minute")
+@limiter.limit("5/minute")
 async def login(body: LoginRequest, request: Request, db: Connection = Depends(get_db)):
     cur = await db.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),))
     row = await cur.fetchone()
-    if not row or not pwd_ctx.verify(body.password, row["password_hash"]):
+    # Always call verify so response time is constant regardless of whether
+    # the username exists, preventing timing-based account enumeration.
+    hash_to_check = row["password_hash"] if row else _DUMMY_HASH
+    password_ok = pwd_ctx.verify(body.password, hash_to_check)
+    if not row or not password_ok:
         raise HTTPException(401, "Invalid username or password")
 
     request.session["user_id"] = row["id"]
@@ -109,6 +117,7 @@ async def me(request: Request, db: Connection = Depends(get_db)):
 
 
 @router.patch("/profile", response_model=UserOut)
+@limiter.limit("10/minute")
 async def update_profile(body: UpdateProfileRequest, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
     await db.execute("UPDATE users SET display_name = ? WHERE id = ?", (body.display_name, uid))

@@ -73,6 +73,14 @@ async def init_db():
                 expires_at TEXT    NOT NULL,
                 updated_at TEXT    NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS reset_requests (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                couple_id    INTEGER NOT NULL REFERENCES couples(id),
+                requested_by INTEGER NOT NULL REFERENCES users(id),
+                status       TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','declined')),
+                created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         await db.commit()
 

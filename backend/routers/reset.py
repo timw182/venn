@@ -1,22 +1,15 @@
 from fastapi import APIRouter, Request, HTTPException
-from aiosqlite import Connection
 from database import get_db_ctx as get_db
 from routers.auth import _session_user_id
+from routers.deps import require_couple, get_partner_id
 from ws import manager
-import json
 
 router = APIRouter(prefix="/reset", tags=["reset"])
 
 
 async def _get_couple(db, uid):
-    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
-    row = await cur.fetchone()
-    if not row or not row["couple_id"]:
-        raise HTTPException(403, "Not in a couple")
-    couple_id = row["couple_id"]
-    cur = await db.execute("SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,))
-    couple = await cur.fetchone()
-    partner_id = couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
+    couple_id = await require_couple(db, uid)
+    partner_id = await get_partner_id(db, uid, couple_id)
     return couple_id, partner_id
 
 

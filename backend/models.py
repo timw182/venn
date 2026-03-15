@@ -58,8 +58,19 @@ class PairingCodeOut(BaseModel):
     code: str
 
 
+_CODE_CHARS = set("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")
+
+
 class JoinRequest(BaseModel):
     code: str
+
+    @field_validator("code")
+    @classmethod
+    def code_valid(cls, v: str) -> str:
+        v = v.strip().upper()
+        if len(v) != 6 or not all(c in _CODE_CHARS for c in v):
+            raise ValueError("Invalid pairing code")
+        return v
 
 
 # ── Catalog ───────────────────────────────────────────────────────────────────

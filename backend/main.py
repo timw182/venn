@@ -22,6 +22,7 @@ from database import get_db, get_db_ctx
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
@@ -35,7 +36,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 limiter = Limiter(key_func=get_remote_address)
 
-SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if os.environ.get("DEBUG", "false").lower() == "true":
+        SECRET_KEY = secrets.token_hex(32)  # Allow ephemeral key in dev only
+    else:
+        raise RuntimeError("SECRET_KEY environment variable must be set in production")
 FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://kinklink.amoreapp.net")
 EXTRA_ORIGINS = [o.strip() for o in os.environ.get("EXTRA_ORIGINS", "").split(",") if o.strip()]
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
@@ -59,7 +65,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", ".amoreapp.net")
+# Explicit host (no leading dot) so the cookie is never sent to other subdomains.
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "kinklink.amoreapp.net")
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
@@ -69,7 +76,7 @@ app.add_middleware(
     session_cookie="kl_session",
     max_age=60 * 60 * 24 * 7,  # 7 days
     https_only=True,
-    same_site="lax",
+    same_site="strict",
     domain=COOKIE_DOMAIN,
 )
 

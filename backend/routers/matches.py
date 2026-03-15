@@ -5,31 +5,16 @@ from typing import List
 from database import get_db
 from models import MatchItem
 from routers.auth import _session_user_id
+from routers.deps import require_couple, get_partner_id
 
 router = APIRouter(prefix="/matches", tags=["matches"])
-
-
-async def _require_couple(db: Connection, uid: int) -> int:
-    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
-    row = await cur.fetchone()
-    if not row or not row["couple_id"]:
-        raise HTTPException(403, "Not paired")
-    return row["couple_id"]
-
-
-async def _get_partner_id(db: Connection, uid: int, couple_id: int) -> int:
-    cur = await db.execute(
-        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)
-    )
-    couple = await cur.fetchone()
-    return couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
 
 @router.get("", response_model=List[MatchItem])
 async def get_matches(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    couple_id = await _require_couple(db, uid)
-    partner_id = await _get_partner_id(db, uid, couple_id)
+    couple_id = await require_couple(db, uid)
+    partner_id = await get_partner_id(db, uid, couple_id)
 
     # Items where BOTH said yes — never expose what partner said no/maybe to
     cur = await db.execute(
@@ -73,7 +58,7 @@ async def get_matches(request: Request, db: Connection = Depends(get_db)):
 @router.post("/{item_id}/seen", status_code=204)
 async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    await _require_couple(db, uid)
+    await require_couple(db, uid)
 
     await db.execute(
         "INSERT OR IGNORE INTO match_seen (user_id, item_id) VALUES (?,?)",
@@ -86,7 +71,7 @@ async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get
 async def remove_match(item_id: int, request: Request, db: Connection = Depends(get_db)):
     """Remove a match by changing the current user's response to 'no'."""
     uid = _session_user_id(request)
-    await _require_couple(db, uid)
+    await require_couple(db, uid)
 
     await db.execute(
         """INSERT INTO user_responses (user_id, item_id, response)

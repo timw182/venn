@@ -14,7 +14,7 @@ export default function Pairing() {
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState(urlCode || "");
   const [copied, setCopied] = useState(false);
-  const { user, pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
+  const { user, pair, createPairingCode, enterSolo, updateUserFromRaw, loading } = useAuth();
   const navigate = useNavigate();
 
   // Already paired — go to browse
@@ -45,14 +45,7 @@ export default function Pairing() {
         if (raw.couple_id) {
           navigatedRef.current = true;
           clearInterval(pollRef.current);
-          setUser({
-            id: raw.id,
-            username: raw.username,
-            displayName: raw.display_name,
-            avatarColor: raw.avatar_color,
-            coupleId: raw.couple_id,
-            partnerName: raw.partner_name ?? null,
-          });
+          updateUserFromRaw(raw);
           navigate(ROUTES.CONNECTED);
         }
       } catch {}

@@ -33,6 +33,8 @@ export function AuthProvider({ children }) {
     try {
       const raw = await client.post("/auth/login", { username, password });
       const u = toUser(raw);
+      // Clear any previous user's cached data
+      Object.keys(localStorage).filter(k => k.startsWith("kl_")).forEach(k => localStorage.removeItem(k));
       setUser(u);
       return u;
     } finally {
@@ -54,6 +56,8 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     await client.post("/auth/logout").catch(() => {});
+    // Clear all cached data for this user
+    Object.keys(localStorage).filter(k => k.startsWith("kl_")).forEach(k => localStorage.removeItem(k));
     setUser(null);
   }, []);
 
@@ -78,8 +82,10 @@ export function AuthProvider({ children }) {
     setIsSolo(true);
   }, []);
 
+  const updateUserFromRaw = useCallback((raw) => setUser(toUser(raw)), []);
+
   return (
-    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser }}>
+    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, updateUserFromRaw }}>
       {children}
     </AuthContext.Provider>
   );

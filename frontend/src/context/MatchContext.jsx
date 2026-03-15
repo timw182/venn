@@ -124,7 +124,7 @@ export function MatchProvider({ children }) {
   const newMatchCount = matches.filter((m) => !m.seen).length;
 
   return (
-    <MatchContext.Provider value={{ matches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood }}>
+    <MatchContext.Provider value={{ matches, setMatches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood }}>
       {children}
     </MatchContext.Provider>
   );

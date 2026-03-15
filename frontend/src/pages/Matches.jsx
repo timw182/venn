@@ -86,18 +86,17 @@ export default function Matches() {
     document.body.classList.add("matches-active");
     return () => document.body.classList.remove("matches-active");
   }, []);
-  const { matches: allMatches, refetch } = useMatches();
+  const { matches: allMatches, setMatches, refetch } = useMatches();
   const [filter, setFilter] = useState("all");
-
 
   function handleSeen(itemId) {
     client.post(`/matches/${itemId}/seen`).catch(() => {});
-    setAllMatches((prev) => prev.map((m) => (m.id === itemId ? { ...m, seen: true } : m)));
+    setMatches((prev) => prev.map((m) => (m.id === itemId ? { ...m, seen: true } : m)));
   }
 
   function handleRemove(itemId) {
-    setAllMatches((prev) => prev.filter((m) => m.id !== itemId));
-    client.delete(`/matches/${itemId}`).catch(() => {});
+    setMatches((prev) => prev.filter((m) => m.id !== itemId));
+    client.delete(`/matches/${itemId}`).catch(() => refetch());
   }
 
   const matches = filter === "all" ? allMatches : allMatches.filter((m) => m.category === filter);

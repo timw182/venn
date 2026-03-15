@@ -6,24 +6,9 @@ from datetime import datetime, timedelta, timezone
 from database import get_db
 from models import MoodRequest, MoodOut
 from routers.auth import _session_user_id
+from routers.deps import require_couple, get_partner_id
 
 router = APIRouter(prefix="/mood", tags=["mood"])
-
-
-async def _require_couple(db: Connection, uid: int) -> int:
-    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
-    row = await cur.fetchone()
-    if not row or not row["couple_id"]:
-        raise HTTPException(403, "Not paired")
-    return row["couple_id"]
-
-
-async def _get_partner_id(db: Connection, uid: int, couple_id: int) -> int:
-    cur = await db.execute(
-        "SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,)
-    )
-    couple = await cur.fetchone()
-    return couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
 
 def _active_mood(row) -> str | None:
@@ -40,8 +25,8 @@ def _active_mood(row) -> str | None:
 @router.put("", response_model=MoodOut)
 async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    couple_id = await _require_couple(db, uid)
-    partner_id = await _get_partner_id(db, uid, couple_id)
+    couple_id = await require_couple(db, uid)
+    partner_id = await get_partner_id(db, uid, couple_id)
 
     expires_at = (
         datetime.now(timezone.utc) + timedelta(hours=body.expires_hours)
@@ -90,8 +75,8 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
 @router.get("", response_model=MoodOut)
 async def get_mood(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
-    couple_id = await _require_couple(db, uid)
-    partner_id = await _get_partner_id(db, uid, couple_id)
+    couple_id = await require_couple(db, uid)
+    partner_id = await get_partner_id(db, uid, couple_id)
 
     cur = await db.execute(
         "SELECT mood, expires_at FROM user_mood WHERE user_id = ?", (uid,)
