@@ -10,14 +10,14 @@ const { width: SW, height: SH } = Dimensions.get('window');
 const HEART_COLORS = ['#F07A6A', '#9B80D4', '#C4547A', '#9B80D4', '#F07A6A', '#C4547A', '#9B80D4', '#F07A6A'];
 
 const HEARTS = [
-  { id: 0, x: SW * 0.05, size: 12, duration: 11000, start: 0.1, opacity: 0.18 },
-  { id: 1, x: SW * 0.18, size: 20, duration: 14000, start: 0.55, opacity: 0.14 },
-  { id: 2, x: SW * 0.30, size: 10, duration: 9500,  start: 0.35, opacity: 0.20 },
-  { id: 3, x: SW * 0.45, size: 16, duration: 13000, start: 0.75, opacity: 0.16 },
-  { id: 4, x: SW * 0.58, size: 22, duration: 10500, start: 0.20, opacity: 0.12 },
+  { id: 0, x: SW * 0.02, size: 12, duration: 11000, start: 0.1,  opacity: 0.18 },
+  { id: 1, x: SW * 0.14, size: 20, duration: 14000, start: 0.55, opacity: 0.14 },
+  { id: 2, x: SW * 0.28, size: 10, duration: 9500,  start: 0.35, opacity: 0.20 },
+  { id: 3, x: SW * 0.42, size: 16, duration: 13000, start: 0.75, opacity: 0.16 },
+  { id: 4, x: SW * 0.56, size: 22, duration: 10500, start: 0.20, opacity: 0.12 },
   { id: 5, x: SW * 0.68, size: 14, duration: 12000, start: 0.60, opacity: 0.18 },
   { id: 6, x: SW * 0.80, size: 18, duration: 15000, start: 0.40, opacity: 0.15 },
-  { id: 7, x: SW * 0.90, size: 11, duration: 10000, start: 0.85, opacity: 0.20 },
+  { id: 7, x: SW * 0.92, size: 11, duration: 10000, start: 0.85, opacity: 0.20 },
 ];
 
 function FloatingHeart({ x, size, duration, start, opacity: maxOpacity, color }) {
@@ -55,7 +55,7 @@ function FloatingHeart({ x, size, duration, start, opacity: maxOpacity, color })
 
 function FloatingHearts() {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={{ position: 'absolute', top: 0, left: 0, width: SW, height: SH }} pointerEvents="none">
       {HEARTS.map((h, i) => <FloatingHeart key={h.id} {...h} color={HEART_COLORS[i]} />)}
     </View>
   );
