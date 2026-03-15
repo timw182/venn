@@ -8,7 +8,7 @@ import "./Admin.css";
 const TABS = ["overview", "users", "tickets", "cards"];
 
 export default function Admin() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("overview");
   const [stats, setStats] = useState(null);
@@ -19,10 +19,6 @@ export default function Admin() {
   const [cardEdit, setCardEdit] = useState(null);
   const [cardForm, setCardForm] = useState({ category: "", title: "", description: "" });
   const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    if (user && !user.isAdmin) navigate("/browse");
-  }, [user]);
 
   const load = useCallback(async () => {
     if (tab === "overview") {
@@ -77,7 +73,12 @@ export default function Admin() {
     load();
   }
 
-  if (!user?.isAdmin) return null;
+  if (loading) return null;
+  if (!loading && user && !user.isAdmin) {
+    navigate("/browse");
+    return null;
+  }
+  if (!user) return null;
 
   return (
     <div className="admin">
