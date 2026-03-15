@@ -178,18 +178,17 @@
 
 /* ── Toast ────────────────────────────────────────────── */
 .mood-toast {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: var(--color-text);
   color: var(--color-surface);
   padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   font-size: var(--text-sm);
-  white-space: nowrap;
-  z-index: 100;
+  text-align: center;
   box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-2);
 }
 
 .mood-error {

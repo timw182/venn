@@ -22,7 +22,6 @@
 .btn-sm {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
-  height: 36px;
 }
 
 .btn-md {

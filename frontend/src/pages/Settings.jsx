@@ -16,6 +16,8 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState(null);
 
   async function handleSave() {
     setSaveError("");
@@ -37,6 +39,19 @@ export default function Settings() {
     await client.post("/reset/request");
     setResetState("pending_mine");
     setResetConfirm(false);
+  }
+
+  async function handleDisconnect() {
+    if (!window.confirm("Disconnect from your partner? You can reconnect with a new pairing code.")) return;
+    setDisconnecting(true);
+    setDisconnectError(null);
+    try {
+      await client.post("/auth/disconnect");
+      window.location.reload();
+    } catch (e) {
+      setDisconnectError(e?.message || "Couldn't disconnect. Try again.");
+    }
+    setDisconnecting(false);
   }
 
   async function handleConfirmReset() {
@@ -86,7 +101,11 @@ export default function Settings() {
           {user?.coupleId && (
             <div className="settings-field" style={{ marginTop: "var(--space-3)" }}>
               <label className="settings-label">Connected to</label>
-              <div className="settings-input settings-input-readonly">{user.partnerName}</div>
+              <div className="settings-input-row">
+                <div className="settings-input settings-input-readonly" style={{ flex: 1 }}>{user.partnerName}</div>
+                <Button variant="secondary" size="sm" onClick={handleDisconnect} disabled={disconnecting}>{disconnecting ? "…" : "Disconnect"}</Button>
+              </div>
+              {disconnectError && <p className="settings-error">{disconnectError}</p>}
             </div>
           )}
           {!user?.coupleId && (
@@ -104,7 +123,7 @@ export default function Settings() {
 
               {resetState === "none" && !resetConfirm && (
                 <div className="settings-reset-trigger">
-                  <Button variant="ghost" size="sm" onClick={() => setResetConfirm(true)}>
+                  <Button variant="secondary" size="sm" onClick={() => setResetConfirm(true)}>
                     Request reset
                   </Button>
                   <span className="settings-info-icon" aria-label="About reset">
@@ -117,6 +136,9 @@ export default function Settings() {
                       Clears all swipes and matches for both of you. Both partners must confirm before anything is deleted.
                     </span>
                   </span>
+                  <Button variant="secondary" size="sm" onClick={() => alert("Account deletion coming soon.")} style={{ marginLeft: "auto", color: "var(--color-no)" }}>
+                    Delete account
+                  </Button>
                 </div>
               )}
 

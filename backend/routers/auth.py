@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from aiosqlite import Connection
 from passlib.context import CryptContext
@@ -123,3 +124,36 @@ async def update_profile(body: UpdateProfileRequest, request: Request, db: Conne
     await db.execute("UPDATE users SET display_name = ? WHERE id = ?", (body.display_name, uid))
     await db.commit()
     return await _get_user_out(db, uid)
+
+DISCONNECT_COOLDOWN_HOURS = 120  # 5 days
+
+@router.post("/disconnect", status_code=204)
+async def disconnect_partner(request: Request, db: Connection = Depends(get_db)):
+    """Remove the current couple pairing. Rate-limited to once per 24 hours."""
+    uid = _session_user_id(request)
+
+    cur = await db.execute("SELECT couple_id, last_disconnected_at FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
+    if not row or not row["couple_id"]:
+        raise HTTPException(400, "Not paired")
+
+    # Rate limit check
+    if row["last_disconnected_at"]:
+        last = datetime.fromisoformat(row["last_disconnected_at"])
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        elapsed_hours = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+        if elapsed_hours < DISCONNECT_COOLDOWN_HOURS:
+            wait_h = int(DISCONNECT_COOLDOWN_HOURS - elapsed_hours) + 1
+            raise HTTPException(429, f"You can disconnect again in {wait_h} hour(s).")
+
+    couple_id = row["couple_id"]
+
+    # Unpair both users
+    await db.execute(
+        "UPDATE users SET couple_id = NULL, last_disconnected_at = datetime('now') WHERE couple_id = ?",
+        (couple_id,)
+    )
+    # Remove the couple record
+    await db.execute("DELETE FROM couples WHERE id = ?", (couple_id,))
+    await db.commit()
