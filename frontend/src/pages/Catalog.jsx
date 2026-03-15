@@ -44,7 +44,7 @@ const PILE_OFFSETS = [
   { rotate: 5,  x:-1, y: 9 },  // four below
 ];
 
-function CardPile({ items, side }) {
+function CardPile({ items, side, totalCount }) {
   // Always render container to prevent layout shift when first card is swiped
   const capped = items.slice(0, 5);
   return (
@@ -75,9 +75,9 @@ function CardPile({ items, side }) {
           );
         })}
       </div>
-      {items.length > 0 && (
+      {(totalCount ?? items.length) > 0 && (
         <span className="catalog-pile-count">
-          {side === "yes" ? "✓" : "✕"} {items.length}
+          {side === "yes" ? "✓" : "✕"} {totalCount ?? items.length}
         </span>
       )}
     </div>
@@ -195,7 +195,7 @@ export default function Catalog() {
         </div>
         <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
         <div className="catalog-desktop-layout">
-          {showPiles && <CardPile items={recentNo}  side="no"  />}
+          {showPiles && <CardPile items={recentNo}  side="no"  totalCount={catalog.filter(i => i.category === activeCategory && responses[String(i.id)] === "no").length} />}
 
           <CardStack
             items={categoryItems}
@@ -205,7 +205,7 @@ export default function Catalog() {
             onUndo={lastResponse ? handleUndo : null}
           />
 
-          {showPiles && <CardPile items={recentYes} side="yes" />}
+          {showPiles && <CardPile items={recentYes} side="yes" totalCount={catalog.filter(i => i.category === activeCategory && responses[String(i.id)] === "yes").length} />}
         </div>
       </div>
     </motion.div>
