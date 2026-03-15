@@ -9,6 +9,7 @@ import { SCREENS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
 import * as Clipboard from 'expo-clipboard';
+import client from '../api/client';
 
 export default function PairingScreen({ navigation }) {
   const [mode, setMode] = useState('create');
@@ -16,7 +17,7 @@ export default function PairingScreen({ navigation }) {
   const [joinCode, setJoinCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
-  const { pair, createPairingCode, enterSolo, loading } = useAuth();
+  const { pair, createPairingCode, enterSolo, setUser, loading } = useAuth();
 
   useEffect(() => {
     if (mode !== 'create') return;
@@ -28,6 +29,22 @@ export default function PairingScreen({ navigation }) {
     const timer = setInterval(generate, 25 * 60 * 1000); // refresh before 30min expiry
     return () => { mounted = false; clearInterval(timer); };
   }, [mode]);
+
+  // Poll for partner joining (create mode only)
+  useEffect(() => {
+    if (mode !== 'create' || !inviteCode) return;
+    const poll = setInterval(async () => {
+      try {
+        const raw = await client.get('/auth/me');
+        if (raw.couple_id) {
+          clearInterval(poll);
+          setUser(raw.couple_id ? { ...raw, coupleId: raw.couple_id, partnerName: raw.partner_name } : raw);
+          navigation.replace(SCREENS.CONNECTED);
+        }
+      } catch {}
+    }, 4000);
+    return () => clearInterval(poll);
+  }, [mode, inviteCode]);
 
   // Pulse animation
   const pulseAnim = useRef(new Animated.Value(1)).current;
