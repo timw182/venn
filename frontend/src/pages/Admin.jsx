@@ -77,7 +77,7 @@ export default function Admin() {
     load();
   }
 
-  if (!user?.is_admin) return null;
+  if (!user?.isAdmin) return null;
 
   return (
     <div className="admin">
