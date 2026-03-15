@@ -50,7 +50,6 @@ function FloatingHeart({ x, size, duration, start, opacity: maxOpacity, color })
     >
       ♥
     </Animated.Text>
-  </>
   );
 }
 
@@ -177,8 +176,6 @@ export default function LandingScreen() {
   }
 
   return (
-    <>
-    <FloatingParticles />
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -262,7 +259,6 @@ export default function LandingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-    </>
   );
 }
 
