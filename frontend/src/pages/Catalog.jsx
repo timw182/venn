@@ -208,7 +208,7 @@ export default function Catalog() {
 
   return (
     <motion.div className="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      {confetti.length > 0 && ReactDOM.createPortal(
+      {confetti.length > 0 && createPortal(
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
           {confetti.map((p) => (
             <motion.div
