@@ -1,14 +1,14 @@
 import { useRef } from "react";
 import "./FloatingHearts.css";
 
-const HEART_COUNT = 12;
+const HEART_COUNT = 20;
 const HEART_COLORS = ["#F07A6A", "#9B80D4", "#C4547A", "#9B80D4", "#F07A6A"];
 
 export default function FloatingHearts() {
   const hearts = useRef(
     Array.from({ length: HEART_COUNT }, (_, i) => ({
       id: i,
-      left: Math.random() * 100,
+      left: i < 12 ? Math.random() * 100 : 55 + Math.random() * 45,
       size: 40 + Math.random() * 60,
       delay: Math.random() * 12,
       duration: 14 + Math.random() * 10,
