@@ -5,7 +5,7 @@ export default function Privacy() {
   const navigate = useNavigate();
 
   return (
-    <div className="privacy-page">
+    <main className="privacy-page">
       <button className="privacy-back" onClick={() => navigate(-1)} aria-label="Back">
         ← Back
       </button>
@@ -58,6 +58,6 @@ export default function Privacy() {
         </section>
 
       </div>
-    </div>
+    </main>
   );
 }

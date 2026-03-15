@@ -60,7 +60,7 @@ nav {
 }
 
 .shell-logo {
-  width: 150px;
+  width: 300px;
   height: auto;
 }
 
@@ -189,7 +189,7 @@ body.matches-active .shell-content {
   }
 
   .shell-logo {
-    width: 120px;
+    width: 240px;
   }
 }
 
@@ -219,7 +219,7 @@ body.matches-active .shell-content {
   }
 
   .shell-logo {
-    width: 100px;
+    width: 200px;
   }
 
   .shell-content > *:not(.catalog):not(.matches-page) {

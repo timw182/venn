@@ -303,14 +303,14 @@
 
 /* ── SVG logo ────────────────────────────────────────────────── */
 .landing-logo-svg {
-  width: 300px;
+  width: 380px;
   height: auto;
   display: block;
   margin: 0 auto 2px;
 }
 
 .landing-logo-svg-sm {
-  width: 220px;
+  width: 280px;
   margin-bottom: var(--space-2);
 }
 
@@ -323,11 +323,11 @@
   }
 
   .landing-logo-svg {
-    width: 180px;
+    width: 240px;
   }
 
   .landing-logo-svg-sm {
-    width: 160px;
+    width: 200px;
   }
 
   .landing-logo-gif {

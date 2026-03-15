@@ -38,7 +38,7 @@ export default function Experts() {
   const navigate = useNavigate();
 
   return (
-    <div className="experts-page">
+    <main className="experts-page">
       <button className="experts-back" onClick={() => navigate(-1)}>← Back</button>
 
       <div className="experts-header">
@@ -65,6 +65,6 @@ export default function Experts() {
       <p className="experts-disclaimer text-muted">
         Quotes are illustrative and represent general findings in relationship psychology research.
       </p>
-    </div>
+    </main>
   );
 }

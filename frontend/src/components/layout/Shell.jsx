@@ -48,7 +48,7 @@ export default function Shell() {
     <div className="shell">
       <FloatingHearts />
       <header className="shell-header">
-        <img src="/logo800.svg" alt="kinklink" className="shell-logo" />
+        <img src="/venn_hori.png" alt="Venn" className="shell-logo" />
       </header>
 
       {resetState === "pending_partner" && (

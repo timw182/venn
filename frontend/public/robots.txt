@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /api/
+Disallow: /browse
+Disallow: /matches
+Disallow: /mood
+Disallow: /settings
+Disallow: /pair
+
+Sitemap: https://kinklink.amoreapp.net/sitemap.xml

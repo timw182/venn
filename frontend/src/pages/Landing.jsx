@@ -59,7 +59,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="landing">
+    <main className="landing">
       {/* Atmospheric orbs */}
       <div className="landing-orb landing-orb-1" />
       <div className="landing-orb landing-orb-2" />
@@ -67,9 +67,9 @@ export default function Landing() {
 
       {/* ── BRAND — always visible, never moves ── */}
       <div className="landing-brand">
-        <img src="/logo800.svg" alt="KinkLink" className="landing-logo-svg" />
+        <img src="/venn_hori.png" alt="Venn" className="landing-logo-svg" />
         <p className="landing-tagline">
-          Turn curiosity into connection.
+          Find your overlap.
         </p>
       </div>
 
@@ -217,6 +217,6 @@ export default function Landing() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 }
