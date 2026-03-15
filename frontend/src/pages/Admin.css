@@ -1,0 +1,206 @@
+
+.admin {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  padding: var(--space-6);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.admin-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.admin-badge {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.admin-back {
+  margin-left: auto;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.admin-back:hover { background: var(--color-surface-alt); }
+
+.admin-tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1.5px solid var(--color-border);
+  margin-bottom: var(--space-6);
+}
+
+.admin-tab {
+  background: none;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1.5px;
+  position: relative;
+}
+.admin-tab:hover { color: var(--color-text); }
+.admin-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+
+.admin-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-no);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 99px;
+  padding: 0 4px;
+  margin-left: 6px;
+}
+
+/* Stats */
+.admin-stats {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+.stat-val { font-size: 32px; font-weight: 700; color: var(--color-accent); }
+.stat-label { font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Tables */
+.admin-table-wrap { overflow-x: auto; }
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.admin-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.admin-table tr:hover td { background: var(--color-surface); }
+.row-admin td { background: rgba(155,128,212,0.04); }
+.row-super td { background: rgba(196,84,122,0.06); }
+.desc-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-muted); }
+
+.admin-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* Tiny buttons */
+.btn-tiny {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.btn-tiny:hover { background: var(--color-surface-alt); }
+.btn-tiny.primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.btn-tiny.primary:hover { background: var(--color-accent-hover); }
+.btn-tiny.danger { color: var(--color-no); border-color: var(--color-no); background: transparent; }
+.btn-tiny.danger:hover { background: var(--color-no-soft); }
+
+/* Tickets */
+.admin-tickets { display: flex; flex-direction: column; gap: var(--space-4); }
+.ticket {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+.ticket.resolved { opacity: 0.6; }
+.ticket-header { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-2); flex-wrap: wrap; }
+.ticket-user { font-weight: 600; color: var(--color-accent); }
+.ticket-date { font-size: 12px; color: var(--color-text-light); }
+.ticket-status { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 99px; margin-left: auto; }
+.ticket-status.open { background: var(--color-maybe-soft); color: var(--color-maybe); }
+.ticket-status.resolved { background: var(--color-yes-soft); color: var(--color-yes); }
+.ticket-msg { color: var(--color-text); margin: 0 0 var(--space-2) 0; }
+.ticket-note { font-size: 12px; color: var(--color-text-muted); margin: 0 0 var(--space-2) 0; }
+.ticket-footer { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+.ticket-note-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+/* Cards */
+.admin-cards { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-cards-header { display: flex; justify-content: space-between; align-items: center; }
+.cat-pill { background: var(--color-accent-soft); color: var(--color-accent); padding: 2px 8px; border-radius: 99px; font-size: 11px; white-space: nowrap; }
+.card-edit-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.card-edit-form h3 { margin: 0; font-size: 15px; }
+.card-edit-form select,
+.card-edit-form input,
+.card-edit-form textarea {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+.card-edit-form textarea { min-height: 80px; resize: vertical; }
+.card-edit-actions { display: flex; gap: var(--space-3); }
+.admin-empty { color: var(--color-text-muted); text-align: center; padding: var(--space-8); }
