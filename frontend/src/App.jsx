@@ -14,6 +14,14 @@ import Admin from "./pages/Admin";
 import Experts from "./pages/Experts";
 import { ROUTES } from "./lib/constants";
 
+function LandingRedirect() {
+  const { user, isSolo, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Landing />;
+  if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
+  return <Navigate to={ROUTES.PAIR} replace />;
+}
+
 function AuthGuard() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -34,7 +42,7 @@ export default function App() {
       <FloatingHearts />
       <Routes>
       {/* Public */}
-      <Route path={ROUTES.LOGIN} element={<Landing />} />
+      <Route path={ROUTES.LOGIN} element={<LandingRedirect />} />
 
       {/* Auth required */}
       <Route element={<AuthGuard />}>

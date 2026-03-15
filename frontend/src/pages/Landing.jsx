@@ -38,11 +38,11 @@ export default function Landing() {
     setError("");
     try {
       if (mode === "login") {
-        const user = await login(username, password);
-        navigate(user.coupleId ? ROUTES.BROWSE : ROUTES.PAIR);
+        await login(username, password);
+        // Routing handled by LandingRedirect
       } else {
         await register(username, password, displayName);
-        navigate(ROUTES.PAIR);
+        // Routing handled by LandingRedirect
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
