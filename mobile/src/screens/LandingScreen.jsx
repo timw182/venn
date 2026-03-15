@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   heroScroll: {
     flexGrow: 1,
     paddingHorizontal: space[6],
-    paddingTop: space[8],
+    paddingTop: space[4],
     paddingBottom: space[12],
     gap: space[8],
   },
