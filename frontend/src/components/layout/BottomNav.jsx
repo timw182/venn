@@ -51,8 +51,8 @@ const tabs = [
   },
 ];
 
-// Tab 0 & 2 = orange, Tab 1 & 3 = lavender
-const TAB_COLORS = ['#F07A6A', '#9B80D4', '#F07A6A', '#9B80D4'];
+// Tab 0 & 2 = juicy orange-amber, Tab 1 & 3 = deep slime-lavender
+const TAB_COLORS = ['#FF6B35', '#7C5CBF', '#FF6B35', '#7C5CBF'];
 const BLOB_R = 25;
 const DURATION = 600;
 

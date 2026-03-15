@@ -18,6 +18,7 @@
   max-width: 480px;
   margin: 0 auto;
   padding: var(--space-2) 0 var(--space-2);
+  position: relative; /* anchor for the slime SVG overlay */
 }
 
 .bottom-nav-tab {
@@ -101,19 +102,22 @@
     overflow: visible;
   }
 
-  /* tabs sit above the SVG layer */
+  /* tabs sit above the SVG blob layer */
   .bottom-nav-tab {
-    position: relative;
     z-index: 1;
   }
 
-  /* active tab: icon uses white/light tint when blob is behind it */
+  /* active tab content punches through the blob — white on colored circle */
+  .bottom-nav-tab.active {
+    color: #fff;
+  }
   .bottom-nav-tab.active .bottom-nav-icon svg {
     stroke: #fff;
-    filter: drop-shadow(0 0 1px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
   }
   .bottom-nav-tab.active .bottom-nav-label {
     color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.18);
   }
 }
