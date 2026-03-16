@@ -122,6 +122,42 @@
   line-height: 1;
   flex-shrink: 0;
   margin-top: 2px;
+  width: 24px;
+  height: 24px;
+}
+
+/* icon 1 (lock-key): gentle rock, like a key turning */
+.landing-feature:nth-child(1) .landing-feature-icon {
+  animation: icon-rock 4s ease-in-out infinite 1.2s;
+  transform-origin: center bottom;
+}
+
+/* icon 2 (moon-stars): slow pulse */
+.landing-feature:nth-child(2) .landing-feature-icon {
+  animation: icon-pulse 3.5s ease-in-out infinite 1.4s;
+}
+
+/* icon 3 (users): gentle float up/down */
+.landing-feature:nth-child(3) .landing-feature-icon {
+  animation: icon-float 3s ease-in-out infinite 1.6s;
+}
+
+@keyframes icon-rock {
+  0%, 100% { transform: rotate(0deg); }
+  20%       { transform: rotate(-14deg); }
+  40%       { transform: rotate(10deg); }
+  60%       { transform: rotate(-6deg); }
+  80%       { transform: rotate(3deg); }
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.22); opacity: 0.75; }
+}
+
+@keyframes icon-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
 }
 
 .landing-feature-title {
@@ -202,6 +238,9 @@
 
 .landing-back {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   letter-spacing: var(--tracking-wide);

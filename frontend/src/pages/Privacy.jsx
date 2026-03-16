@@ -6,9 +6,12 @@ export default function Privacy() {
 
   return (
     <main className="privacy-page">
-      <button className="privacy-back" onClick={() => navigate(-1)} aria-label="Back">
-        ← Back
-      </button>
+      <nav className="page-back-header">
+        <button className="privacy-back" onClick={() => navigate(-1)} aria-label="Back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+      </nav>
 
       <h1 className="privacy-title serif">Privacy Policy</h1>
       <p className="privacy-updated text-muted">Last updated: March 2026</p>

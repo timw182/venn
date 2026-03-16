@@ -134,6 +134,11 @@ export default function Landing() {
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
+            <button className="landing-back" onClick={() => setMode(null)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+              back
+            </button>
+
             <p className="landing-subtitle">
               {mode === "login" ? "Welcome back" : "Create your account"}
             </p>
@@ -210,9 +215,6 @@ export default function Landing() {
               </button>
             </div>
 
-            <button className="landing-back" onClick={() => setMode(null)}>
-              ← back
-            </button>
           </motion.div>
         )}
       </AnimatePresence>

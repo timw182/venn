@@ -1,15 +1,17 @@
 .privacy-page {
-  padding: var(--space-4) var(--space-6) var(--space-10);
+  padding: 0 var(--space-6) var(--space-10);
   max-width: 640px;
   margin: 0 auto;
   width: 100%;
 }
 
 .privacy-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   padding: var(--space-1) 0;
-  margin-bottom: var(--space-4);
   background: none;
   border: none;
   cursor: pointer;

@@ -34,7 +34,9 @@
 }
 
 .admin-back {
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: none;
   border: 1.5px solid var(--color-border);
   color: var(--color-text-muted);
@@ -129,7 +131,8 @@
 .row-super td { background: rgba(196,84,122,0.06); }
 .desc-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-muted); }
 
-.admin-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.admin-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.admin-confirm-text { font-size: var(--text-sm); color: var(--color-text-muted); }
 
 /* Tiny buttons */
 .btn-tiny {

@@ -54,6 +54,14 @@ body::after {
   text-align: center;
 }
 
+/* ---- Page back header (top-left back nav, used on standalone pages) ---- */
+.page-back-header {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
 /* ---- Common component patterns ---- */
 .page {
   flex: 1;
