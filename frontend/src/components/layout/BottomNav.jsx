@@ -87,13 +87,15 @@ function SlimeBlob({ innerRef, activeIndex }) {
   const rafRef = useRef(null);
   const anim = useRef({ from: activeIndex, to: activeIndex, t: 1, startAt: 0 });
 
-  // Compute the center-x of a tab by measuring from the inner div
+  // Compute the center-x of a tab in SVG coordinates.
+  // SVG fills the full .bottom-nav width, so we use the inner element's
+  // viewport-relative left offset to map tab positions into SVG space.
   const getX = useCallback((idx) => {
     const inner = innerRef.current;
     if (!inner) return 0;
     const rect = inner.getBoundingClientRect();
     const tabW = rect.width / tabs.length;
-    return tabW * idx + tabW / 2;
+    return rect.left + tabW * idx + tabW / 2;
   }, [innerRef]);
 
   // Compute the center-y of the icon by measuring the actual icon element
@@ -110,6 +112,15 @@ function SlimeBlob({ innerRef, activeIndex }) {
   const paint = useCallback(() => {
     const svg = svgRef.current;
     if (!svg) return;
+
+    // Keep the filter region covering the full SVG viewport regardless of screen width
+    const filt = svg.querySelector('#bnav-goo');
+    if (filt) {
+      const w = svg.getBoundingClientRect().width || 1600;
+      filt.setAttribute('x', String(-w * 0.05));
+      filt.setAttribute('width', String(w * 1.1));
+    }
+
     const { from, to, t } = anim.current;
 
     const et = easeInOut(Math.min(t, 1));
@@ -197,14 +208,14 @@ function SlimeBlob({ innerRef, activeIndex }) {
   }, [paint]);
 
   return (
-    <svg ref={svgRef} className="bottom-nav-slime" aria-hidden="true">
+    <svg ref={svgRef} className="bottom-nav-slime" overflow="visible" aria-hidden="true">
       <defs>
         {/*
           Gooey filter: gaussian blur + alpha threshold = organic metaball merge.
           filterUnits="userSpaceOnUse" lets us use absolute px values that cover
           the full nav width without clipping.
         */}
-        <filter id="bnav-goo" filterUnits="userSpaceOnUse" x="-60" y="-12" width="700" height="80">
+        <filter id="bnav-goo" filterUnits="userSpaceOnUse" x="-80" y="-30" width="1400" height="110">
           <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
           <feColorMatrix
             in="blur" mode="matrix"
@@ -230,8 +241,8 @@ export default function BottomNav({ matchCount = 0 }) {
 
   return (
     <nav className="bottom-nav">
+      <SlimeBlob innerRef={innerRef} activeIndex={activeIdx} />
       <div className="bottom-nav-inner" ref={innerRef}>
-        <SlimeBlob innerRef={innerRef} activeIndex={activeIdx} />
         {tabs.map((tab) => {
           const isActive = location.pathname.startsWith(tab.to);
           return (

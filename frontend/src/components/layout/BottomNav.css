@@ -4,11 +4,21 @@
   left: 0;
   right: 0;
   z-index: var(--z-nav);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  overflow: visible;
+}
+
+/* backdrop-filter on a pseudo so it cannot create an implicit clipping context
+   on .bottom-nav (known Chromium behaviour with backdrop-filter). */
+.bottom-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: rgba(250, 246, 241, 0.85);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-top: 1px solid var(--color-border);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 0;
 }
 
 .bottom-nav-inner {
@@ -19,6 +29,7 @@
   margin: 0 auto;
   padding: var(--space-3) 0;
   position: relative; /* anchor for the slime SVG overlay */
+  z-index: 1;
 }
 
 .bottom-nav-tab {
@@ -93,13 +104,13 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   overflow: visible;
 }
 
 /* tabs sit above the SVG blob layer */
 .bottom-nav-tab {
-  z-index: 1;
+  z-index: 2;
 }
 
 /* active icon punches through the blob — white on colored circle */
