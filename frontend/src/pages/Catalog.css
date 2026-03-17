@@ -30,6 +30,25 @@
   margin-top: var(--space-1);
 }
 
+/* ── Category row with popup overlay ───────────────────────── */
+.catalog-category-row {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.catalog-category-row .card-stack-popup {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  transform: translateY(-50%);
+  width: fit-content;
+  z-index: 100;
+}
+
 /* ── Tablet / Desktop: locked layout with internal scroll ── */
 @media (--bp-md) {
   .catalog {
@@ -89,6 +108,8 @@
     align-items: center;
     gap: var(--space-3);
     flex-shrink: 0;
+    position: relative;
+    overflow: visible;
   }
 }
 
@@ -159,3 +180,17 @@
 
 .catalog-pile-no .catalog-pile-count  { color: #C47474; }
 .catalog-pile-yes .catalog-pile-count { color: #7B9E6F; }
+
+
+
+/* Yes pile is on the right — popup floats left into the gap */
+.catalog-pile-popup--yes {
+  right: 100%;
+  transform: translate(50%, -50%);
+}
+
+/* No pile is on the left — popup floats right into the gap */
+.catalog-pile-popup--no {
+  left: 100%;
+  transform: translate(-50%, -50%);
+}

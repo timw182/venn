@@ -8,7 +8,13 @@ const SWIPE_UP_THRESHOLD = 80;
 const MAX_ROTATION = 12;
 const VISIBLE_CARDS = 3;
 
-// ── TopCard: own x/y per card, so each new card starts at origin ──────────────
+const POPUP_CONFIG = {
+  yes:   { label: "Yes ✓",   color: "#4caf88", bg: "rgba(76,175,136,0.15)" },
+  no:    { label: "Nope ✕",  color: "#e05c6e", bg: "rgba(224,92,110,0.15)" },
+  maybe: { label: "Maybe ~", color: "#f0a55a", bg: "rgba(240,165,90,0.15)" },
+};
+
+// ── TopCard ───────────────────────────────────────────────────────────────────
 function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwipe, isAnimating, locked }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -22,15 +28,12 @@ function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwip
     none:  { opacity: 0, transition: { duration: 0 } },
   };
 
-  function handleDrag(_, info) {
-    onDragUpdate(info.offset.x, info.offset.y);
-  }
+  function handleDrag(_, info) { onDragUpdate(info.offset.x, info.offset.y); }
 
   async function handleDragEnd(_, info) {
     const { offset, velocity } = info;
     const xAbs = Math.abs(offset.x);
     const yUp  = -offset.y;
-
     if (yUp > SWIPE_UP_THRESHOLD && yUp > xAbs) {
       onSwipe("maybe");
     } else if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) {
@@ -62,14 +65,16 @@ function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwip
 }
 
 // ── CardStack ─────────────────────────────────────────────────────────────────
-export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo, locked = false }) {
-  const [localItems, setLocalItems]   = useState(items);
+export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo, locked = false, onPopup }) {
+  const [localItems, setLocalItems]       = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
-  const [hintClass, setHintClass]     = useState("");
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [maybeIds, setMaybeIds]       = useState(new Set());
-  const responding = useRef(false);
-  const itemsRef   = useRef(items);
+  const [hintClass, setHintClass]         = useState("");
+  const [isAnimating, setIsAnimating]     = useState(false);
+  const [maybeIds, setMaybeIds]           = useState(new Set());
+  const [popup, setPopup]             = useState(null);
+  const responding  = useRef(false);
+  const itemsRef    = useRef(items);
+  const popupTimer  = useRef(null);
 
   const hintX = useMotionValue(0);
   const hintY = useMotionValue(0);
@@ -80,8 +85,15 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
   useEffect(() => { itemsRef.current = items; }, [items]);
 
   useEffect(() => {
-    if (!responding.current) setLocalItems(locked ? items.slice(0,1) : items);
-  }, [items]);
+    if (!responding.current) setLocalItems(locked ? items.slice(0, 1) : items);
+  }, [items, locked]);
+
+  const showPopup = (type) => {
+    clearTimeout(popupTimer.current);
+    setPopup(type);
+    onPopup?.(type);
+    popupTimer.current = setTimeout(() => { setPopup(null); onPopup?.(null); }, 650);
+  };
 
   const handleDragUpdate = useCallback((ox, oy) => {
     hintX.set(ox);
@@ -100,14 +112,15 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
     setHintClass("");
     hintX.set(0); hintY.set(0);
 
+    showPopup(response);
+
     if (response === "maybe") {
       const topItem = localItems[0];
-      // Add to maybeIds for orange tint
       setMaybeIds(prev => new Set([...prev, topItem.id]));
       setExitDirection("maybe");
 
       setTimeout(() => {
-        // Move top card to back
+        // Move to absolute back of stack
         setLocalItems(prev => [...prev.slice(1), topItem]);
         setTimeout(() => {
           setExitDirection(null);
@@ -120,10 +133,17 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
 
     const dir = response === "yes" ? "right" : "left";
     setExitDirection(dir);
-    onRespond?.(localItems[0]?.id, response);
+    const respondedId = localItems[0]?.id;
+    onRespond?.(respondedId, response);
 
     setTimeout(() => {
-      setLocalItems(itemsRef.current);
+      // Preserve current order; just remove the top card and append any brand-new items
+      setLocalItems(prev => {
+        const withoutTop = prev.slice(1);
+        const existingIds = new Set(withoutTop.map(i => i.id));
+        const newItems = itemsRef.current.filter(i => i.id !== respondedId && !existingIds.has(i.id));
+        return [...withoutTop, ...newItems];
+      });
       setTimeout(() => {
         setExitDirection(null);
         responding.current = false;
@@ -132,7 +152,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
     }, 30);
   }, [localItems, hintX, hintY, onRespond]);
 
-  // Empty state
   if (localItems.length === 0 && !exitDirection) {
     return (
       <div className="card-stack-empty">
@@ -173,7 +192,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
               onDragUpdate={handleDragUpdate}
               onSwipe={triggerResponse}
               isAnimating={isAnimating}
-                locked={locked}
+              locked={locked}
             />
           )}
         </AnimatePresence>
@@ -198,7 +217,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
         <motion.span className="card-stack-hint hint-yes-label"   style={{ opacity: hintYesOpacity }}>Yes</motion.span>
       </div>
 
-      {/* Buttons — single row: undo · no · yes · maybe */}
+      {/* Buttons */}
       <div className="card-stack-buttons">
         <motion.button className="response-btn response-undo"  whileTap={{ scale: 0.88 }} onClick={onUndo} disabled={!onUndo} aria-label="Undo">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>

@@ -140,7 +140,7 @@ textarea {
   background-image:
     linear-gradient(var(--color-surface-alt, #f5f2f8), var(--color-surface-alt, #f5f2f8)),
     var(--grad-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--space-2) var(--space-3);
 }
 

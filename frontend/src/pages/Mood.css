@@ -61,7 +61,7 @@
   padding: 6px 12px;
   background: var(--color-surface-alt);
   border: 1.5px solid var(--color-border-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   transition: all var(--duration-fast) var(--ease-out);
 }
 
@@ -102,7 +102,7 @@
   background: var(--color-surface-alt);
   color: var(--color-text);
   border: 1.5px solid var(--color-border-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   transition: background var(--duration-fast) var(--ease-out);
@@ -141,7 +141,7 @@
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface-alt);
   border: 1.5px solid var(--color-border-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
 }
 
 .mood-current-emoji {
@@ -160,7 +160,7 @@
   color: var(--color-text-muted);
   padding: 6px 14px;
   border: 1.5px solid var(--color-border-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   background: var(--color-surface-alt);
   transition: all var(--duration-fast);
 }
@@ -196,3 +196,41 @@
   font-style: italic;
   margin-top: var(--space-1);
 }
+
+/* Custom message input */
+.mood-custom-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mood-custom-input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.mood-custom-input:focus { border-color: var(--color-accent); }
+.mood-custom-input::placeholder { color: var(--color-text-light); }
+
+.mood-custom-btn {
+  padding: 10px 18px;
+  border-radius: 99px;
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.mood-custom-btn:disabled { opacity: 0.4; cursor: default; }
+.mood-custom-btn:not(:disabled):hover { opacity: 0.85; }

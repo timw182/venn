@@ -17,7 +17,7 @@
   align-items: center;
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-2) 0 var(--space-2);
+  padding: var(--space-3) 0;
   position: relative; /* anchor for the slime SVG overlay */
 }
 
@@ -25,7 +25,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 5px;
   flex: 1;
   padding: var(--space-1) var(--space-2);
   position: relative;
@@ -53,8 +53,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
 }
 
 .bottom-nav-badge {
@@ -107,17 +107,19 @@
     z-index: 1;
   }
 
-  /* active tab content punches through the blob — white on colored circle */
-  .bottom-nav-tab.active {
-    color: #fff;
-  }
+  /* active icon punches through the blob — white on colored circle */
   .bottom-nav-tab.active .bottom-nav-icon svg {
     stroke: #fff;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
   }
+
+  /* active label stays readable — use the blob's accent color instead of white */
   .bottom-nav-tab.active .bottom-nav-label {
-    color: #fff;
     font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+
+  /* extra breathing room above the blob / below the nav border */
+  .bottom-nav-inner {
+    padding: var(--space-4) 0 var(--space-3);
   }
 }

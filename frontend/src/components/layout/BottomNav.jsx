@@ -53,8 +53,8 @@ const tabs = [
 
 // Tab 0 & 2 = juicy orange-amber, Tab 1 & 3 = deep slime-lavender
 const TAB_COLORS = ['#FF6B35', '#7C5CBF', '#FF6B35', '#7C5CBF'];
-const BLOB_R = 25;
-const DURATION = 600;
+const BLOB_R = 26;
+const DURATION = 500;
 
 function easeInOut(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -95,6 +95,17 @@ function SlimeBlob({ innerRef, activeIndex }) {
     return tabW * idx + tabW / 2;
   }, [innerRef]);
 
+  // Compute the center-y of the icon by measuring the actual icon element
+  const getY = useCallback(() => {
+    const inner = innerRef.current;
+    if (!inner) return 36;
+    const icon = inner.querySelector('.bottom-nav-icon');
+    if (!icon) return 36;
+    const innerRect = inner.getBoundingClientRect();
+    const iconRect = icon.getBoundingClientRect();
+    return iconRect.top - innerRect.top + iconRect.height / 2;
+  }, [innerRef]);
+
   const paint = useCallback(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -107,7 +118,7 @@ function SlimeBlob({ innerRef, activeIndex }) {
 
     const xA = getX(from);
     const xB = getX(to);
-    const BLOB_Y = 28; // fixed y inside the SVG (over the icon area)
+    const BLOB_Y = getY();
 
     const eFrom = svg.getElementById('sbl-from');
     const eTo   = svg.getElementById('sbl-to');
@@ -123,27 +134,26 @@ function SlimeBlob({ innerRef, activeIndex }) {
       return;
     }
 
-    // ── source circle: shrinks and departs ──────────────────────────────────
-    // shrinks from et=0 to et=0.55 then gone
-    const r1 = BLOB_R * Math.max(0, 1 - et / 0.5);
+    // ── source circle: lingers then dissolves into the bridge ───────────────
+    const r1 = BLOB_R * Math.max(0, 1 - et / 0.65);
 
-    // ── dest circle: grows in with spring at et=0.3…1.0 ────────────────────
-    const dp = Math.max(0, Math.min(1, (et - 0.28) / 0.72));
+    // ── dest circle: springs in with elastic overshoot ──────────────────────
+    const dp = Math.max(0, Math.min(1, (et - 0.22) / 0.78));
     const r2 = BLOB_R * springOut(dp);
 
-    // ── bridge ellipse connecting the two ───────────────────────────────────
-    // peaks in the middle of the animation (sin wave over et)
+    // ── bridge: fat drooping ellipse that sags at mid-travel ────────────────
     const bPhase = Math.sin(et * Math.PI);
-    const bRy = BLOB_R * 0.34 * bPhase;
-    const bRx = Math.abs(xB - xA) / 2 + BLOB_R * 0.18;
+    const bRy = BLOB_R * 0.58 * bPhase;                    // fatter bridge
+    const bRx = Math.abs(xB - xA) / 2 + BLOB_R * 0.22;
     const bX  = (xA + xB) / 2;
+    const bY  = BLOB_Y + BLOB_R * 0.18 * bPhase;           // sag downward
 
     const setCirc = (el, cx, r) => {
       el.setAttribute('cx', cx);   el.setAttribute('cy', BLOB_Y);
       el.setAttribute('r', Math.max(0, r)); el.setAttribute('fill', color);
     };
-    const setEll = (el, cx, rx, ry) => {
-      el.setAttribute('cx', cx);   el.setAttribute('cy', BLOB_Y);
+    const setEll = (el, cx, cy, rx, ry) => {
+      el.setAttribute('cx', cx);   el.setAttribute('cy', cy);
       el.setAttribute('rx', Math.max(0, rx));
       el.setAttribute('ry', Math.max(0, ry));
       el.setAttribute('fill', color);
@@ -151,8 +161,8 @@ function SlimeBlob({ innerRef, activeIndex }) {
 
     setCirc(eFrom, xA, r1);
     setCirc(eTo,   xB, r2);
-    setEll(eBr, bX, bRx, bRy);
-  }, [getX]);
+    setEll(eBr, bX, bY, bRx, bRy);
+  }, [getX, getY]);
 
   // rAF loop — only draws when animating, idles otherwise
   useEffect(() => {
@@ -193,11 +203,11 @@ function SlimeBlob({ innerRef, activeIndex }) {
           filterUnits="userSpaceOnUse" lets us use absolute px values that cover
           the full nav width without clipping.
         */}
-        <filter id="bnav-goo" filterUnits="userSpaceOnUse" x="-60" y="0" width="700" height="60">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+        <filter id="bnav-goo" filterUnits="userSpaceOnUse" x="-60" y="-12" width="700" height="80">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
           <feColorMatrix
             in="blur" mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"
             result="goo"
           />
         </filter>

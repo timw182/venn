@@ -116,13 +116,6 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            <footer className="landing-footer">
-              <span>© 2026 Venn</span>
-              <span className="landing-footer-dot">·</span>
-              <a href="/impressum" className="landing-footer-link">Impressum</a>
-              <span className="landing-footer-dot">·</span>
-              <a href="https://instagram.com/venn.app" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Instagram</a>
-            </footer>
           </motion.div>
 
         ) : (
@@ -218,6 +211,14 @@ export default function Landing() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <footer className="landing-footer">
+        <span>© 2026 Venn</span>
+        <span className="landing-footer-dot">·</span>
+        <a href="/impressum" className="landing-footer-link">Impressum</a>
+        <span className="landing-footer-dot">·</span>
+        <a href="https://instagram.com/venn.app" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Instagram</a>
+      </footer>
     </main>
   );
 }
