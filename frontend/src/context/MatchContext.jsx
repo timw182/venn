@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import client from "../api/client";
 import { useAuth } from "./useAuth";
+import { STORAGE_KEYS } from "../lib/constants";
 
 const MatchContext = createContext(null);
 
@@ -14,6 +15,7 @@ export function MatchProvider({ children }) {
   const [latestNewMatch, setLatestNewMatch] = useState(null);
   const [resetState, setResetState]       = useState("none"); // none | pending_mine | pending_partner
   const [partnerMood, setPartnerMood]       = useState(null);
+  const [partnerMessage, setPartnerMessage] = useState(null);
   const timerRef    = useRef(null);
   const wsRef       = useRef(null);
   const retryRef    = useRef(0);
@@ -80,15 +82,23 @@ export function MatchProvider({ children }) {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
           showMatch(msg.item);
+        } else if (msg.type === "custom_message") {
+          if (msg.from_user_id !== userRef.current?.id) {
+            setPartnerMessage(msg.message || null);
+            setTimeout(() => setPartnerMessage(null), 5000);
+          }
         } else if (msg.type === "mood_update") {
-          setPartnerMood(msg.mood || null);
+          // Ignore our own mood broadcast
+          if (msg.from_user_id !== userRef.current?.id) {
+            setPartnerMood(msg.mood || null);
+          }
         } else if (msg.type === "reset_requested") {
           setResetState("pending_partner");
         } else if (msg.type === "reset_cancelled" || msg.type === "reset_declined") {
           setResetState("none");
         } else if (msg.type === "reset_done") {
           setResetState("none");
-          try { localStorage.removeItem("kl_responses"); } catch {}
+          try { localStorage.removeItem(STORAGE_KEYS.RESPONSES); } catch {}
           window.location.reload();
         }
       } catch {}
@@ -136,7 +146,7 @@ export function MatchProvider({ children }) {
   const newMatchCount = matches.filter((m) => !m.seen).length;
 
   return (
-    <MatchContext.Provider value={{ matches, setMatches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood }}>
+    <MatchContext.Provider value={{ matches, setMatches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood, partnerMessage }}>
       {children}
     </MatchContext.Provider>
   );

@@ -38,12 +38,49 @@ async def get_stats(db: Connection = Depends(get_db), admin=Depends(_require_adm
         "WHERE r1.response='yes' AND r2.response='yes'"
     )).fetchone())[0]
     open_tickets  = (await (await db.execute("SELECT COUNT(*) FROM tickets WHERE status='open'")).fetchone())[0]
+    # Signups per day (last 14 days)
+    cur = await db.execute("""
+        SELECT DATE(created_at) as day, COUNT(*) as count
+        FROM users
+        WHERE created_at >= DATE('now', '-14 days')
+        GROUP BY day ORDER BY day ASC
+    """)
+    signups = [{"day": r["day"], "count": r["count"]} for r in await cur.fetchall()]
+
+    # Swipes per day (last 14 days)
+    cur = await db.execute("""
+        SELECT DATE(responded_at) as day, COUNT(*) as count
+        FROM user_responses
+        WHERE responded_at >= DATE('now', '-14 days')
+        GROUP BY day ORDER BY day ASC
+    """)
+    swipes_by_day = [{"day": r["day"], "count": r["count"]} for r in await cur.fetchall()]
+
+    # Response breakdown (yes/no/maybe totals)
+    cur = await db.execute("""
+        SELECT response, COUNT(*) as count FROM user_responses GROUP BY response
+    """)
+    response_dist = [{"name": r["response"], "value": r["count"]} for r in await cur.fetchall()]
+
+    # Top 5 categories by yes count
+    cur = await db.execute("""
+        SELECT ci.category, COUNT(*) as yes_count
+        FROM user_responses r JOIN catalog_items ci ON r.item_id = ci.id
+        WHERE r.response = 'yes'
+        GROUP BY ci.category ORDER BY yes_count DESC
+    """)
+    top_categories = [{"category": r["category"], "yes": r["yes_count"]} for r in await cur.fetchall()]
+
     return {
         "total_users": total_users,
         "paired_users": paired_users,
         "total_swipes": total_swipes,
         "total_matches": total_matches // 2,
         "open_tickets": open_tickets,
+        "signups_by_day": signups,
+        "swipes_by_day": swipes_by_day,
+        "response_dist": response_dist,
+        "top_categories": top_categories,
     }
 
 
@@ -169,3 +206,42 @@ async def delete_card(card_id: int, db: Connection = Depends(get_db), _=Depends(
     await db.execute("DELETE FROM catalog_items WHERE id=?", (card_id,))
     await db.commit()
     return {"ok": True}
+
+# ── Card Stats ─────────────────────────────────────────────────
+@router.get("/cards/stats")
+async def card_stats(db: Connection = Depends(get_db), _=Depends(_require_admin)):
+    cur = await db.execute("""
+        SELECT
+            ci.id,
+            ci.category,
+            ci.title,
+            ci.emoji,
+            SUM(CASE WHEN r.response = 'yes'   THEN 1 ELSE 0 END) AS yes_count,
+            SUM(CASE WHEN r.response = 'no'    THEN 1 ELSE 0 END) AS no_count,
+            SUM(CASE WHEN r.response = 'maybe' THEN 1 ELSE 0 END) AS maybe_count,
+            COUNT(r.response) AS total_responses,
+            (
+                SELECT COUNT(*) FROM user_responses r1
+                JOIN user_responses r2
+                  ON r1.item_id = r2.item_id AND r1.user_id != r2.user_id
+                WHERE r1.item_id = ci.id AND r1.response = 'yes' AND r2.response = 'yes'
+            ) / 2 AS match_count
+        FROM catalog_items ci
+        LEFT JOIN user_responses r ON r.item_id = ci.id
+        GROUP BY ci.id
+        ORDER BY yes_count DESC
+    """)
+    rows = await cur.fetchall()
+    result = []
+    for r in rows:
+        total = r["total_responses"] or 0
+        yes   = r["yes_count"] or 0
+        match_rate = round((r["match_count"] / yes * 100)) if yes > 0 else 0
+        result.append({
+            "id": r["id"], "category": r["category"], "title": r["title"], "emoji": r["emoji"],
+            "yes": yes, "no": r["no_count"] or 0, "maybe": r["maybe_count"] or 0,
+            "total": total, "matches": r["match_count"] or 0,
+            "match_rate": match_rate,
+            "yes_rate": round(yes / total * 100) if total > 0 else 0,
+        })
+    return result

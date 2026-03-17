@@ -7,10 +7,6 @@ const PILE_OFFSETS = [
   { rotate:  5, x: -1, y: 9 },
 ];
 
-/**
- * Visual pile of up to 5 recently-swiped cards, shown on desktop.
- * @param {{ items: object[], side: 'yes'|'no', totalCount: number }} props
- */
 export default function CardPile({ items, side, totalCount }) {
   const capped = items.slice(0, 5);
 
@@ -45,7 +41,7 @@ export default function CardPile({ items, side, totalCount }) {
 
       {(totalCount ?? items.length) > 0 && (
         <span className="catalog-pile-count">
-          {side === 'yes' ? '✓' : '✕'} {totalCount ?? items.length}
+          {side === 'yes' ? '\u2713' : '\u2715'} {totalCount ?? items.length}
         </span>
       )}
     </div>

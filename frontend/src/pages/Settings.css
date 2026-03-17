@@ -10,6 +10,12 @@
   min-height: 0;
 }
 
+@media (--bp-lg) {
+  .settings-page {
+    max-width: 600px;
+  }
+}
+
 .settings-header {
   display: flex;
   align-items: center;
@@ -279,3 +285,21 @@
   border-radius: var(--radius-lg);
 }
 
+
+.settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-admin-btn {
+  font-size: var(--text-sm);
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1.5px solid var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+.settings-admin-btn:hover { opacity: 0.85; }

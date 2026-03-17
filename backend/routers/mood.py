@@ -58,6 +58,7 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
     await manager.broadcast(couple_id, {
         "type": "mood_update",
         "mood": body.mood,
+        "from_user_id": uid,
     })
 
     cur = await db.execute(
@@ -101,3 +102,54 @@ async def clear_mood(request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
     await db.execute("DELETE FROM user_mood WHERE user_id = ?", (uid,))
     await db.commit()
+
+@router.put("/message")
+async def set_custom_message(request: Request, db: Connection = Depends(get_db)):
+    """Set a free-text message visible to partner (separate from mood emoji)."""
+    from fastapi import Body
+    import json
+    body_bytes = await request.body()
+    try:
+        body = json.loads(body_bytes)
+        message = body.get("message", "").strip()
+    except Exception:
+        raise HTTPException(400, "Invalid body")
+
+    if not message:
+        raise HTTPException(400, "Message required")
+    if len(message) > 120:
+        raise HTTPException(400, "Max 120 characters")
+
+    uid = _session_user_id(request)
+    couple_id = await require_couple(db, uid)
+
+    # Upsert into user_mood keeping existing mood, just update custom_message
+    await db.execute(
+        """INSERT INTO user_mood (user_id, custom_message, expires_at)
+           VALUES (?, ?, datetime('now', '+24 hours'))
+           ON CONFLICT(user_id) DO UPDATE SET custom_message=excluded.custom_message, updated_at=datetime('now')""",
+        (uid, message)
+    )
+    await db.commit()
+
+    # Broadcast to partner
+    await manager.broadcast(couple_id, {
+        "type": "custom_message",
+        "message": message,
+        "from_user_id": uid,
+    })
+
+    return {"ok": True}
+
+
+@router.get("/message")
+async def get_partner_message(request: Request, db: Connection = Depends(get_db)):
+    uid = _session_user_id(request)
+    couple_id = await require_couple(db, uid)
+    partner_id = await get_partner_id(db, uid, couple_id)
+
+    cur = await db.execute(
+        "SELECT custom_message FROM user_mood WHERE user_id=?", (partner_id,)
+    )
+    row = await cur.fetchone()
+    return {"message": row["custom_message"] if row else None}

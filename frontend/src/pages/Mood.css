@@ -5,6 +5,23 @@
   width: 100%;
 }
 
+/* ── Desktop: side-by-side sections ──────────────────────── */
+@media (--bp-lg) {
+  .mood-page {
+    max-width: 760px;
+  }
+
+  .mood-sections {
+    flex-direction: row;
+    gap: var(--space-6);
+  }
+
+  .mood-section {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .mood-header {
   margin-bottom: var(--space-6);
   text-align: center;

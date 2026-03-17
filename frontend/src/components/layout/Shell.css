@@ -74,8 +74,14 @@ nav {
   .shell-content {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
     padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0));
+  }
+
+  /* non-catalog pages scroll themselves */
+  .shell-content > *:not(.catalog):not(.matches-page) {
+    overflow-y: auto;
+    height: 100%;
   }
 
   .shell-header {
@@ -85,6 +91,13 @@ nav {
 
   .shell-logo {
     width: 300px;
+  }
+}
+
+/* ── Wide desktop: wider content cap ─────────────────────── */
+@media (--bp-lg) {
+  .shell-content > *:not(.catalog):not(.matches-page) {
+    max-width: 640px;
   }
 }
 

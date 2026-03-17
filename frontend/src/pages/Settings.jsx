@@ -6,6 +6,7 @@ import { useMatches } from "../context/MatchContext";
 import Button from "../components/shared/Button";
 import { ROUTES } from "../lib/constants";
 import client from "../api/client";
+import haptic from "../lib/haptics";
 import "./Settings.css";
 
 const tiles = [
@@ -161,7 +162,14 @@ export default function Settings() {
     >
       <div className="settings-header">
         <h2 className="settings-title serif">Settings</h2>
-        <button className="settings-signout-btn" onClick={handleLogout}>Sign out</button>
+        <div className="settings-header-actions">
+          {user?.isAdmin && (
+            <button className="settings-admin-btn" onClick={() => navigate(ROUTES.ADMIN)}>
+              Admin
+            </button>
+          )}
+          <button className="settings-signout-btn" onClick={handleLogout}>Sign out</button>
+        </div>
       </div>
 
       {/* ── 2×2 tile grid ── */}
@@ -170,7 +178,7 @@ export default function Settings() {
           <motion.button
             key={tile.id}
             className="settings-tile"
-            onClick={() => openSheet(tile.id)}
+            onClick={() => { haptic.light(); openSheet(tile.id); }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, duration: 0.3 }}

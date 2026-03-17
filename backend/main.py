@@ -13,7 +13,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from database import init_db
 from seed import seed
-from routers import auth, admin as admin_router, tickets as tickets_router, pairing, catalog, matches, mood, reset
+from routers import auth, admin as admin_router, tickets as tickets_router, pairing, catalog, matches, mood, reset, custom_items
 from ws import manager
 from database import get_db, get_db_ctx
 
@@ -102,6 +102,7 @@ app.include_router(mood.router, prefix="/api")
 app.include_router(reset.router, prefix="/api")
 app.include_router(admin_router.router, prefix="/api")
 app.include_router(tickets_router.router, prefix="/api")
+app.include_router(custom_items.router, prefix="/api")
 
 
 @app.websocket("/api/ws")

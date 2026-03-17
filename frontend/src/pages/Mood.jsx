@@ -4,11 +4,12 @@ import { MOODS } from "../lib/constants";
 import { useAuth } from "../context/useAuth";
 import { useMatches } from "../context/MatchContext";
 import client from "../api/client";
+import haptic from "../lib/haptics";
 import "./Mood.css";
 
 export default function Mood() {
   const { user } = useAuth();
-  const { partnerMood: wsMood, setPartnerMood } = useMatches();
+  const { partnerMood: wsMood, setPartnerMood, partnerMessage } = useMatches();
 
   const [myMood, setMyMood]               = useState(null);
   const [partnerMood, setPartnerMoodLocal] = useState(null);
@@ -16,6 +17,8 @@ export default function Mood() {
   const [loading, setLoading]             = useState(false);
   const [error, setError]               = useState(null);
   const [toast, setToast]                 = useState(null);
+  const [customMsg, setCustomMsg]           = useState('');
+  const [customError, setCustomError]       = useState('');
   const toastRef                          = useRef(null);
 
   useEffect(() => {
@@ -27,15 +30,51 @@ export default function Mood() {
       .catch(() => {});
   }, []);
 
+  // Real-time custom message push
+  useEffect(() => {
+    if (!partnerMessage) return;
+    clearTimeout(toastRef.current);
+    setToast(`💬 ${partnerName}: "${partnerMessage}"`);
+    toastRef.current = setTimeout(() => setToast(null), 5000);
+  }, [partnerMessage]);
+
   // Real-time WS push from partner
   useEffect(() => {
     if (!wsMood) return;
+    haptic.heavy();
     const moodObj = MOODS.find((m) => m.key === wsMood);
     setPartnerMoodLocal(wsMood);
     clearTimeout(toastRef.current);
     setToast(moodObj ? `${moodObj.emoji} ${user?.partnerName || "Partner"} is feeling ${moodObj.label}` : null);
     toastRef.current = setTimeout(() => { setToast(null); setPartnerMood(null); }, 4000);
   }, [wsMood]);
+
+  const BLOCKED = new Set([
+    "minor","minors","child","children","underage","teen","teenager",
+    "rape","snuff","necro","murder","torture","gore","loli","shota",
+  ]);
+
+  function filterText(text) {
+    const words = text.toLowerCase().split(/\s+/);
+    return words.some((w) => BLOCKED.has(w)) ? "That content isn't allowed" : null;
+  }
+
+  async function handleCustomSend() {
+    const msg = customMsg.trim();
+    if (!msg) return;
+    if (msg.length > 30) { setCustomError("Max 30 characters"); return; }
+    const err = filterText(msg);
+    if (err) { setCustomError(err); return; }
+    setCustomError('');
+    setLoading(true);
+    try {
+      await client.put("/mood/message", { message: msg });
+      setCustomMsg('');
+    } catch (e) {
+      setCustomError(e?.message || "Couldn't send");
+    }
+    setLoading(false);
+  }
 
   async function handleSet() {
     if (!picking || loading) return;
@@ -101,7 +140,7 @@ export default function Mood() {
                   <motion.button
                     key={m.key}
                     className={`mood-btn${picking === m.key ? " active" : ""}`}
-                    onClick={() => setPicking(m.key)}
+                    onClick={() => { haptic.light(); setPicking(m.key); }}
                     whileTap={{ scale: 0.93 }}
                   >
                     <span className="mood-btn-emoji">{m.emoji}</span>
@@ -114,7 +153,7 @@ export default function Mood() {
                 {picking && (
                   <motion.div className="mood-confirm-row"
                     initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
-                    <button className="mood-set-btn" onClick={handleSet} disabled={loading}>
+                    <button className="mood-set-btn" onClick={() => { haptic.medium(); handleSet(); }} disabled={loading}>
                       {loading ? "Sending…" : "Send to partner"}
                     </button>
                     {myMood && (
@@ -125,8 +164,29 @@ export default function Mood() {
               </AnimatePresence>
 
               {error && <p className="mood-error text-muted">{error}</p>}
+
+              {/* Custom word input */}
+              <form className="mood-custom-row" onSubmit={(e) => { e.preventDefault(); handleCustomSend(); }}>
+                <input
+                  className="mood-custom-input"
+                  type="text"
+                  maxLength={30}
+                  placeholder="Or type your own…"
+                  value={customMsg}
+                  onChange={(e) => { setCustomMsg(e.target.value); setCustomError(''); }}
+                />
+                <button
+                  type="submit"
+                  className="mood-custom-btn"
+                  disabled={loading || !customMsg.trim()}
+                >
+                  Send
+                </button>
+              </form>
+              {customError && <p className="mood-error text-muted">{customError}</p>}
             </>
           )}
+
         </section>
 
         {/* ── Partner's mood ────────────────────────────── */}

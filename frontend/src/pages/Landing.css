@@ -10,6 +10,7 @@
   overflow: hidden;
 }
 
+
 /* ---- Atmospheric orbs ---- */
 .landing-orb {
   position: absolute;
@@ -396,6 +397,22 @@
 
   .landing-below-brand {
     gap: var(--space-4);
+  }
+}
+
+/* ── Desktop: wider centered layout ──────────────────────────── */
+@media (--bp-lg) {
+  .landing {
+    justify-content: center;
+    padding: var(--space-10) var(--space-10) var(--space-8);
+  }
+
+  .landing-below-brand {
+    max-width: 480px;
+  }
+
+  .landing-features {
+    max-width: 480px;
   }
 }
 

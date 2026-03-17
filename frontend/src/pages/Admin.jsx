@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import client from "../api/client";
 import { ROUTES } from "../lib/constants";
 import "./Admin.css";
 
-const TABS = ["overview", "users", "tickets", "cards"];
+const TABS = ["overview", "users", "tickets", "cards", "stats"];
 
 export default function Admin() {
   const { user } = useAuth();
@@ -16,6 +17,8 @@ export default function Admin() {
   const [tickets, setTickets] = useState([]);
   const [cards, setCards] = useState([]);
   const [ticketNote, setTicketNote] = useState({});
+  const [cardStats, setCardStats] = useState([]);
+  const [statsCategory, setStatsCategory] = useState("all");
   const [cardEdit, setCardEdit] = useState(null);
   const [cardForm, setCardForm] = useState({ category: "", title: "", description: "" });
   const [pendingDeleteUser, setPendingDeleteUser] = useState(null);
@@ -36,6 +39,8 @@ export default function Admin() {
         setTickets(await client.get("/admin/tickets"));
       } else if (tab === "cards") {
         setCards(await client.get("/admin/cards"));
+      } else if (tab === "stats") {
+        setCardStats(await client.get("/admin/cards/stats"));
       }
     } catch {}
   }, [tab]);
@@ -115,19 +120,78 @@ export default function Admin() {
 
         {/* Overview */}
         {tab === "overview" && stats && (
-          <div className="admin-stats">
-            {[
-              ["Total users",   stats.total_users],
-              ["Paired users",  stats.paired_users],
-              ["Total swipes",  stats.total_swipes],
-              ["Total matches", stats.total_matches],
-              ["Open tickets",  stats.open_tickets],
-            ].map(([label, val]) => (
-              <div key={label} className="stat-card">
-                <span className="stat-val">{val}</span>
-                <span className="stat-label">{label}</span>
+          <div className="admin-overview">
+            {/* KPI cards */}
+            <div className="admin-stats">
+              {[
+                ["Total users",   stats.total_users],
+                ["Paired users",  stats.paired_users],
+                ["Total swipes",  stats.total_swipes],
+                ["Total matches", stats.total_matches],
+                ["Open tickets",  stats.open_tickets],
+              ].map(([label, val]) => (
+                <div key={label} className="stat-card">
+                  <span className="stat-val">{val}</span>
+                  <span className="stat-label">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-charts">
+              {/* Signups per day */}
+              <div className="admin-chart-box">
+                <h3 className="admin-chart-title">Signups (14 days)</h3>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={stats.signups_by_day} margin={{top:4,right:8,left:-20,bottom:0}}>
+                    <XAxis dataKey="day" tick={{fontSize:10}} tickFormatter={d => d.slice(5)} />
+                    <YAxis tick={{fontSize:10}} allowDecimals={false} />
+                    <Tooltip formatter={(v) => [v, "Signups"]} labelFormatter={l => l} />
+                    <Bar dataKey="count" fill="var(--color-accent)" radius={[3,3,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+
+              {/* Swipes per day */}
+              <div className="admin-chart-box">
+                <h3 className="admin-chart-title">Swipes (14 days)</h3>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={stats.swipes_by_day} margin={{top:4,right:8,left:-20,bottom:0}}>
+                    <XAxis dataKey="day" tick={{fontSize:10}} tickFormatter={d => d.slice(5)} />
+                    <YAxis tick={{fontSize:10}} allowDecimals={false} />
+                    <Tooltip formatter={(v) => [v, "Swipes"]} />
+                    <Bar dataKey="count" fill="#9B80D4" radius={[3,3,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Response distribution pie */}
+              <div className="admin-chart-box">
+                <h3 className="admin-chart-title">Response split</h3>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={stats.response_dist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({name,percent}) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false}>
+                      {(stats.response_dist || []).map((entry) => (
+                        <Cell key={entry.name} fill={entry.name==="yes"?"#4caf88":entry.name==="no"?"#e05c6e":"#f0a55a"} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v,n) => [v, n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Top categories */}
+              <div className="admin-chart-box">
+                <h3 className="admin-chart-title">Yes by category</h3>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={stats.top_categories} layout="vertical" margin={{top:4,right:8,left:60,bottom:0}}>
+                    <XAxis type="number" tick={{fontSize:10}} allowDecimals={false} />
+                    <YAxis type="category" dataKey="category" tick={{fontSize:10}} width={56} />
+                    <Tooltip formatter={(v) => [v, "Yes"]} />
+                    <Bar dataKey="yes" fill="#C4547A" radius={[0,3,3,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
         )}
 
@@ -276,6 +340,65 @@ export default function Admin() {
             </div>
           </div>
         )}
+      {/* Stats */}
+        {tab === "stats" && (
+          <div className="admin-stats-tab">
+            <div className="admin-cards-header" style={{marginBottom: "var(--space-4)"}}>
+              <span>{cardStats.length} cards</span>
+              <select
+                className="btn-tiny"
+                value={statsCategory}
+                onChange={(e) => setStatsCategory(e.target.value)}
+              >
+                <option value="all">All categories</option>
+                {[...new Set(cardStats.map(s => s.category))].sort().map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr>
+                  <th></th><th>Title</th><th>Category</th>
+                  <th style={{color:"#4caf88"}}>Yes</th>
+                  <th style={{color:"#e05c6e"}}>No</th>
+                  <th style={{color:"#f0a55a"}}>Maybe</th>
+                  <th>Matches</th>
+                  <th>Match %</th>
+                  <th>Yes %</th>
+                </tr></thead>
+                <tbody>
+                  {cardStats
+                    .filter(s => statsCategory === "all" || s.category === statsCategory)
+                    .map(s => (
+                    <tr key={s.id}>
+                      <td>{s.emoji}</td>
+                      <td>{s.title}</td>
+                      <td><span className="cat-pill">{s.category}</span></td>
+                      <td style={{color:"#4caf88", fontWeight:600}}>{s.yes}</td>
+                      <td style={{color:"#e05c6e"}}>{s.no}</td>
+                      <td style={{color:"#f0a55a"}}>{s.maybe}</td>
+                      <td style={{fontWeight:600}}>{s.matches}</td>
+                      <td>
+                        <div className="stat-bar-wrap">
+                          <div className="stat-bar" style={{width: `${s.match_rate}%`, background:"#4caf88"}} />
+                          <span>{s.match_rate}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="stat-bar-wrap">
+                          <div className="stat-bar" style={{width: `${s.yes_rate}%`, background:"var(--color-accent)"}} />
+                          <span>{s.yes_rate}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

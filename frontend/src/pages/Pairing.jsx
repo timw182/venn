@@ -14,6 +14,8 @@ export default function Pairing() {
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState(urlCode || "");
   const [copied, setCopied] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [codeError, setCodeError] = useState("");
   const { user, pair, createPairingCode, enterSolo, updateUserFromRaw, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -56,9 +58,6 @@ export default function Pairing() {
       pollRef.current = null;
     };
   }, [mode, inviteCode]);
-
-  const [joinError, setJoinError] = useState("");
-  const [codeError, setCodeError] = useState("");
 
   async function handleJoin(e) {
     e.preventDefault();

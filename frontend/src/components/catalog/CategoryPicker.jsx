@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { CATEGORIES } from '../../lib/constants';
+import haptic from '../../lib/haptics';
 import './CategoryPicker.css';
 
 export default function CategoryPicker({ active, onChange, progress = {} }) {
@@ -35,7 +36,7 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
             <motion.button
               key={cat.key}
               className={`category-chip ${isActive ? 'active' : ''}`}
-              onClick={() => onChange(cat.key)}
+              onClick={() => { haptic.light(); onChange(cat.key); }}
               whileTap={{ scale: 0.95 }}
             >
               <span className="category-chip-emoji">{cat.emoji}</span>

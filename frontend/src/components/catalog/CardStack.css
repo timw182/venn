@@ -198,8 +198,8 @@
   }
 
   .card-stack {
-    max-width: min(100%, 360px);
-    max-height: min(48vh, 440px);
+    max-width: min(100%, 340px);
+    max-height: min(44vh, 400px);
   }
 }
 
@@ -208,13 +208,21 @@
   .card-stack-wrapper {
     flex: 0 0 auto;
     width: auto;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-6) var(--space-2);
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-6) 0;
   }
 
   .card-stack {
-    max-width: 380px;
-    max-height: min(46vh, 480px);
+    max-width: min(280px, 24vw);
+    max-height: min(calc(100dvh - 390px), 420px);
+  }
+
+  /* Hover hint on top card */
+  .card-stack-draggable:hover {
+    transform: scale(1.012);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-xl);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .card-stack-hints {
@@ -241,26 +249,26 @@
 
   /* Restore full item-card sizes on desktop */
   .item-card-hero {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
   }
 
   .item-card-emoji {
-    font-size: 48px;
+    font-size: 52px;
   }
 
   .item-card-title {
-    font-size: var(--text-xl);
+    font-size: var(--text-2xl);
   }
 
   .item-card-desc {
     font-size: var(--text-base);
-    max-width: 280px;
+    max-width: 300px;
   }
 
   .item-card-inner {
-    padding: var(--space-8) var(--space-6);
-    gap: var(--space-4);
+    padding: var(--space-10) var(--space-8);
+    gap: var(--space-5);
   }
 }
 

@@ -64,7 +64,7 @@ export default function Landing() {
       <div className="landing-orb landing-orb-2" />
       <div className="landing-orb landing-orb-3" />
 
-      {/* ── BRAND — always visible, never moves ── */}
+      {/* ── BRAND — always visible, centered on top ── */}
       <div className="landing-brand">
         <img src="/venn_hori.png" alt="Venn" className="landing-logo-svg" />
         <p className="landing-tagline">

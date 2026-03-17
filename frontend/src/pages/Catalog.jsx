@@ -8,6 +8,7 @@ import { CATEGORIES, STORAGE_KEYS } from '../lib/constants';
 import client from '../api/client';
 import { useMatches } from '../context/MatchContext';
 import { useAuth } from '../context/useAuth';
+import haptic from '../lib/haptics';
 import './Catalog.css';
 
 const MAX_PILE = 5;
@@ -89,6 +90,7 @@ export default function Catalog() {
   // ── React to partner-triggered matches ─────────────────────────────────────
   useEffect(() => {
     if (!latestNewMatch) return;
+    haptic.success();
     setTimeout(burstConfetti, 650);
     const item = catalog.find((i) => i.id === latestNewMatch.id);
     if (item) {

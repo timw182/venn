@@ -1,11 +1,11 @@
 [Unit]
-Description=KinkLink Frontend (Vite dev server)
+Description=Venn Frontend (Vite dev server)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/root/kinklink/frontend
+WorkingDirectory=/root/venn/frontend
 ExecStart=/root/.nvm/versions/node/v22.22.0/bin/npm run dev
 Restart=on-failure
 RestartSec=5s

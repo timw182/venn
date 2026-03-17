@@ -85,41 +85,44 @@
   display: none; /* replaced by slime blob on desktop */
 }
 
-/* ── Slime blob SVG overlay ─────────────────────────────────────────────── */
+/* ── Slime blob SVG overlay — always on ─────────────────────────────────── */
 .bottom-nav-slime {
-  display: none; /* mobile: off */
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+/* tabs sit above the SVG blob layer */
+.bottom-nav-tab {
+  z-index: 1;
+}
+
+/* active icon punches through the blob — white on colored circle */
+.bottom-nav-tab.active .bottom-nav-icon svg {
+  stroke: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+}
+
+/* active label stays readable */
+.bottom-nav-tab.active .bottom-nav-label {
+  font-weight: 600;
 }
 
 @media (--bp-md) {
-  .bottom-nav-slime {
-    display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    overflow: visible;
-  }
-
-  /* tabs sit above the SVG blob layer */
-  .bottom-nav-tab {
-    z-index: 1;
-  }
-
-  /* active icon punches through the blob — white on colored circle */
-  .bottom-nav-tab.active .bottom-nav-icon svg {
-    stroke: #fff;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
-  }
-
-  /* active label stays readable — use the blob's accent color instead of white */
-  .bottom-nav-tab.active .bottom-nav-label {
-    font-weight: 600;
-  }
-
   /* extra breathing room above the blob / below the nav border */
   .bottom-nav-inner {
+    max-width: 600px;
     padding: var(--space-4) 0 var(--space-3);
+  }
+}
+
+@media (--bp-lg) {
+  .bottom-nav-inner {
+    max-width: 720px;
   }
 }

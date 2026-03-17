@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { ROUTES } from '../../lib/constants';
+import haptic from '../../lib/haptics';
 import './BottomNav.css';
 
 const tabs = [
@@ -238,6 +239,7 @@ export default function BottomNav({ matchCount = 0 }) {
               key={tab.to}
               to={tab.to}
               className={`bottom-nav-tab ${isActive ? 'active' : ''}`}
+              onClick={() => haptic.light()}
             >
               <span className="bottom-nav-icon">
                 {tab.icon}

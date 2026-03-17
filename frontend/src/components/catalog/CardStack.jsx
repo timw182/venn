@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import ItemCard from "./ItemCard";
+import haptic from "../../lib/haptics";
 import "./CardStack.css";
 
 const SWIPE_THRESHOLD = 100;
@@ -111,6 +112,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
     setIsAnimating(true);
     setHintClass("");
     hintX.set(0); hintY.set(0);
+    haptic.medium();
 
     showPopup(response);
 
@@ -151,6 +153,36 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
       }, 380);
     }, 30);
   }, [localItems, hintX, hintY, onRespond]);
+
+  // ── Keyboard shortcuts (desktop) ───────────────────────────────────────────
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (locked) return;
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          triggerResponse('no');
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          triggerResponse('yes');
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          triggerResponse('maybe');
+          break;
+        case 'z':
+          if ((e.ctrlKey || e.metaKey) && onUndo) {
+            e.preventDefault();
+            onUndo();
+          }
+          break;
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [triggerResponse, onUndo, locked]);
 
   if (localItems.length === 0 && !exitDirection) {
     return (
@@ -219,7 +251,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
 
       {/* Buttons */}
       <div className="card-stack-buttons">
-        <motion.button className="response-btn response-undo"  whileTap={{ scale: 0.88 }} onClick={onUndo} disabled={!onUndo} aria-label="Undo">
+        <motion.button className="response-btn response-undo"  whileTap={{ scale: 0.88 }} onClick={() => { haptic.double(); onUndo?.(); }} disabled={!onUndo} aria-label="Undo">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
         </motion.button>
         <motion.button className="response-btn response-no"   whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("no")}    disabled={isAnimating} aria-label="No">
