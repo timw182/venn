@@ -3,11 +3,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE = 'https://venn-api.amoreapp.net/api';
 const COOKIE_KEY = 'kl_session';
 
+// Extract just the cookie name=value from a Set-Cookie header string
+function parseCookieValue(setCookieHeader) {
+  if (!setCookieHeader) return null;
+  // Set-Cookie: kl_session=abc123; Path=/; HttpOnly; ...
+  // We only want "kl_session=abc123"
+  const first = setCookieHeader.split(';')[0].trim();
+  return first || null;
+}
+
 // Store cookie from Set-Cookie header
 async function storeSessionCookie(headers) {
-  const setCookie = headers.get('set-cookie');
-  if (setCookie) {
-    await AsyncStorage.setItem(COOKIE_KEY, setCookie).catch(() => {});
+  // Try direct get first (both casings — RN fetch varies by platform)
+  let setCookie = headers.get('set-cookie') || headers.get('Set-Cookie');
+
+  // Fallback: iterate headers to find set-cookie (some RN builds hide it from .get())
+  if (!setCookie && typeof headers.forEach === 'function') {
+    headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie' && value.includes(COOKIE_KEY)) {
+        setCookie = value;
+      }
+    });
+  }
+
+  const cookieVal = parseCookieValue(setCookie);
+  if (cookieVal) {
+    await AsyncStorage.setItem(COOKIE_KEY, cookieVal).catch(() => {});
   }
 }
 
