@@ -216,7 +216,7 @@
   }
 
   .card-stack {
-    max-width: min(260px, 22vw);
+    max-width: min(230px, 22vw);
     max-height: min(calc(100dvh - 448px), 360px);
   }
 
