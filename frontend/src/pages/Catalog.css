@@ -64,11 +64,11 @@
   }
 
   .catalog-header {
-    padding: var(--space-3) var(--space-5) var(--space-1);
+    padding: var(--space-2) var(--space-5) 0;
   }
 
   .catalog-title {
-    font-size: var(--text-2xl);
+    font-size: var(--text-lg);
   }
 
   .catalog-subtitle {
