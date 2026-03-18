@@ -8,10 +8,21 @@ const AnimatedText = Animated.createAnimatedComponent(SvgText);
 const LEFT_PATH  = "M82.08,196.37c-37.7,0-68.37-30.67-68.37-68.37S44.38,59.63,82.08,59.63c27.54,0,52.26,16.39,62.99,41.75.62,1.47-.07,3.17-1.54,3.8s-3.17-.07-3.8-1.54c-9.82-23.22-32.45-38.22-57.66-38.22-34.5,0-62.57,28.07-62.57,62.57s28.07,62.57,62.57,62.57c23.77,0,45.19-13.19,55.9-34.43.72-1.43,2.46-2,3.89-1.28,1.43.72,2,2.46,1.28,3.89-5.62,11.13-14.17,20.53-24.74,27.17-10.87,6.83-23.43,10.44-36.33,10.44Z";
 const RIGHT_PATH = "M173.92,196.37c-12.9,0-25.46-3.61-36.33-10.44-10.57-6.64-19.13-16.04-24.74-27.17-.72-1.43-.15-3.17,1.28-3.89,1.43-.72,3.17-.15,3.89,1.28,10.71,21.24,32.13,34.43,55.9,34.43,34.5,0,62.57-28.07,62.57-62.57s-28.07-62.57-62.57-62.57c-25.21,0-47.84,15-57.66,38.22-.62,1.47-2.32,2.16-3.8,1.54-1.47-.62-2.16-2.32-1.54-3.8,10.73-25.36,35.45-41.75,62.99-41.75,37.7,0,68.37,30.67,68.37,68.37s-30.67,68.37-68.37,68.37Z";
 
-export default function VennAnimatedLogo({ size = 200 }) {
-  // Slide: -120 → 0 (left), 120 → 0 (right)
-  const slideLeft  = useRef(new Animated.Value(-120)).current;
-  const slideRight = useRef(new Animated.Value(120)).current;
+export default function VennAnimatedLogo({ size, width, height }) {
+  const w = width || size || 200;
+  const h = height || size || 200;
+
+  // Widen the viewBox to match the rendered aspect ratio so content fills the width
+  const vbH = 256;
+  const vbW = vbH * (w / h);
+  const vbX = 128 - vbW / 2; // center on original x=128
+
+  // Slide distance: push circles just past the viewBox edges
+  // Left circle rightmost point ≈ x=145, right circle leftmost point ≈ x=111
+  const slideDist = Math.ceil(vbW / 2 + 20);
+
+  const slideLeft  = useRef(new Animated.Value(-slideDist)).current;
+  const slideRight = useRef(new Animated.Value(slideDist)).current;
   const slideOpacity = useRef(new Animated.Value(0)).current;
 
   // Spin: -180 → 0 (both circles, around their centres)
@@ -23,12 +34,12 @@ export default function VennAnimatedLogo({ size = 200 }) {
 
   // Interpolate to SVG transform strings
   const slideLeftTransform = slideLeft.interpolate({
-    inputRange: [-120, 0],
-    outputRange: ['translate(-120, 0)', 'translate(0, 0)'],
+    inputRange: [-slideDist, 0],
+    outputRange: [`translate(-${slideDist}, 0)`, 'translate(0, 0)'],
   });
   const slideRightTransform = slideRight.interpolate({
-    inputRange: [0, 120],
-    outputRange: ['translate(0, 0)', 'translate(120, 0)'],
+    inputRange: [0, slideDist],
+    outputRange: ['translate(0, 0)', `translate(${slideDist}, 0)`],
   });
   // Spin uses SVG rotate(angle, cx, cy) — handles pivot natively
   const spinLeftTransform = spinLeft.interpolate({
@@ -43,7 +54,7 @@ export default function VennAnimatedLogo({ size = 200 }) {
   useEffect(() => {
     Animated.sequence([
       Animated.delay(200),
-      // Phase 1: slide both circles in (inner circles start at -180deg, slide in rotated)
+      // Phase 1: slide both circles in from screen edges
       Animated.parallel([
         Animated.timing(slideLeft,    { toValue: 0,   duration: 1200, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
         Animated.timing(slideRight,   { toValue: 0,   duration: 1200, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
@@ -61,7 +72,7 @@ export default function VennAnimatedLogo({ size = 200 }) {
   }, []);
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 256 256">
+    <Svg width={w} height={h} viewBox={`${vbX} 0 ${vbW} ${vbH}`}>
       <Defs>
         <LinearGradient id="vl1" x1="13.71" y1="128" x2="145.3" y2="128" gradientUnits="userSpaceOnUse">
           <Stop offset="0.15" stopColor="#f07a6a" />

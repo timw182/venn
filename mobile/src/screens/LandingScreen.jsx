@@ -200,7 +200,7 @@ export default function LandingScreen() {
         <FloatingHearts />
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <VennAnimatedLogo size={220} />
+            <VennAnimatedLogo width={SW} height={140} />
             <Text style={styles.tagline}>Find your overlap.</Text>
           </View>
 
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     gap: space[8],
   },
 
-  brand: { alignItems: 'center', gap: space[3] },
+  brand: { alignItems: 'center', gap: space[3], marginHorizontal: -space[6] },
   tagline: { fontFamily: fonts.sansLight, fontSize: 18, color: colors.textMuted, letterSpacing: 0.3 },
   taglineEm: { fontFamily: fonts.serif, color: colors.accent },
 

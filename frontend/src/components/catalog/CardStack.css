@@ -203,18 +203,21 @@
   }
 }
 
-/* ── Desktop (1024px+): full-size card + hints ──────────────── */
+/* ── Desktop (1024px+): card + hints ────────────────────────── */
+/* Total overhead = header(82) + catalog-header(72) + category-picker(50) + nav(80) + wrapper-padding(4) + gap(8) + buttons(~70) ≈ 366px */
+/* Card max-height: 100dvh - 366px - some breathing room = 100dvh - 448px, hard cap 360px */
+/* On tall desktops (≥900px) we relax to 420px via the min-height override below */
 @media (--bp-lg) {
   .card-stack-wrapper {
     flex: 0 0 auto;
     width: auto;
-    gap: var(--space-1);
+    gap: var(--space-2);
     padding: var(--space-1) var(--space-6) 0;
   }
 
   .card-stack {
-    max-width: min(280px, 24vw);
-    max-height: min(calc(100dvh - 390px), 420px);
+    max-width: min(260px, 22vw);
+    max-height: min(calc(100dvh - 448px), 360px);
   }
 
   /* Hover hint on top card */
@@ -245,31 +248,50 @@
     height: 40px;
   }
 
-  .card-stack-buttons { gap: 28px; }
+  .card-stack-buttons { gap: 24px; }
 
-  /* Restore full item-card sizes on desktop */
+  /* Item-card content — sized to fit the 260px card */
   .item-card-hero {
-    width: 110px;
-    height: 110px;
+    width: 88px;
+    height: 88px;
   }
 
   .item-card-emoji {
-    font-size: 52px;
+    font-size: 44px;
   }
 
   .item-card-title {
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
   }
 
   .item-card-desc {
-    font-size: var(--text-base);
-    max-width: 300px;
+    font-size: var(--text-sm);
+    max-width: 240px;
   }
 
   .item-card-inner {
-    padding: var(--space-10) var(--space-8);
-    gap: var(--space-5);
+    padding: var(--space-6) var(--space-5);
+    gap: var(--space-4);
   }
+}
+
+/* ── Tall desktops (≥ 900px viewport height): larger card ───── */
+@media (--bp-lg) and (min-height: 900px) {
+  .card-stack {
+    max-width: min(300px, 24vw);
+    max-height: min(calc(100dvh - 448px), 420px);
+  }
+
+  .response-no, .response-yes { width: 58px; height: 58px; }
+  .response-maybe              { width: 50px; height: 50px; }
+  .response-undo               { width: 40px; height: 40px; }
+  .card-stack-buttons          { gap: 28px; }
+
+  .item-card-hero  { width: 104px; height: 104px; }
+  .item-card-emoji { font-size: 50px; }
+  .item-card-title { font-size: var(--text-2xl); }
+  .item-card-desc  { font-size: var(--text-base); max-width: 280px; }
+  .item-card-inner { padding: var(--space-8) var(--space-7); gap: var(--space-5); }
 }
 
 /* Match overlay */
