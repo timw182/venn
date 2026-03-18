@@ -66,7 +66,7 @@ function TopCard({ item, exitDirection, hintClass, isMaybe, onDragUpdate, onSwip
 }
 
 // ── CardStack ─────────────────────────────────────────────────────────────────
-export default function CardStack({ items = [], onRespond, matchItem, onMatchDismiss, onUndo, locked = false, onPopup }) {
+export default function CardStack({ items = [], onRespond, onUndo, locked = false, onPopup }) {
   const [localItems, setLocalItems]       = useState(items);
   const [exitDirection, setExitDirection] = useState(null);
   const [hintClass, setHintClass]         = useState("");
@@ -198,20 +198,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onMatchDis
 
   return (
     <div className="card-stack-wrapper">
-      {/* Match overlay */}
-      <AnimatePresence>
-        {matchItem && (
-          <motion.div className="card-stack-match-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onMatchDismiss}>
-            <motion.div className="card-stack-match-content" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", stiffness: 200, damping: 15 }}>
-              <span className="card-stack-match-emoji">{matchItem.emoji}</span>
-              <h3 className="card-stack-match-title serif">It's a match</h3>
-              <p className="card-stack-match-item">{matchItem.title}</p>
-              <p className="card-stack-match-sub text-muted">You both want this</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="card-stack">
         <AnimatePresence>
           {localItems.length > 0 && (

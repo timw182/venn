@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MOODS } from "../lib/constants";
 import { useAuth } from "../context/useAuth";
@@ -42,10 +43,12 @@ export default function Mood() {
   useEffect(() => {
     if (!wsMood) return;
     haptic.heavy();
-    const moodObj = MOODS.find((m) => m.key === wsMood);
-    setPartnerMoodLocal(wsMood);
+    const moodKey = typeof wsMood === "object" ? wsMood.mood : wsMood;
+    const senderName = (typeof wsMood === "object" ? wsMood.name : null) || user?.partnerName || "Partner";
+    const moodObj = MOODS.find((m) => m.key === moodKey);
+    setPartnerMoodLocal(moodKey);
     clearTimeout(toastRef.current);
-    setToast(moodObj ? `${moodObj.emoji} ${user?.partnerName || "Partner"} is feeling ${moodObj.label}` : null);
+    setToast(moodObj ? `${moodObj.emoji} ${senderName} is feeling ${moodObj.label}` : null);
     toastRef.current = setTimeout(() => { setToast(null); setPartnerMood(null); }, 4000);
   }, [wsMood]);
 
@@ -105,14 +108,17 @@ export default function Mood() {
   return (
     <motion.div className="mood-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div className="mood-toast"
-            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {toast && (
+            <motion.div className="mood-toast"
+              initial={{ opacity: 0, y: -8, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: -8, x: "-50%" }}>
+              {toast}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <div className="mood-header">
         <h2 className="mood-title serif">Mood</h2>

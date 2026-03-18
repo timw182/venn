@@ -190,6 +190,35 @@ export default function Catalog() {
         document.body,
       )}
 
+      {createPortal(
+        <AnimatePresence>
+          {matchItem && (
+            <motion.div
+              className="card-stack-match-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleMatchDismiss}
+              style={{ position: 'fixed', inset: 0, zIndex: 99998 }}
+            >
+              <motion.div
+                className="card-stack-match-content"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <span className="card-stack-match-emoji">{matchItem.emoji}</span>
+                <h3 className="card-stack-match-title serif">It's a match</h3>
+                <p className="card-stack-match-item">{matchItem.title}</p>
+                <p className="card-stack-match-sub text-muted">You both want this</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+
       <div className="catalog-inner">
         <div className="catalog-header">
           <h2 className="catalog-title serif">Browse...</h2>
@@ -221,8 +250,6 @@ export default function Catalog() {
             locked={isLocked}
             items={categoryItems}
             onRespond={handleRespond}
-            matchItem={matchItem}
-            onMatchDismiss={handleMatchDismiss}
             onUndo={lastResponse ? handleUndo : null}
             onPopup={setPopup}
           />

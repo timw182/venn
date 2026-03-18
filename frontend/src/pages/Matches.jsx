@@ -3,7 +3,63 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CATEGORIES } from "../lib/constants";
 import client from "../api/client";
 import { useMatches } from "../context/MatchContext";
+import haptic from "../lib/haptics";
 import "./Matches.css";
+
+function FilterCarousel({ options, active, onChange }) {
+  const idx = options.findIndex((o) => o.key === active);
+
+  function go(dir) {
+    const next = (idx + dir + options.length) % options.length;
+    haptic.light();
+    onChange(options[next].key);
+  }
+
+  const current = options[idx] || options[0];
+
+  return (
+    <div className="matches-carousel">
+      <button className="carousel-arrow carousel-arrow-left" onClick={() => go(-1)} aria-label="Previous filter">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+
+      <div className="carousel-slide-wrap">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            className="carousel-slide"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.18 }}
+          >
+            {current.emoji && <span className="carousel-emoji">{current.emoji}</span>}
+            <span className="carousel-label">{current.label}</span>
+            <span className="carousel-count">{current.count}</span>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <button className="carousel-arrow carousel-arrow-right" onClick={() => go(1)} aria-label="Next filter">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <div className="carousel-dots">
+        {options.map((opt, i) => (
+          <span
+            key={opt.key}
+            className={`carousel-dot${i === idx ? " active" : ""}`}
+            onClick={() => { haptic.light(); onChange(opt.key); }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function MatchCard({ match, index, onSeen, onRemove }) {
   const [expanded, setExpanded] = useState(false);
@@ -89,6 +145,21 @@ export default function Matches() {
   const { matches: allMatches, setMatches, refetch } = useMatches();
   const [filter, setFilter] = useState("all");
 
+  // Build carousel options: All + categories that have matches
+  const filterOptions = [
+    { key: "all", label: "All", emoji: null, count: allMatches.length },
+    ...CATEGORIES
+      .map((cat) => ({ ...cat, count: allMatches.filter((m) => m.category === cat.key).length }))
+      .filter((cat) => cat.count > 0),
+  ];
+
+  // If current filter has no matches anymore, reset to all
+  useEffect(() => {
+    if (filter !== "all" && !filterOptions.find((o) => o.key === filter)) {
+      setFilter("all");
+    }
+  }, [allMatches]);
+
   function handleSeen(itemId) {
     client.post(`/matches/${itemId}/seen`).catch(() => {});
     setMatches((prev) => prev.map((m) => (m.id === itemId ? { ...m, seen: true } : m)));
@@ -115,46 +186,7 @@ export default function Matches() {
         </p>
       </div>
 
-      {/* Dropdown — shown below 375px */}
-      <div className="matches-filter-dropdown-wrap">
-        <select
-          className="matches-filter-dropdown"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="all">All ({allMatches.length})</option>
-          {CATEGORIES.map((cat) => {
-            const count = allMatches.filter((m) => m.category === cat.key).length;
-            if (count === 0) return null;
-            return (
-              <option key={cat.key} value={cat.key}>
-                {cat.emoji} {cat.label} ({count})
-              </option>
-            );
-          })}
-        </select>
-        <span className="matches-filter-dropdown-arrow">▾</span>
-      </div>
-
-      {/* Chips — shown above 375px */}
-      <div className="matches-filters hide-scrollbar">
-        <button className={`matches-filter ${filter === "all" ? "active" : ""}`} onClick={() => setFilter("all")}>
-          All
-        </button>
-        {CATEGORIES.map((cat) => {
-          const count = allMatches.filter((m) => m.category === cat.key).length;
-          if (count === 0) return null;
-          return (
-            <button
-              key={cat.key}
-              className={`matches-filter ${filter === cat.key ? "active" : ""}`}
-              onClick={() => setFilter(cat.key)}
-            >
-              {cat.emoji} {cat.label}
-            </button>
-          );
-        })}
-      </div>
+      <FilterCarousel options={filterOptions} active={filter} onChange={setFilter} />
 
       {matches.length > 0 ? (
         <div className="matches-grid">

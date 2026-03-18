@@ -194,7 +194,7 @@
 }
 
 /* ── Toast ────────────────────────────────────────────── */
-.mood-toast {
+.mood-toast-old {
   position: sticky;
   top: 0;
   z-index: 10;
@@ -251,3 +251,24 @@
 }
 .mood-custom-btn:disabled { opacity: 0.4; cursor: default; }
 .mood-custom-btn:not(:disabled):hover { opacity: 0.85; }
+
+/* ── Toast: fixed overlay, works on all breakpoints ────── */
+.mood-toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  background: var(--color-text);
+  color: var(--color-surface);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}

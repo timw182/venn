@@ -155,3 +155,11 @@ nav {
 .reset-banner-btn:hover {
   opacity: 0.8;
 }
+
+
+/* ── Hide logo on smallest phones to reclaim vertical space ── */
+@media (--below-sm) {
+  .shell-header {
+    display: none;
+  }
+}
