@@ -32,6 +32,8 @@ async def init_db():
                 last_disconnected_at TEXT,
                 pairing_code TEXT    UNIQUE,
                 pairing_code_expires_at TEXT,
+                is_admin     INTEGER NOT NULL DEFAULT 0,
+                is_superadmin INTEGER NOT NULL DEFAULT 0,
                 created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
             );
 
@@ -84,6 +86,17 @@ async def init_db():
             );
         """)
         await db.commit()
+
+        # Migrations — add columns that may be missing from older databases
+        for col, definition in [
+            ("is_admin",      "INTEGER NOT NULL DEFAULT 0"),
+            ("is_superadmin", "INTEGER NOT NULL DEFAULT 0"),
+        ]:
+            try:
+                await db.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
+                await db.commit()
+            except Exception:
+                pass  # column already exists
 
 
 @asynccontextmanager

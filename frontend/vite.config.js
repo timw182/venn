@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 5500,
     host: "0.0.0.0",
-    allowedHosts: ["kinklink.amoreapp.net"],
+    allowedHosts: ["venn.amoreapp.net", "kinklink.amoreapp.net"],
     proxy: {
       "/api": {
         target: "http://localhost:8000",

@@ -1,16 +1,31 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import { useMatches } from "../../context/MatchContext";
 import client from "../../api/client";
 import { ROUTES } from "../../lib/constants";
+import useSwipeNav from "../../hooks/useSwipeNav";
 import "./Shell.css";
+
+const SHELL_TABS = [ROUTES.BROWSE, ROUTES.MATCHES, ROUTES.MOOD, ROUTES.SETTINGS];
 
 export default function Shell() {
   const { newMatchCount, resetState, setResetState } = useMatches();
-  const navigate = useNavigate();
-  const timerRef = useRef(null);
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const timerRef  = useRef(null);
+  const contentRef = useRef(null);
+
+  const activeTab = SHELL_TABS.findIndex(r => location.pathname.startsWith(r));
+  const isBrowse  = location.pathname.startsWith(ROUTES.BROWSE);
+
+  useSwipeNav(
+    contentRef,
+    () => { if (activeTab < SHELL_TABS.length - 1) navigate(SHELL_TABS[activeTab + 1]); },
+    () => { if (activeTab > 0) navigate(SHELL_TABS[activeTab - 1]); },
+    isBrowse ? { excludeSelector: '.card-stack-draggable' } : {},
+  );
 
   // Auto-logout after 5 minutes of inactivity
   useEffect(() => {
@@ -69,7 +84,7 @@ export default function Shell() {
         </div>
       )}
 
-      <main className="shell-content">
+      <main className="shell-content" ref={contentRef}>
         <Outlet />
       </main>
       <BottomNav matchCount={newMatchCount} />

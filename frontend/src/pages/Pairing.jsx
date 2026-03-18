@@ -81,8 +81,15 @@ export default function Pairing() {
       <FloatingHearts />
       <motion.div
         className="pairing-content"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={{ left: 0, right: 0.5 }}
+        dragMomentum={false}
+        onDragEnd={(_, info) => {
+          if (info.offset.x > 80 || info.velocity.x > 400) navigate(ROUTES.LOGIN);
+        }}
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="pairing-header">

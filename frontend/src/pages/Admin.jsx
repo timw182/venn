@@ -7,6 +7,13 @@ import { ROUTES } from "../lib/constants";
 import "./Admin.css";
 
 const TABS = ["overview", "users", "tickets", "cards", "stats"];
+const RANGES = [
+  { key: "today", label: "Today" },
+  { key: "7d",    label: "7 days" },
+  { key: "14d",   label: "14 days" },
+  { key: "30d",   label: "30 days" },
+  { key: "all",   label: "All time" },
+];
 
 export default function Admin() {
   const { user } = useAuth();
@@ -23,6 +30,8 @@ export default function Admin() {
   const [cardForm, setCardForm] = useState({ category: "", title: "", description: "" });
   const [pendingDeleteUser, setPendingDeleteUser] = useState(null);
   const [pendingDeleteCard, setPendingDeleteCard] = useState(null);
+  const [range, setRange] = useState("14d");
+  const rangeIdx = RANGES.findIndex((r) => r.key === range);
 
   const categories = useMemo(
     () => [...new Set(cards.map((c) => c.category))].sort(),
@@ -32,7 +41,7 @@ export default function Admin() {
   const load = useCallback(async () => {
     try {
       if (tab === "overview") {
-        setStats(await client.get("/admin/stats"));
+        setStats(await client.get(`/admin/stats?range=${range}`));
       } else if (tab === "users") {
         setUsers(await client.get("/admin/users"));
       } else if (tab === "tickets") {
@@ -43,7 +52,7 @@ export default function Admin() {
         setCardStats(await client.get("/admin/cards/stats"));
       }
     } catch {}
-  }, [tab]);
+  }, [tab, range]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -121,6 +130,34 @@ export default function Admin() {
         {/* Overview */}
         {tab === "overview" && stats && (
           <div className="admin-overview">
+            {/* Time range carousel */}
+            <div className="admin-range-carousel">
+              <button
+                className="range-arrow"
+                onClick={() => setRange(RANGES[(rangeIdx - 1 + RANGES.length) % RANGES.length].key)}
+                aria-label="Previous range"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <span className="range-label">{RANGES[rangeIdx]?.label}</span>
+              <button
+                className="range-arrow"
+                onClick={() => setRange(RANGES[(rangeIdx + 1) % RANGES.length].key)}
+                aria-label="Next range"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              <div className="range-dots">
+                {RANGES.map((r, i) => (
+                  <span
+                    key={r.key}
+                    className={`range-dot${i === rangeIdx ? " active" : ""}`}
+                    onClick={() => setRange(r.key)}
+                  />
+                ))}
+              </div>
+            </div>
+
             {/* KPI cards */}
             <div className="admin-stats">
               {[
@@ -140,7 +177,7 @@ export default function Admin() {
             <div className="admin-charts">
               {/* Signups per day */}
               <div className="admin-chart-box">
-                <h3 className="admin-chart-title">Signups (14 days)</h3>
+                <h3 className="admin-chart-title">Signups</h3>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={stats.signups_by_day} margin={{top:4,right:8,left:-20,bottom:0}}>
                     <XAxis dataKey="day" tick={{fontSize:10}} tickFormatter={d => d.slice(5)} />
@@ -153,7 +190,7 @@ export default function Admin() {
 
               {/* Swipes per day */}
               <div className="admin-chart-box">
-                <h3 className="admin-chart-title">Swipes (14 days)</h3>
+                <h3 className="admin-chart-title">Swipes</h3>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={stats.swipes_by_day} margin={{top:4,right:8,left:-20,bottom:0}}>
                     <XAxis dataKey="day" tick={{fontSize:10}} tickFormatter={d => d.slice(5)} />

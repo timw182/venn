@@ -122,9 +122,16 @@ export default function Landing() {
           <motion.div
             key="form"
             className="landing-below-brand"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0, right: 0.5 }}
+            dragMomentum={false}
+            onDragEnd={(_, info) => {
+              if (info.offset.x > 80 || info.velocity.x > 400) setMode(null);
+            }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 80 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
             <button className="landing-back" onClick={() => setMode(null)}>

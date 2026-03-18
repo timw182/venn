@@ -60,6 +60,15 @@ function FloatingHearts() {
     </View>
   );
 }
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+  interpolate,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import * as Haptics from 'expo-haptics';
@@ -114,6 +123,52 @@ export default function LandingScreen() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { login, register } = useAuth();
+
+  // ── Swipe-back gesture for form view ────────────────────────────────────────
+  const formX = useSharedValue(SW * 0.35);
+  const formOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (mode !== null) {
+      formX.value = SW * 0.35;
+      formOpacity.value = 0;
+      formX.value = withTiming(0, { duration: 280 });
+      formOpacity.value = withTiming(1, { duration: 220 });
+    }
+  }, [mode]);
+
+  function goBack() {
+    formX.value = withTiming(SW * 0.6, { duration: 220 });
+    formOpacity.value = withTiming(0, { duration: 180 }, () => {
+      runOnJS(setMode)(null);
+    });
+  }
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetX(20)
+    .failOffsetY([-15, 15])
+    .onUpdate((e) => {
+      if (e.translationX > 0) {
+        formX.value = e.translationX;
+        formOpacity.value = interpolate(e.translationX, [0, SW * 0.4], [1, 0.2]);
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationX > 60 || e.velocityX > 400) {
+        formX.value = withTiming(SW, { duration: 200 });
+        formOpacity.value = withTiming(0, { duration: 150 }, () => {
+          runOnJS(setMode)(null);
+        });
+      } else {
+        formX.value = withSpring(0);
+        formOpacity.value = withSpring(1);
+      }
+    });
+
+  const formAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: formX.value }],
+    opacity: formOpacity.value,
+  }));
 
   async function handleSubmit() {
     setError('');
@@ -177,14 +232,16 @@ export default function LandingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView contentContainerStyle={styles.formScroll} keyboardShouldPersistTaps="handled">
-          <TouchableOpacity onPress={() => setMode(null)} style={styles.backBtn}>
-            <Text style={styles.backText}>← back</Text>
-          </TouchableOpacity>
+      <GestureDetector gesture={panGesture}>
+        <Reanimated.View style={[{ flex: 1 }, formAnimStyle]}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <ScrollView contentContainerStyle={styles.formScroll} keyboardShouldPersistTaps="handled">
+              <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+                <Text style={styles.backText}>← back</Text>
+              </TouchableOpacity>
 
           <View style={styles.formBrand}>
             <LogoMark size="md" />
@@ -256,8 +313,10 @@ export default function LandingScreen() {
               <Text style={styles.toggleLink}>{mode === 'login' ? 'Create one' : 'Sign in'}</Text>
             </Text>
           </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </Reanimated.View>
+      </GestureDetector>
     </SafeAreaView>
   );
 }
