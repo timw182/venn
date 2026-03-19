@@ -18,8 +18,6 @@ export default function Mood() {
   const [loading, setLoading]             = useState(false);
   const [error, setError]               = useState(null);
   const [toast, setToast]                 = useState(null);
-  const [customMsg, setCustomMsg]           = useState('');
-  const [customError, setCustomError]       = useState('');
   const toastRef                          = useRef(null);
 
   useEffect(() => {
@@ -51,33 +49,6 @@ export default function Mood() {
     setToast(moodObj ? `${moodObj.emoji} ${senderName} is feeling ${moodObj.label}` : null);
     toastRef.current = setTimeout(() => { setToast(null); setPartnerMood(null); }, 4000);
   }, [wsMood]);
-
-  const BLOCKED = new Set([
-    "minor","minors","child","children","underage","teen","teenager",
-    "rape","snuff","necro","murder","torture","gore","loli","shota",
-  ]);
-
-  function filterText(text) {
-    const words = text.toLowerCase().split(/\s+/);
-    return words.some((w) => BLOCKED.has(w)) ? "That content isn't allowed" : null;
-  }
-
-  async function handleCustomSend() {
-    const msg = customMsg.trim();
-    if (!msg) return;
-    if (msg.length > 30) { setCustomError("Max 30 characters"); return; }
-    const err = filterText(msg);
-    if (err) { setCustomError(err); return; }
-    setCustomError('');
-    setLoading(true);
-    try {
-      await client.put("/mood/message", { message: msg });
-      setCustomMsg('');
-    } catch (e) {
-      setCustomError(e?.message || "Couldn't send");
-    }
-    setLoading(false);
-  }
 
   async function handleSet() {
     if (!picking || loading) return;
@@ -170,26 +141,6 @@ export default function Mood() {
               </AnimatePresence>
 
               {error && <p className="mood-error text-muted">{error}</p>}
-
-              {/* Custom word input */}
-              <form className="mood-custom-row" onSubmit={(e) => { e.preventDefault(); handleCustomSend(); }}>
-                <input
-                  className="mood-custom-input"
-                  type="text"
-                  maxLength={30}
-                  placeholder="Or type your own…"
-                  value={customMsg}
-                  onChange={(e) => { setCustomMsg(e.target.value); setCustomError(''); }}
-                />
-                <button
-                  type="submit"
-                  className="mood-custom-btn"
-                  disabled={loading || !customMsg.trim()}
-                >
-                  Send
-                </button>
-              </form>
-              {customError && <p className="mood-error text-muted">{customError}</p>}
             </>
           )}
 

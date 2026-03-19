@@ -30,6 +30,7 @@
   margin-top: var(--space-1);
 }
 
+
 /* ── Category row with popup overlay ───────────────────────── */
 .catalog-category-row {
   position: relative;
@@ -64,11 +65,15 @@
   }
 
   .catalog-header {
-    padding: var(--space-2) var(--space-5) 0;
+    margin-bottom: var(--space-3);
+    padding: 0 var(--space-6) var(--space-1);
   }
 
   .catalog-title {
-    font-size: var(--text-lg);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    font-style: italic;
+    margin-bottom: var(--space-1);
   }
 
   .catalog-subtitle {
