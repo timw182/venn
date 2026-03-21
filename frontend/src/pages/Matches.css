@@ -31,10 +31,11 @@
   margin-bottom: var(--space-6);
 }
 
-/* Grid */
+/* Grid — centered, expands outward as cards are added */
 .matches-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-4);
 }
 
@@ -52,6 +53,7 @@
   border: 1.5px solid var(--color-border);
   text-align: center;
   transition: all var(--duration-normal) var(--ease-out);
+  width: calc(50% - var(--space-2));
 }
 
 .match-card:hover {
@@ -204,10 +206,10 @@
   font-style: italic;
 }
 
-/* 3-column grid from 480px up */
+/* 3 cards per row from 480px up */
 @media (--bp-sm) {
-  .matches-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .match-card {
+    width: calc(33.333% - var(--space-3));
   }
 }
 
@@ -216,7 +218,7 @@
     max-width: 1200px;
   }
 
-  .matches-grid {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  .match-card {
+    width: 190px;
   }
 }

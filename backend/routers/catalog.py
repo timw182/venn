@@ -29,6 +29,16 @@ async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
     return {str(r["item_id"]): r["response"] for r in rows}
 
 
+@router.delete("/respond/{item_id}", status_code=204)
+async def undo_response(item_id: int, request: Request, db: Connection = Depends(get_db)):
+    uid = _session_user_id(request)
+    await db.execute(
+        "DELETE FROM user_responses WHERE user_id = ? AND item_id = ?",
+        (uid, item_id),
+    )
+    await db.commit()
+
+
 @router.post("/respond", status_code=204)
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
     uid = _session_user_id(request)
@@ -72,6 +82,7 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
                 if match_item:
                     await manager.broadcast(couple_id, {
                         "type": "match",
+                        "triggered_by": uid,
                         "item": {
                             "id": match_item["id"],
                             "title": match_item["title"],

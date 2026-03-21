@@ -3,6 +3,9 @@
   max-width: 640px;
   margin: 0 auto;
   width: 100%;
+  overflow-y: auto;
+  max-height: 100dvh;
+  -webkit-overflow-scrolling: touch;
 }
 
 .privacy-back {
@@ -92,4 +95,25 @@
 
 .privacy-section a:hover {
   text-decoration: underline;
+}
+
+/* ── Fixed-header variant (Impressum) ─────────────────────── */
+.privacy-page--fixed-header {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.privacy-header-fixed {
+  flex-shrink: 0;
+  padding: 0 var(--space-6);
+}
+
+.privacy-sections--scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--space-6) var(--space-10);
 }

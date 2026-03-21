@@ -85,6 +85,7 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
     )
     await db.commit()
 
+    request.session.clear()
     request.session["user_id"] = cursor.lastrowid
     return await _get_user_out(db, cursor.lastrowid)
 
@@ -101,6 +102,7 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
     if not row or not password_ok:
         raise HTTPException(401, "Invalid username or password")
 
+    request.session.clear()
     request.session["user_id"] = row["id"]
     return await _get_user_out(db, row["id"])
 

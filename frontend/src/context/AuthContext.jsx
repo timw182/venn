@@ -1,5 +1,6 @@
 import { createContext, useState, useCallback, useEffect } from 'react';
 import client from '../api/client';
+import { setOnUnauthorized } from '../api/client';
 import { STORAGE_KEYS } from '../lib/constants';
 
 export const AuthContext = createContext(null);
@@ -27,6 +28,14 @@ export function AuthProvider({ children }) {
   const [user, setUser]     = useState(null);
   const [isSolo, setIsSolo] = useState(() => localStorage.getItem(STORAGE_KEYS.SOLO) === '1');
   const [loading, setLoading] = useState(true);
+
+  // Register 401 handler so API client clears user without hard redirect
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      clearLocalUserData();
+      setUser(null);
+    });
+  }, []);
 
   // Hydrate session on mount
   useEffect(() => {

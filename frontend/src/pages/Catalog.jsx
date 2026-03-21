@@ -34,7 +34,6 @@ export default function Catalog() {
   const [matchItem, setMatchItem]           = useState(null);
   const [lastResponse, setLastResponse]     = useState(null);
   const [confetti, setConfetti]             = useState([]);
-  const [popup, setPopup]                   = useState(null);
 
   // Per-category piles
   const [recentYes, setRecentYes] = useState([]);
@@ -88,8 +87,12 @@ export default function Catalog() {
   }, []);
 
   // ── React to partner-triggered matches ─────────────────────────────────────
+  const handledMatchRef = useRef(null);
   useEffect(() => {
     if (!latestNewMatch) return;
+    // Skip if we already handled this match (e.g. tab switch remount)
+    if (handledMatchRef.current === latestNewMatch.id) return;
+    handledMatchRef.current = latestNewMatch.id;
     haptic.success();
     setTimeout(burstConfetti, 650);
     const item = catalog.find((i) => i.id === latestNewMatch.id);
@@ -136,6 +139,8 @@ export default function Catalog() {
       saveLocalResponses(next);
       return next;
     });
+    // Sync undo to server
+    client.delete(`/catalog/respond/${item.id}`).catch(() => {});
   }, [lastResponse]);
 
   const handleRespond = useCallback((itemId, response) => {
@@ -227,20 +232,6 @@ export default function Catalog() {
 
         <div className="catalog-category-row">
           <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
-          <AnimatePresence>
-            {popup && (
-              <motion.div
-                key={popup}
-                className={`card-stack-popup card-stack-popup--${popup}`}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                transition={{ duration: 0.15 }}
-              >
-                {popup === 'yes' ? 'Yes ✓' : popup === 'no' ? 'Nope ✕' : 'Maybe ~'}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         <div className="catalog-desktop-layout">
@@ -251,7 +242,6 @@ export default function Catalog() {
             items={categoryItems}
             onRespond={handleRespond}
             onUndo={lastResponse ? handleUndo : null}
-            onPopup={setPopup}
           />
 
           {showPiles && <CardPile items={recentYes} side="yes" totalCount={pileCount.yes} />}

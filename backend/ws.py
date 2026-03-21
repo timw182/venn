@@ -14,6 +14,8 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket, couple_id: int):
         if couple_id in self.rooms:
             self.rooms[couple_id].discard(websocket)
+            if not self.rooms[couple_id]:
+                del self.rooms[couple_id]
 
     async def broadcast(self, couple_id: int, message: dict):
         if couple_id not in self.rooms:
@@ -26,5 +28,7 @@ class ConnectionManager:
                 dead.add(ws)
         for ws in dead:
             self.rooms[couple_id].discard(ws)
+        if couple_id in self.rooms and not self.rooms[couple_id]:
+            del self.rooms[couple_id]
 
 manager = ConnectionManager()

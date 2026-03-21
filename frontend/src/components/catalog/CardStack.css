@@ -185,7 +185,7 @@
 }
 
 .item-card-inner {
-  padding: var(--space-5) var(--space-4);
+  padding: var(--space-5) var(--space-6);
   gap: var(--space-3);
 }
 
@@ -193,23 +193,25 @@
 @media (--bp-md) {
   .card-stack-wrapper {
     flex: 1;
-    gap: var(--space-4);
-    padding: var(--space-3) var(--space-6) var(--space-2);
+    min-height: 0;          /* allow flex shrink past intrinsic size */
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-6) var(--space-1);
   }
 
   .card-stack {
     max-width: min(100%, 340px);
-    max-height: min(44vh, 400px);
+    max-height: min(calc(100dvh - 420px), 360px);
   }
 }
 
 /* ── Desktop (1024px+): card + hints ────────────────────────── */
 /* Total overhead = header(82) + catalog-header(72) + category-picker(50) + nav(80) + wrapper-padding(4) + gap(8) + buttons(~70) ≈ 366px */
-/* Card max-height: 100dvh - 366px - some breathing room = 100dvh - 448px, hard cap 360px */
+/* Card max-height: 100dvh - overhead - breathing room, hard cap 320px */
 /* On tall desktops (≥900px) we relax to 420px via the min-height override below */
 @media (--bp-lg) {
   .card-stack-wrapper {
     flex: 0 0 auto;
+    min-height: 0;
     width: auto;
     gap: var(--space-2);
     padding: var(--space-1) var(--space-6) 0;
@@ -217,7 +219,7 @@
 
   .card-stack {
     max-width: min(230px, 22vw);
-    max-height: min(calc(100dvh - 448px), 360px);
+    max-height: min(calc(100dvh - 480px), 320px);
   }
 
   /* Hover hint on top card */
@@ -270,7 +272,7 @@
   }
 
   .item-card-inner {
-    padding: var(--space-6) var(--space-5);
+    padding: var(--space-6) var(--space-6);
     gap: var(--space-4);
   }
 }

@@ -27,8 +27,13 @@ export function MatchProvider({ children }) {
   useEffect(() => { userRef.current = user; });
 
   // fetchMatches is stable (no user dep) — reads userRef at call time
+  // Debounced: collapses multiple rapid calls into one
+  const fetchTimer = useRef(null);
   const fetchMatches = useCallback(async () => {
     if (!userRef.current?.coupleId) return;
+    // If a fetch is already scheduled, skip
+    if (fetchTimer.current) return;
+    fetchTimer.current = setTimeout(() => { fetchTimer.current = null; }, 500);
     try {
       const data = await client.get("/matches");
       setMatches(data);
@@ -49,11 +54,9 @@ export function MatchProvider({ children }) {
     }).catch(() => {});
   }, [user]);
 
-  // showMatch is stable
+  // showMatch is stable — no auto-dismiss timer here; Catalog owns the display lifecycle
   const showMatch = useCallback((item) => {
     setLatestNewMatch(item);
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setLatestNewMatch(null), 4000);
   }, []);
 
   // connect is stable — uses refs so it never needs to be recreated
@@ -66,7 +69,14 @@ export function MatchProvider({ children }) {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      const isReconnect = retryRef.current > 0;
       retryRef.current = 0;
+      // Catch up on any matches missed while disconnected (reconnects only)
+      if (isReconnect) {
+        fetchMatches().then((data) => {
+          if (data) data.forEach((m) => knownIds.current.add(m.id));
+        });
+      }
       // Keepalive ping every 25s
       const ping = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) ws.send("ping");
@@ -81,7 +91,10 @@ export function MatchProvider({ children }) {
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
-          showMatch(msg.item);
+          // Only show animation for the partner, not the user who triggered the match
+          if (msg.triggered_by === userRef.current?.id) {
+            showMatch(msg.item);
+          }
         } else if (msg.type === "custom_message") {
           if (msg.from_user_id !== userRef.current?.id) {
             setPartnerMessage(msg.message || null);

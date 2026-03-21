@@ -27,7 +27,7 @@
   align-items: center;
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-3) 0;
+  padding: var(--space-2) 0;
   position: relative; /* anchor for the slime SVG overlay */
   z-index: 1;
 }
@@ -36,7 +36,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
   flex: 1;
   padding: var(--space-1) var(--space-2);
   position: relative;
@@ -64,8 +64,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 }
 
 .bottom-nav-badge {
@@ -90,6 +90,7 @@
   font-size: 11px;
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-wide);
+  margin-top: 8px;
 }
 
 .bottom-nav-dot {
@@ -128,7 +129,7 @@
   /* extra breathing room above the blob / below the nav border */
   .bottom-nav-inner {
     max-width: 600px;
-    padding: var(--space-4) 0 var(--space-3);
+    padding: var(--space-3) 0 var(--space-2);
   }
 }
 

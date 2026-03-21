@@ -107,7 +107,6 @@ app.include_router(custom_items.router, prefix="/api")
 
 @app.websocket("/api/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    print("[WS DEBUG] cookies:", list(websocket.cookies.keys()), "session:", dict(websocket.session), flush=True)
     uid = websocket.session.get("user_id")
     if not uid:
         await websocket.accept()

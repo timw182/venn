@@ -11,6 +11,7 @@ import Matches from './pages/Matches';
 import Mood from './pages/Mood';
 import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
+import Impressum from './pages/Impressum';
 import Admin from './pages/Admin';
 import Experts from './pages/Experts';
 
@@ -58,6 +59,8 @@ export default function App() {
       <Routes>
         {/* Public */}
         <Route path={ROUTES.LOGIN} element={<LandingRedirect />} />
+        <Route path="/impressum"   element={<Impressum />} />
+        <Route path="/privacy"     element={<Privacy />} />
 
         {/* Authenticated */}
         <Route element={<AuthGuard />}>
@@ -78,6 +81,7 @@ export default function App() {
               <Route path={ROUTES.MOOD}     element={<Mood />} />
               <Route path={ROUTES.SETTINGS} element={<Settings />} />
               <Route path="/privacy"        element={<Privacy />} />
+              <Route path="/impressum"     element={<Impressum />} />
               <Route path="/experts"        element={<Experts />} />
             </Route>
           </Route>

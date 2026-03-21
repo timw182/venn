@@ -61,7 +61,8 @@
   .catalog-inner {
     flex: 1;
     min-height: 0;
-    justify-content: center;
+    justify-content: safe center;  /* prevent bidirectional overflow on short viewports */
+    overflow: hidden;
   }
 
   .catalog-header {
@@ -150,13 +151,13 @@
 }
 
 .catalog-pile-card-wrap.pile-no {
-  border-color: #C47474;
-  background: #fdf0f0;
+  border-color: #d46a6a;
+  background: #f9dada;
 }
 
 .catalog-pile-card-wrap.pile-yes {
-  border-color: #7B9E6F;
-  background: #f0f7ee;
+  border-color: #6a9460;
+  background: #ddefda;
 }
 
 .catalog-pile-emoji {

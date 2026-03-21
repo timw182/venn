@@ -19,6 +19,7 @@ export default function Mood() {
   const [error, setError]               = useState(null);
   const [toast, setToast]                 = useState(null);
   const toastRef                          = useRef(null);
+  const partnerName    = user?.partnerName || "Partner";
 
   useEffect(() => {
     client.get("/mood")
@@ -74,7 +75,6 @@ export default function Mood() {
 
   const myMoodObj      = MOODS.find((m) => m.key === myMood);
   const partnerMoodObj = MOODS.find((m) => m.key === partnerMood);
-  const partnerName    = user?.partnerName || "Partner";
 
   return (
     <motion.div className="mood-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>

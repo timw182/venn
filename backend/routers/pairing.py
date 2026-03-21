@@ -81,6 +81,15 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
         if datetime.now(timezone.utc) > exp:
             raise HTTPException(410, "Pairing code has expired")
 
+    # Atomically claim the code: clear it first so concurrent joins fail
+    cur = await db.execute(
+        "UPDATE users SET pairing_code = NULL, pairing_code_expires_at = NULL "
+        "WHERE id = ? AND pairing_code = ?",
+        (other["id"], code),
+    )
+    if cur.rowcount == 0:
+        raise HTTPException(409, "Code was just used by someone else")
+
     # Create couple
     cursor = await db.execute(
         "INSERT INTO couples (user_a_id, user_b_id) VALUES (?,?)",
@@ -88,9 +97,9 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
     )
     couple_id = cursor.lastrowid
 
-    # Link both users, clear the pairing code (one-time use)
+    # Link both users
     await db.execute(
-        "UPDATE users SET couple_id = ?, pairing_code = NULL, pairing_code_expires_at = NULL WHERE id IN (?,?)",
+        "UPDATE users SET couple_id = ? WHERE id IN (?,?)",
         (couple_id, other["id"], uid),
     )
     await db.commit()

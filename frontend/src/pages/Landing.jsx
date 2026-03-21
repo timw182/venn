@@ -220,11 +220,25 @@ export default function Landing() {
       </AnimatePresence>
 
       <footer className="landing-footer">
-        <span>© 2026 Venn</span>
-        <span className="landing-footer-dot">·</span>
-        <a href="/impressum" className="landing-footer-link">Impressum</a>
-        <span className="landing-footer-dot">·</span>
-        <a href="https://instagram.com/venn.app" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Instagram</a>
+        <div className="landing-footer-links">
+          <span>© 2026 Venn</span>
+          <span className="landing-footer-dot">·</span>
+          <a href="/impressum" className="landing-footer-link">Impressum</a>
+        </div>
+        <div className="landing-footer-social">
+          <a href="https://instagram.com/venn.app" target="_blank" rel="noopener noreferrer" className="landing-footer-icon" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://facebook.com/venn.app" target="_blank" rel="noopener noreferrer" className="landing-footer-icon" aria-label="Facebook">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" className="landing-footer-icon" aria-label="App Store">
+            <svg width="20" height="20" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.8-155.5-127.4c-58.3-81.4-105.6-207.8-105.6-328.6 0-193.1 125.3-295.6 248.7-295.6 65.5 0 120.1 43.1 161.2 43.1 39.2 0 100.2-45.7 174.5-45.7 28.2 0 129.6 2.6 196.8 99.7zM554.1 159.4c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.9 32.4-54.4 83.7-54.4 135.5 0 7.8.6 15.7 1.3 18.2 2.6.6 6.4 1.3 10.8 1.3 45.3 0 102.5-30.4 138.2-71.4z"/></svg>
+          </a>
+          <a href="#" className="landing-footer-icon" aria-label="Google Play">
+            <svg width="20" height="20" viewBox="0 0 512 512" fill="currentColor"><path d="M48 59.49v393a4.33 4.33 0 0 0 7.37 3.07L260 256 55.37 56.42A4.33 4.33 0 0 0 48 59.49zM345.8 174L89.22 32.64l-.16-.09c-4.42-2.4-8.62 3.58-5 7.06L285.19 231.93zm0 164L285.19 280.07 84.07 472.39c-3.64 3.48.56 9.46 5 7.06l.16-.09zM400.32 243.16L348.59 214l-56.51 42L348.59 298l51.73-29.16a16.42 16.42 0 0 0 0-25.68z"/></svg>
+          </a>
+        </div>
       </footer>
     </main>
   );

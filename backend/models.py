@@ -2,7 +2,10 @@ import re
 from pydantic import BaseModel, field_validator
 from typing import Optional
 
-VALID_MOODS = {"passionate", "tender", "playful", "dominant", "submissive", "curious", "lazy", "wild"}
+VALID_MOODS = {
+    "passionate", "tender", "playful", "dominant", "submissive", "curious",
+    "lazy", "wild", "romantic", "needy", "confident", "nervous", "cuddly", "flirty",
+}
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────

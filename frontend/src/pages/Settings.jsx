@@ -341,6 +341,7 @@ export default function Settings() {
           </p>
           <div className="sheet-about-links">
             <a href="/privacy" className="btn btn-secondary btn-sm" onClick={closeSheet}>Privacy Policy</a>
+            <a href="/impressum" className="btn btn-secondary btn-sm" onClick={closeSheet}>Impressum</a>
             <a href="/experts" className="btn btn-secondary btn-sm" onClick={closeSheet}>What Experts say</a>
           </div>
         </div>

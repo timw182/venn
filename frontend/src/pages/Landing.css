@@ -210,17 +210,22 @@
 /* ---- Footer ---- */
 .landing-footer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-3);
   font-size: 12px;
   color: var(--color-text-light);
   letter-spacing: 0.02em;
-  flex-wrap: wrap;
-  justify-content: center;
   margin-top: auto;
   padding-top: var(--space-6);
   position: relative;
   z-index: 1;
+}
+
+.landing-footer-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .landing-footer-dot {
@@ -235,6 +240,23 @@
 
 .landing-footer-link:hover {
   color: var(--color-text-muted);
+}
+
+.landing-footer-social {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.landing-footer-icon {
+  color: var(--color-text-light);
+  transition: color var(--duration-fast);
+  display: flex;
+  align-items: center;
+}
+
+.landing-footer-icon:hover {
+  color: var(--color-accent);
 }
 
 

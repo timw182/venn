@@ -1,5 +1,9 @@
 const API_BASE = '/api';
 
+// Callbacks registered by AuthContext to handle 401s without hard redirects
+let onUnauthorized = null;
+export function setOnUnauthorized(cb) { onUnauthorized = cb; }
+
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
@@ -9,8 +13,8 @@ async function request(path, options = {}) {
 
   if (res.status === 401) {
     const isAuthPath = path.startsWith('/auth/');
-    if (!isAuthPath && !window.location.pathname.includes('/login')) {
-      window.location.href = '/login';
+    if (!isAuthPath && onUnauthorized) {
+      onUnauthorized();
     }
     const body = await res.json().catch(() => ({}));
     throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');

@@ -114,7 +114,7 @@
   --z-particle: 400;
 
   /* Layout */
-  --nav-height: 80px;
+  --nav-height: 68px;
 
   /* ── Canonical breakpoints ─────────────────────────────────
      CSS variables cannot be used inside @media rules.
