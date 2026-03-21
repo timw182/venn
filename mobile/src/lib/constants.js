@@ -16,6 +16,12 @@ export const MOODS = [
   { key: 'curious', label: 'Curious', emoji: '✨' },
   { key: 'lazy', label: 'Lazy', emoji: '😴' },
   { key: 'wild', label: 'Wild', emoji: '⚡' },
+  { key: 'romantic', label: 'Romantic', emoji: '🌹' },
+  { key: 'needy', label: 'Needy', emoji: '🥺' },
+  { key: 'confident', label: 'Confident', emoji: '😎' },
+  { key: 'nervous', label: 'Nervous', emoji: '🫣' },
+  { key: 'cuddly', label: 'Cuddly', emoji: '🧸' },
+  { key: 'flirty', label: 'Flirty', emoji: '😘' },
 ];
 
 export const SCREENS = {

@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from aiosqlite import Connection
@@ -23,7 +24,7 @@ AVATAR_COLORS = [
 ]
 
 
-async def _get_user_out(db: Connection, user_id: int) -> UserOut:
+async def _get_user_out(db: Connection, user_id: int, session_token: str = None) -> UserOut:
     cur = await db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     row = await cur.fetchone()
     if not row:
@@ -58,14 +59,23 @@ async def _get_user_out(db: Connection, user_id: int) -> UserOut:
         partner_name=partner_name,
         is_admin=bool(row["is_admin"]),
         is_superadmin=bool(row["is_superadmin"]),
+        session_token=session_token,
     )
 
 
-def _session_user_id(request: Request) -> int:
+async def _session_user_id(request: Request, db: Connection = None) -> int:
+    """Get user ID from session cookie (web) or X-Session-Token header (mobile)."""
     uid = request.session.get("user_id")
-    if not uid:
-        raise HTTPException(401, "Not authenticated")
-    return uid
+    if uid:
+        return uid
+    # Fallback: token-based auth for mobile clients
+    token = request.headers.get("X-Session-Token")
+    if token and db:
+        cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
+        row = await cur.fetchone()
+        if row:
+            return row["id"]
+    raise HTTPException(401, "Not authenticated")
 
 
 @router.post("/register", response_model=UserOut)
@@ -79,15 +89,17 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
     color = AVATAR_COLORS[hash(body.username) % len(AVATAR_COLORS)]
     hashed = pwd_ctx.hash(body.password)
 
+    token = secrets.token_hex(32)
     cursor = await db.execute(
-        "INSERT INTO users (username, password_hash, display_name, avatar_color) VALUES (?,?,?,?)",
-        (body.username.strip(), hashed, body.display_name, color),
+        "INSERT INTO users (username, password_hash, display_name, avatar_color, session_token) VALUES (?,?,?,?,?)",
+        (body.username.strip(), hashed, body.display_name, color, token),
     )
     await db.commit()
 
     request.session.clear()
     request.session["user_id"] = cursor.lastrowid
-    return await _get_user_out(db, cursor.lastrowid)
+    request.session["session_token"] = token
+    return await _get_user_out(db, cursor.lastrowid, session_token=token)
 
 
 @router.post("/login", response_model=UserOut)
@@ -102,9 +114,15 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
     if not row or not password_ok:
         raise HTTPException(401, "Invalid username or password")
 
+    # New session token invalidates all other devices
+    token = secrets.token_hex(32)
+    await db.execute("UPDATE users SET session_token = ? WHERE id = ?", (token, row["id"]))
+    await db.commit()
+
     request.session.clear()
     request.session["user_id"] = row["id"]
-    return await _get_user_out(db, row["id"])
+    request.session["session_token"] = token
+    return await _get_user_out(db, row["id"], session_token=token)
 
 
 @router.post("/logout", status_code=204)
@@ -124,7 +142,7 @@ async def me(request: Request, db: Connection = Depends(get_db)):
 @router.patch("/profile", response_model=UserOut)
 @limiter.limit("10/minute")
 async def update_profile(body: UpdateProfileRequest, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     await db.execute("UPDATE users SET display_name = ? WHERE id = ?", (body.display_name, uid))
     await db.commit()
     return await _get_user_out(db, uid)
@@ -134,7 +152,7 @@ DISCONNECT_COOLDOWN_HOURS = 120  # 5 days
 @router.post("/disconnect", status_code=204)
 async def disconnect_partner(request: Request, db: Connection = Depends(get_db)):
     """Remove the current couple pairing. Rate-limited to once per 24 hours."""
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
 
     cur = await db.execute("SELECT couple_id, last_disconnected_at FROM users WHERE id = ?", (uid,))
     row = await cur.fetchone()

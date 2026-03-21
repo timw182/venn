@@ -39,7 +39,7 @@ class CustomItemIn(BaseModel):
 
 @router.post("")
 async def create_custom(body: CustomItemIn, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     title = _check(body.title)
     emoji = body.emoji.strip() or "✨"
@@ -60,7 +60,7 @@ async def create_custom(body: CustomItemIn, request: Request, db: Connection = D
 
 @router.get("")
 async def list_custom(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     cur = await db.execute(
         "SELECT id, title, emoji FROM custom_catalog_items WHERE couple_id=? ORDER BY created_at ASC",

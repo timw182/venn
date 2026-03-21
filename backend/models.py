@@ -55,6 +55,7 @@ class UserOut(BaseModel):
     partner_name: Optional[str] = None
     is_admin: bool = False
     is_superadmin: bool = False
+    session_token: Optional[str] = None
 
 
 # ── Pairing ───────────────────────────────────────────────────────────────────

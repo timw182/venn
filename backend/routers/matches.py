@@ -12,7 +12,7 @@ router = APIRouter(prefix="/matches", tags=["matches"])
 
 @router.get("", response_model=List[MatchItem])
 async def get_matches(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     partner_id = await get_partner_id(db, uid, couple_id)
 
@@ -57,7 +57,7 @@ async def get_matches(request: Request, db: Connection = Depends(get_db)):
 
 @router.post("/{item_id}/seen", status_code=204)
 async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     await require_couple(db, uid)
 
     await db.execute(
@@ -70,7 +70,7 @@ async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get
 @router.delete("/{item_id}", status_code=204)
 async def remove_match(item_id: int, request: Request, db: Connection = Depends(get_db)):
     """Remove a match by changing the current user's response to 'no'."""
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     await require_couple(db, uid)
 
     await db.execute(

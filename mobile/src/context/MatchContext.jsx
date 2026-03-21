@@ -3,6 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import client from "../api/client";
 import { useAuth } from "./useAuth";
 
+const TOKEN_KEY = 'kl_session_token';
+
 const MatchContext = createContext(null);
 
 const WS_URL = "wss://venn.amoreapp.net/api/ws";
@@ -20,18 +22,26 @@ export function MatchProvider({ children }) {
   const retryRef   = useRef(0);
   const retryTimer = useRef(null);
   const knownIds   = useRef(new Set());
+  const userRef    = useRef(user);
 
+  // Keep userRef in sync so stable callbacks see latest user
+  useEffect(() => { userRef.current = user; });
+
+  // Debounced fetchMatches — collapses rapid calls into one
+  const fetchTimer = useRef(null);
   const fetchMatches = useCallback(async () => {
-    if (!user) return [];
+    if (!userRef.current?.coupleId) return [];
+    if (fetchTimer.current) return [];
+    fetchTimer.current = setTimeout(() => { fetchTimer.current = null; }, 500);
     try {
       const data = await client.get("/matches");
       setMatches(data);
       return data;
     } catch { return []; }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.coupleId) return;
     fetchMatches().then((data) => {
       (data || []).forEach((m) => knownIds.current.add(m.id));
     });
@@ -42,21 +52,31 @@ export function MatchProvider({ children }) {
     }).catch(() => {});
   }, [user]);
 
+  // showMatch — no auto-dismiss timer; screen owns display lifecycle
   const showMatch = useCallback((item) => {
     setLatestNewMatch(item);
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setLatestNewMatch(null), 4000);
   }, []);
 
-  const connect = useCallback(() => {
-    if (!user) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+  const connect = useCallback(async () => {
+    if (!userRef.current?.coupleId) return;
+    const state = wsRef.current?.readyState;
+    if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
 
-    const ws = new WebSocket(WS_URL);
+    const token = await AsyncStorage.getItem(TOKEN_KEY).catch(() => null);
+    const url = token ? `${WS_URL}?token=${token}` : WS_URL;
+    const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      const isReconnect = retryRef.current > 0;
       retryRef.current = 0;
+      // Catch up on missed matches (reconnects only)
+      if (isReconnect) {
+        fetchMatches().then((data) => {
+          if (data) data.forEach((m) => knownIds.current.add(m.id));
+        });
+      }
+      // Keepalive ping every 25s
       const ping = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) ws.send("ping");
         else clearInterval(ping);
@@ -70,9 +90,14 @@ export function MatchProvider({ children }) {
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
-          showMatch(msg.item);
+          // Only show animation for the user who completed the match
+          if (msg.triggered_by === userRef.current?.id) {
+            showMatch(msg.item);
+          }
         } else if (msg.type === "mood_update") {
-          setPartnerMood(msg.mood || null);
+          if (msg.from_user_id !== userRef.current?.id) {
+            setPartnerMood(msg.mood || null);
+          }
         } else if (msg.type === "reset_requested") {
           setResetState("pending_partner");
         } else if (msg.type === "reset_cancelled" || msg.type === "reset_declined") {
@@ -85,23 +110,27 @@ export function MatchProvider({ children }) {
     };
 
     ws.onclose = () => {
-      if (!user) return;
+      if (wsRef.current !== ws) return;
+      if (!userRef.current?.coupleId) return;
       const delay = Math.min(RECONNECT_BASE * 2 ** retryRef.current, RECONNECT_MAX);
       retryRef.current++;
       retryTimer.current = setTimeout(connect, delay);
     };
 
     ws.onerror = () => ws.close();
-  }, [user, fetchMatches, showMatch]);
+  }, []);
 
+  const paired = !!user?.coupleId;
   useEffect(() => {
-    if (!user) return;
+    if (!paired) return;
     connect();
     return () => {
       clearTimeout(retryTimer.current);
-      wsRef.current?.close();
+      const ws = wsRef.current;
+      wsRef.current = null;
+      ws?.close();
     };
-  }, [user, connect]);
+  }, [paired]);
 
   const dismissLatest = useCallback(() => {
     clearTimeout(timerRef.current);

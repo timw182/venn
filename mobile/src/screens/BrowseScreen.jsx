@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
 import CardStack from '../components/CardStack';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space } from '../theme/tokens';
+import { useMatches } from '../context/MatchContext';
 import client from '../api/client';
 import SlideView from '../components/SlideView';
 
@@ -15,6 +16,10 @@ export default function BrowseScreen() {
   const [matchItem, setMatchItem] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
   const [stackHeight, setStackHeight] = useState(0);
+  const matchTimerRef = useRef(null);
+  const handledMatchRef = useRef(null);
+
+  const { latestNewMatch, dismissLatest, refetch } = useMatches();
 
   useEffect(() => {
     Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
@@ -24,6 +29,22 @@ export default function BrowseScreen() {
       })
       .catch(() => {});
   }, []);
+
+  // React to match from WS (triggered_by check is in MatchContext)
+  useEffect(() => {
+    if (!latestNewMatch) return;
+    if (handledMatchRef.current === latestNewMatch.id) return;
+    handledMatchRef.current = latestNewMatch.id;
+    const item = catalog.find((i) => i.id === latestNewMatch.id) || latestNewMatch;
+    clearTimeout(matchTimerRef.current);
+    setTimeout(() => {
+      setMatchItem(item);
+      matchTimerRef.current = setTimeout(() => {
+        setMatchItem(null);
+        dismissLatest();
+      }, 3000);
+    }, 300);
+  }, [latestNewMatch, catalog, dismissLatest]);
 
   const categoryItems = useMemo(() => {
     return catalog.filter((item) => item.category === activeCategory && !responses[String(item.id)]);
@@ -48,26 +69,17 @@ export default function BrowseScreen() {
       delete next[String(item.id)];
       return next;
     });
+    client.delete(`/catalog/respond/${item.id}`).catch(() => {});
   }, [lastResponse]);
 
   const handleRespond = useCallback((itemId, response) => {
     const item = catalog.find((i) => i.id === itemId);
     if (item) setLastResponse({ item, response });
     setResponses((prev) => ({ ...prev, [String(itemId)]: response }));
-    client.post('/catalog/respond', { item_id: itemId, response }).catch(() => {});
-
-    if (response === 'yes') {
-      client.get('/matches').then((matches) => {
-        const fresh = matches.find((m) => String(m.id) === String(itemId) && !m.seen);
-        if (fresh && item) {
-          setTimeout(() => {
-            setMatchItem(item);
-            setTimeout(() => setMatchItem(null), 2500);
-          }, 300);
-        }
-      }).catch(() => {});
-    }
-  }, [catalog]);
+    client.post('/catalog/respond', { item_id: itemId, response })
+      .then(() => { if (response === 'yes') refetch(); })
+      .catch(() => {});
+  }, [catalog, refetch]);
 
   return (
     <SlideView>

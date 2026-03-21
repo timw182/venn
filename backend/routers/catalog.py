@@ -21,7 +21,7 @@ async def get_catalog(db: Connection = Depends(get_db)):
 
 @router.get("/responses")
 async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     cur = await db.execute(
         "SELECT item_id, response FROM user_responses WHERE user_id = ?", (uid,)
     )
@@ -31,7 +31,7 @@ async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
 
 @router.delete("/respond/{item_id}", status_code=204)
 async def undo_response(item_id: int, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     await db.execute(
         "DELETE FROM user_responses WHERE user_id = ? AND item_id = ?",
         (uid, item_id),
@@ -41,7 +41,7 @@ async def undo_response(item_id: int, request: Request, db: Connection = Depends
 
 @router.post("/respond", status_code=204)
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
 
     cur = await db.execute("SELECT id FROM catalog_items WHERE id = ?", (body.item_id,))
     item = await cur.fetchone()

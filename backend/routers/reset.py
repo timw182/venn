@@ -15,8 +15,8 @@ async def _get_couple(db, uid):
 
 @router.get("/status")
 async def reset_status(request: Request):
-    uid = _session_user_id(request)
     async with get_db() as db:
+        uid = await _session_user_id(request, db)
         couple_id, partner_id = await _get_couple(db, uid)
         cur = await db.execute(
             "SELECT requested_by, status FROM reset_requests WHERE couple_id = ? ORDER BY created_at DESC LIMIT 1",
@@ -30,8 +30,8 @@ async def reset_status(request: Request):
 
 @router.post("/request")
 async def request_reset(request: Request):
-    uid = _session_user_id(request)
     async with get_db() as db:
+        uid = await _session_user_id(request, db)
         couple_id, partner_id = await _get_couple(db, uid)
 
         # Cancel any existing request first
@@ -48,8 +48,8 @@ async def request_reset(request: Request):
 
 @router.post("/confirm")
 async def confirm_reset(request: Request):
-    uid = _session_user_id(request)
     async with get_db() as db:
+        uid = await _session_user_id(request, db)
         couple_id, partner_id = await _get_couple(db, uid)
 
         cur = await db.execute(
@@ -80,8 +80,8 @@ async def confirm_reset(request: Request):
 
 @router.post("/decline")
 async def decline_reset(request: Request):
-    uid = _session_user_id(request)
     async with get_db() as db:
+        uid = await _session_user_id(request, db)
         couple_id, partner_id = await _get_couple(db, uid)
         await db.execute(
             "UPDATE reset_requests SET status = 'declined' WHERE couple_id = ? AND status = 'pending'",
@@ -95,8 +95,8 @@ async def decline_reset(request: Request):
 
 @router.post("/cancel")
 async def cancel_reset(request: Request):
-    uid = _session_user_id(request)
     async with get_db() as db:
+        uid = await _session_user_id(request, db)
         couple_id, partner_id = await _get_couple(db, uid)
         await db.execute("DELETE FROM reset_requests WHERE couple_id = ? AND requested_by = ?", (couple_id, uid))
         await db.commit()

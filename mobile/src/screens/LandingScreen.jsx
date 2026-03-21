@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView, StyleSheet,
   KeyboardAvoidingView, Platform, TouchableOpacity,
-  Animated, Dimensions, Image,
+  Animated, Dimensions, Image, Linking,
 } from 'react-native';
+import Svg, { Rect, Circle, Path } from 'react-native-svg';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -225,6 +226,21 @@ export default function LandingScreen() {
             </TouchableOpacity>
           </View>
 
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://instagram.com/venn.app')} style={styles.footerIcon}>
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <Rect x={2} y={2} width={20} height={20} rx={5} />
+                <Circle cx={12} cy={12} r={5} />
+                <Circle cx={17.5} cy={6.5} r={1.2} fill={colors.textLight} stroke="none" />
+              </Svg>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => Linking.openURL('https://facebook.com/venn.app')} style={styles.footerIcon}>
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+              </Svg>
+            </TouchableOpacity>
+          </View>
+
         </ScrollView>
       </SafeAreaView>
     );
@@ -356,7 +372,17 @@ const styles = StyleSheet.create({
   toggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.2, textAlign: 'center' },
   toggleLink: { color: colors.accent },
 
-  footer: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.textLight, letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center' },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: space[6],
+    marginTop: 'auto',
+    paddingTop: space[4],
+  },
+  footerIcon: {
+    padding: space[2],
+  },
 
   formScroll: {
     flexGrow: 1,

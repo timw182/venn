@@ -24,7 +24,7 @@ def _active_mood(row) -> str | None:
 
 @router.put("", response_model=MoodOut)
 async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     partner_id = await get_partner_id(db, uid, couple_id)
 
@@ -75,7 +75,7 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
 
 @router.get("", response_model=MoodOut)
 async def get_mood(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     partner_id = await get_partner_id(db, uid, couple_id)
 
@@ -99,7 +99,7 @@ async def get_mood(request: Request, db: Connection = Depends(get_db)):
 
 @router.delete("", status_code=204)
 async def clear_mood(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     await db.execute("DELETE FROM user_mood WHERE user_id = ?", (uid,))
     await db.commit()
 
@@ -120,7 +120,7 @@ async def set_custom_message(request: Request, db: Connection = Depends(get_db))
     if len(message) > 120:
         raise HTTPException(400, "Max 120 characters")
 
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
 
     # Upsert into user_mood keeping existing mood, just update custom_message
@@ -144,7 +144,7 @@ async def set_custom_message(request: Request, db: Connection = Depends(get_db))
 
 @router.get("/message")
 async def get_partner_message(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
     partner_id = await get_partner_id(db, uid, couple_id)
 

@@ -26,7 +26,7 @@ def _gen_code(length: int = 6) -> str:
 @router.post("/create", response_model=PairingCodeOut)
 @limiter.limit("10/minute")
 async def create_pairing_code(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
 
     cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
     user = await cur.fetchone()
@@ -55,7 +55,7 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
 @router.post("/join", response_model=UserOut)
 @limiter.limit("10/minute")
 async def join_with_code(body: JoinRequest, request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
 
     cur = await db.execute("SELECT * FROM users WHERE id = ?", (uid,))
     me = await cur.fetchone()
@@ -109,7 +109,7 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
 
 @router.get("/status")
 async def pairing_status(request: Request, db: Connection = Depends(get_db)):
-    uid = _session_user_id(request)
+    uid = await _session_user_id(request, db)
     cur = await db.execute("SELECT couple_id, pairing_code FROM users WHERE id = ?", (uid,))
     row = await cur.fetchone()
     return {

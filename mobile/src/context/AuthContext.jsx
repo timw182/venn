@@ -1,6 +1,6 @@
 import { createContext, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import client, { clearSession } from '../api/client';
+import client, { clearSession, storeToken } from '../api/client';
 
 const SOLO_KEY = 'kl_solo';
 
@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     const raw = await client.post('/auth/login', { username, password });
+    if (raw.session_token) await storeToken(raw.session_token);
     const u = toUser(raw);
     setUser(u);
     return u;
@@ -38,6 +39,7 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (username, password, displayName) => {
     const raw = await client.post('/auth/register', { username, password, display_name: displayName });
+    if (raw.session_token) await storeToken(raw.session_token);
     const u = toUser(raw);
     setUser(u);
     return u;

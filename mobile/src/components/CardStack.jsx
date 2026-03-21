@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -52,6 +53,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
   function doRespond(response) {
     if (respondingRef.current || localItems.length === 0) return;
     respondingRef.current = true;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setExiting(true);
     setHint(null);
     onRespond?.(localItems[0]?.id, response);
@@ -172,13 +174,13 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
         >
           <Text style={styles.btnIcon}>↩</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnNo]} onPress={() => doRespond('no')}>
+        <TouchableOpacity style={[styles.btn, styles.btnNo]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('no'); }}>
           <Text style={[styles.btnIcon, { color: colors.no, fontSize: 22 }]}>✕</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnMaybe]} onPress={() => doRespond('maybe')}>
+        <TouchableOpacity style={[styles.btn, styles.btnMaybe]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); doRespond('maybe'); }}>
           <Text style={[styles.btnIcon, { color: colors.maybe, fontSize: 18 }]}>~</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnYes]} onPress={() => doRespond('yes')}>
+        <TouchableOpacity style={[styles.btn, styles.btnYes]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('yes'); }}>
           <Text style={[styles.btnIcon, { color: colors.yes, fontSize: 22 }]}>✓</Text>
         </TouchableOpacity>
       </View>

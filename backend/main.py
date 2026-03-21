@@ -11,9 +11,11 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from fastapi import Depends
 from database import init_db
 from seed import seed
 from routers import auth, admin as admin_router, tickets as tickets_router, pairing, catalog, matches, mood, reset, custom_items
+from routers.deps import verify_session
 from ws import manager
 from database import get_db, get_db_ctx
 
@@ -94,20 +96,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Auth router has no session validation (login/register/me need to work without it)
 app.include_router(auth.router, prefix="/api")
-app.include_router(pairing.router, prefix="/api")
-app.include_router(catalog.router, prefix="/api")
-app.include_router(matches.router, prefix="/api")
-app.include_router(mood.router, prefix="/api")
-app.include_router(reset.router, prefix="/api")
-app.include_router(admin_router.router, prefix="/api")
-app.include_router(tickets_router.router, prefix="/api")
-app.include_router(custom_items.router, prefix="/api")
+# All other routers validate session token — kicks out old devices on new login
+_auth_dep = [Depends(verify_session)]
+app.include_router(pairing.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(catalog.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(matches.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(mood.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(reset.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(admin_router.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(tickets_router.router, prefix="/api", dependencies=_auth_dep)
+app.include_router(custom_items.router, prefix="/api", dependencies=_auth_dep)
 
 
 @app.websocket("/api/ws")
 async def websocket_endpoint(websocket: WebSocket):
     uid = websocket.session.get("user_id")
+    # Fallback: token-based auth for mobile clients (passed as query param)
+    if not uid:
+        token = websocket.query_params.get("token")
+        if token:
+            async with get_db_ctx() as db:
+                cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
+                row = await cur.fetchone()
+                if row:
+                    uid = row["id"]
     if not uid:
         await websocket.accept()
         await websocket.close(code=4001)

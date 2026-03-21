@@ -32,13 +32,19 @@ const TABS = [
 
 const MOOD_LABELS = {
   passionate: { emoji: '🔥', label: 'Passionate' },
-  tender:     { emoji: '🌸', label: 'Tender' },
-  playful:    { emoji: '😜', label: 'Playful' },
+  tender:     { emoji: '🫶', label: 'Tender' },
+  playful:    { emoji: '😏', label: 'Playful' },
   dominant:   { emoji: '👑', label: 'Dominant' },
-  submissive: { emoji: '🌊', label: 'Submissive' },
-  curious:    { emoji: '🔭', label: 'Curious' },
-  lazy:       { emoji: '🛋️', label: 'Lazy' },
+  submissive: { emoji: '🦋', label: 'Submissive' },
+  curious:    { emoji: '✨', label: 'Curious' },
+  lazy:       { emoji: '😴', label: 'Lazy' },
   wild:       { emoji: '⚡', label: 'Wild' },
+  romantic:   { emoji: '🌹', label: 'Romantic' },
+  needy:      { emoji: '🥺', label: 'Needy' },
+  confident:  { emoji: '😎', label: 'Confident' },
+  nervous:    { emoji: '🫣', label: 'Nervous' },
+  cuddly:     { emoji: '🧸', label: 'Cuddly' },
+  flirty:     { emoji: '😘', label: 'Flirty' },
 };
 
 function MoodToast({ mood, partnerName }) {

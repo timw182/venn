@@ -89,8 +89,9 @@ async def init_db():
 
         # Migrations — add columns that may be missing from older databases
         for col, definition in [
-            ("is_admin",      "INTEGER NOT NULL DEFAULT 0"),
-            ("is_superadmin", "INTEGER NOT NULL DEFAULT 0"),
+            ("is_admin",       "INTEGER NOT NULL DEFAULT 0"),
+            ("is_superadmin",  "INTEGER NOT NULL DEFAULT 0"),
+            ("session_token",  "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")

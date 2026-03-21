@@ -1,64 +1,40 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://venn-api.amoreapp.net/api';
-const COOKIE_KEY = 'kl_session';
+const API_BASE = 'https://venn.amoreapp.net/api';
+const TOKEN_KEY = 'kl_session_token';
 
-// Extract just the cookie name=value from a Set-Cookie header string
-function parseCookieValue(setCookieHeader) {
-  if (!setCookieHeader) return null;
-  // Set-Cookie: kl_session=abc123; Path=/; HttpOnly; ...
-  // We only want "kl_session=abc123"
-  const first = setCookieHeader.split(';')[0].trim();
-  return first || null;
+async function getToken() {
+  return AsyncStorage.getItem(TOKEN_KEY).catch(() => null);
 }
 
-// Store cookie from Set-Cookie header
-async function storeSessionCookie(headers) {
-  // Try direct get first (both casings — RN fetch varies by platform)
-  let setCookie = headers.get('set-cookie') || headers.get('Set-Cookie');
-
-  // Fallback: iterate headers to find set-cookie (some RN builds hide it from .get())
-  if (!setCookie && typeof headers.forEach === 'function') {
-    headers.forEach((value, key) => {
-      if (key.toLowerCase() === 'set-cookie' && value.includes(COOKIE_KEY)) {
-        setCookie = value;
-      }
-    });
+export async function storeToken(token) {
+  if (token) {
+    await AsyncStorage.setItem(TOKEN_KEY, token).catch(() => {});
   }
-
-  const cookieVal = parseCookieValue(setCookie);
-  if (cookieVal) {
-    await AsyncStorage.setItem(COOKIE_KEY, cookieVal).catch(() => {});
-  }
-}
-
-// Retrieve stored cookie
-async function getSessionCookie() {
-  return AsyncStorage.getItem(COOKIE_KEY).catch(() => null);
 }
 
 export async function clearSession() {
-  await AsyncStorage.removeItem(COOKIE_KEY).catch(() => {});
+  await AsyncStorage.removeItem(TOKEN_KEY).catch(() => {});
 }
 
 async function request(path, options = {}) {
-  const cookie = await getSessionCookie();
+  const token = await getToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...(cookie ? { Cookie: cookie } : {}),
+    ...(token ? { 'X-Session-Token': token } : {}),
     ...options.headers,
   };
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
-    credentials: 'include',
   });
 
-  // Capture new session cookie on login/register
-  await storeSessionCookie(res.headers);
-
   if (res.status === 401) {
+    const isAuthPath = path.startsWith('/auth/');
+    if (!isAuthPath) {
+      await clearSession();
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');
   }

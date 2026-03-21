@@ -46,8 +46,10 @@ export default function MoodScreen() {
       setPartnerMoodLocal(data.partner || null);
       setPicking(null);
     } catch (e) {
-      const msg = e?.detail || e?.message || '';
-      setError(msg.includes('Wait') ? msg : "Couldn't update mood. Try again.");
+      const msg = e?.message || '';
+      if (msg.includes('Wait')) setError(msg);
+      else if (msg.includes('Not paired')) setError('Pair with a partner to share moods.');
+      else setError("Couldn't update mood. Try again.");
     }
     setLoading(false);
   }
