@@ -16,6 +16,7 @@ export function MatchProvider({ children }) {
   const [resetState, setResetState]       = useState("none"); // none | pending_mine | pending_partner
   const [partnerMood, setPartnerMood]       = useState(null);
   const [partnerMessage, setPartnerMessage] = useState(null);
+  const [swipeAlert, setSwipeAlert]         = useState(null);
   const timerRef    = useRef(null);
   const wsRef       = useRef(null);
   const retryRef    = useRef(0);
@@ -41,6 +42,13 @@ export function MatchProvider({ children }) {
     } catch { return []; }
   }, []);
 
+  const fetchMood = useCallback(async () => {
+    try {
+      const data = await client.get("/mood");
+      setPartnerMood(data.partner || null);
+    } catch {}
+  }, []);
+
   // Initial fetch + reset status — re-runs when user changes (e.g. after pairing)
   useEffect(() => {
     if (!user?.coupleId) return;
@@ -51,6 +59,10 @@ export function MatchProvider({ children }) {
       if (s.status === "pending") {
         setResetState(s.requested_by_me ? "pending_mine" : "pending_partner");
       }
+    }).catch(() => {});
+    // Fetch any pending swipe-pattern alert
+    client.get("/catalog/swipe-alerts").then((alert) => {
+      if (alert && alert.id) setSwipeAlert(alert);
     }).catch(() => {});
   }, [user]);
 
@@ -71,11 +83,14 @@ export function MatchProvider({ children }) {
     ws.onopen = () => {
       const isReconnect = retryRef.current > 0;
       retryRef.current = 0;
-      // Catch up on any matches missed while disconnected (reconnects only)
+      // Catch up on any matches/mood missed while disconnected (reconnects only)
       if (isReconnect) {
-        fetchMatches().then((data) => {
-          if (data) data.forEach((m) => knownIds.current.add(m.id));
-        });
+        Promise.all([
+          fetchMatches().then((data) => {
+            if (data) data.forEach((m) => knownIds.current.add(m.id));
+          }),
+          fetchMood(),
+        ]);
       }
       // Keepalive ping every 25s
       const ping = setInterval(() => {
@@ -100,10 +115,13 @@ export function MatchProvider({ children }) {
             setPartnerMessage(msg.message || null);
             setTimeout(() => setPartnerMessage(null), 5000);
           }
-        } else if (msg.type === "mood_update") {
-          // Ignore our own mood broadcast
+        } else if (msg.type === "mood_update" || msg.type === "mood_cleared") {
           if (msg.from_user_id !== userRef.current?.id) {
             setPartnerMood(msg.mood || null);
+          }
+        } else if (msg.type === "swipe_pattern_alert") {
+          if (msg.about_user_id !== userRef.current?.id) {
+            setSwipeAlert(msg);
           }
         } else if (msg.type === "reset_requested") {
           setResetState("pending_partner");
@@ -159,7 +177,7 @@ export function MatchProvider({ children }) {
   const newMatchCount = matches.filter((m) => !m.seen).length;
 
   return (
-    <MatchContext.Provider value={{ matches, setMatches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood, partnerMessage }}>
+    <MatchContext.Provider value={{ matches, setMatches, latestNewMatch, newMatchCount, dismissLatest, refetch, resetState, setResetState, partnerMood, setPartnerMood, partnerMessage, swipeAlert, setSwipeAlert }}>
       {children}
     </MatchContext.Provider>
   );

@@ -200,3 +200,49 @@
   left: 100%;
   transform: translate(-50%, -50%);
 }
+
+/* ── Swipe-pattern alert banner ──────────────────────────── */
+.swipe-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0cc 100%);
+  border: 1.5px solid #e8a860;
+  box-shadow: 0 2px 12px rgba(200, 140, 60, 0.12);
+}
+
+.swipe-alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.swipe-alert-text {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: #5a3e1b;
+  line-height: 1.45;
+}
+
+.swipe-alert-text strong {
+  font-weight: var(--weight-semibold);
+}
+
+.swipe-alert-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #a07040;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background 150ms;
+}
+
+.swipe-alert-dismiss:hover {
+  background: rgba(160, 112, 64, 0.12);
+}

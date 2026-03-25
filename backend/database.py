@@ -84,6 +84,15 @@ async def init_db():
                 status       TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','declined')),
                 created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS swipe_pattern_alerts (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                couple_id     INTEGER NOT NULL REFERENCES couples(id),
+                about_user_id INTEGER NOT NULL REFERENCES users(id),
+                pattern       TEXT    NOT NULL CHECK(pattern IN ('yes','no')),
+                dismissed     INTEGER NOT NULL DEFAULT 0,
+                alerted_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         await db.commit()
 

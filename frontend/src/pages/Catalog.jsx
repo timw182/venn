@@ -50,7 +50,7 @@ export default function Catalog() {
   useEffect(() => { applyPiles(catalog, responses, activeCategory); }, [activeCategory]);
 
   const matchTimerRef = useRef(null);
-  const { latestNewMatch, dismissLatest, refetch } = useMatches();
+  const { latestNewMatch, dismissLatest, refetch, swipeAlert, setSwipeAlert } = useMatches();
 
   // ── Data loading ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -194,6 +194,35 @@ export default function Catalog() {
         </div>,
         document.body,
       )}
+
+      <AnimatePresence>
+        {swipeAlert && (
+          <motion.div
+            className="swipe-alert-banner"
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          >
+            <span className="swipe-alert-icon">
+              {swipeAlert.pattern === 'yes' ? '👀' : '🤔'}
+            </span>
+            <p className="swipe-alert-text">
+              <strong>{swipeAlert.partner_name}</strong> seems to be swiping{' '}
+              {swipeAlert.pattern === 'yes' ? 'yes' : 'no'} on everything.
+              Their responses might not reflect genuine preferences.
+            </p>
+            <button
+              className="swipe-alert-dismiss"
+              onClick={() => {
+                if (swipeAlert.id) client.post(`/catalog/swipe-alerts/${swipeAlert.id}/dismiss`).catch(() => {});
+                setSwipeAlert(null);
+              }}
+              aria-label="Dismiss"
+            >✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {createPortal(
         <AnimatePresence>
