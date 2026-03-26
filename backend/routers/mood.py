@@ -100,8 +100,14 @@ async def get_mood(request: Request, db: Connection = Depends(get_db)):
 @router.delete("", status_code=204)
 async def clear_mood(request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
+    couple_id = await require_couple(db, uid)
     await db.execute("DELETE FROM user_mood WHERE user_id = ?", (uid,))
     await db.commit()
+    await manager.broadcast(couple_id, {
+        "type": "mood_cleared",
+        "from_user_id": uid,
+    })
+
 
 @router.put("/message")
 async def set_custom_message(request: Request, db: Connection = Depends(get_db)):
@@ -123,11 +129,12 @@ async def set_custom_message(request: Request, db: Connection = Depends(get_db))
     uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
 
-    # Upsert into user_mood keeping existing mood, just update custom_message
+    # Upsert into user_mood keeping existing mood — do NOT touch updated_at
+    # (updated_at is used for mood rate-limiting; custom_message is separate)
     await db.execute(
         """INSERT INTO user_mood (user_id, custom_message, expires_at)
            VALUES (?, ?, datetime('now', '+24 hours'))
-           ON CONFLICT(user_id) DO UPDATE SET custom_message=excluded.custom_message, updated_at=datetime('now')""",
+           ON CONFLICT(user_id) DO UPDATE SET custom_message=excluded.custom_message""",
         (uid, message)
     )
     await db.commit()

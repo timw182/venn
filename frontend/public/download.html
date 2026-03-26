@@ -22,6 +22,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
 
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
   <style>
     /* ═══════════════════════════════════════════════
        TOKENS  (reproduced from tokens.css)
@@ -416,50 +420,86 @@
     }
 
     /* ═══════════════════════════════════════════════
-       HOW IT WORKS
+       HOW IT WORKS — Horizontal Scroll
        ═══════════════════════════════════════════════ */
     .how-it-works {
-      padding: 80px 0 100px;
-    }
-    .steps {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-    .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 20px;
+      overflow: hidden;
       position: relative;
-      padding-bottom: 40px;
-    }
-    .step:last-child { padding-bottom: 0; }
-
-    /* Connector line */
-    .step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      left: 23px;
-      top: 52px;
-      bottom: 0;
-      width: 1.5px;
-      background: repeating-linear-gradient(
-        to bottom,
-        var(--color-border) 0, var(--color-border) 4px,
-        transparent 4px, transparent 10px
-      );
     }
 
-    .step-number {
-      flex-shrink: 0;
-      width: 48px; height: 48px;
-      border-radius: 50%;
+    .how-it-works-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 4vw, 2.25rem);
+      font-weight: 600;
+      color: var(--color-text);
+      text-align: center;
+      padding-top: 80px;
+      margin-bottom: 0;
+      letter-spacing: -0.01em;
+      position: relative;
+      z-index: 2;
+    }
+
+    .steps-track {
+      display: flex;
+      width: fit-content;
+    }
+
+    .step-panel {
+      width: 100vw;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      padding: 0 48px;
+    }
+
+    .step-panel-inner {
+      display: flex;
+      align-items: center;
+      gap: 64px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .step-panel-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .step-panel-visual {
+      flex-shrink: 0;
+      width: 280px;
+      height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Big step number watermark */
+    .step-panel-bg-num {
+      position: absolute;
+      top: 50%;
+      left: 48px;
+      transform: translateY(-50%);
+      font-family: var(--font-display);
+      font-size: clamp(8rem, 20vw, 14rem);
+      font-weight: 700;
+      color: var(--color-border);
+      opacity: 0.12;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px; height: 48px;
+      border-radius: 50%;
       font-family: var(--font-display);
       font-weight: 700;
       font-size: 1rem;
@@ -471,31 +511,176 @@
         linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
       background-origin: padding-box, border-box;
       background-clip: padding-box, border-box;
-      position: relative;
-      z-index: 1;
+      margin-bottom: 20px;
     }
-    .step:nth-child(1) .step-number { animation: step-glow 3.5s ease-in-out infinite 0s; }
-    .step:nth-child(2) .step-number { animation: step-glow 3.5s ease-in-out infinite 0.6s; }
-    .step:nth-child(3) .step-number { animation: step-glow 3.5s ease-in-out infinite 1.2s; }
-    .step:nth-child(4) .step-number { animation: step-glow 3.5s ease-in-out infinite 1.8s; }
+
+    .step-panel-text h3 {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .step-panel-text p {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: var(--color-text-muted);
+      line-height: 1.7;
+      max-width: 400px;
+    }
+
+    /* Connector dots between panels */
+    .step-panel::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 120px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--color-border) 0, var(--color-border) 4px,
+        transparent 4px, transparent 10px
+      );
+      opacity: 0.5;
+    }
+    .step-panel:last-child::after { display: none; }
+
+    /* Progress bar at bottom of horizontal section */
+    .hiw-progress {
+      position: absolute;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 2px;
+      background: var(--color-border);
+      border-radius: 2px;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .hiw-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-coral), var(--color-rose), var(--color-violet));
+      border-radius: 2px;
+    }
+
+    /* Step visual cards */
+    .step-visual-card {
+      width: 240px;
+      padding: 32px 24px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-card);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-visual-code {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .step-visual-label {
+      font-size: 0.78rem;
+      color: var(--color-text-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .step-visual-emoji {
+      font-size: 3rem;
+      line-height: 1;
+    }
+
+    .step-visual-swipe-stack {
+      position: relative;
+      width: 200px;
+      height: 240px;
+    }
+
+    .swipe-card-mini {
+      position: absolute;
+      width: 180px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      text-align: center;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .swipe-card-mini:nth-child(1) { bottom: 0; z-index: 3; }
+    .swipe-card-mini:nth-child(2) { bottom: 14px; z-index: 2; transform: translateX(-50%) scale(0.95); opacity: 0.7; }
+    .swipe-card-mini:nth-child(3) { bottom: 28px; z-index: 1; transform: translateX(-50%) scale(0.9); opacity: 0.4; }
+
+    .swipe-card-mini .s-emoji { font-size: 1.8rem; }
+    .swipe-card-mini .s-name { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; }
+
+    .step-visual-match-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mini-match {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--color-surface-alt);
+      border-radius: var(--radius-md);
+    }
+
+    .mini-match-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: var(--color-yes-soft);
+    }
+
+    .mini-match-text {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
 
     @keyframes step-glow {
       0%, 100% { box-shadow: 0 0 0 0 transparent; }
       50% { box-shadow: 0 0 20px rgba(196, 84, 122, 0.2), 0 0 40px rgba(196, 84, 122, 0.08); }
     }
 
-    .step-content h3 {
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 4px;
-      margin-top: 2px;
-    }
-    .step-content p {
-      font-size: 0.9rem;
-      color: var(--color-text-muted);
-      line-height: 1.6;
+    @media (max-width: 768px) {
+      .step-panel { padding: 0 24px; }
+      .step-panel-inner { flex-direction: column; text-align: center; gap: 32px; }
+      .step-panel-visual { width: 220px; height: auto; }
+      .step-panel-text { display: flex; flex-direction: column; align-items: center; }
+      .step-panel-bg-num { font-size: 6rem; left: 24px; opacity: 0.06; }
+      .hiw-progress { width: 140px; }
     }
 
     /* ═══════════════════════════════════════════════
@@ -816,9 +1001,7 @@
       .quote-card {
         flex: unset;
       }
-      .steps {
-        max-width: 520px;
-      }
+      /* steps handled by horizontal scroll now */
     }
 
     /* ── Desktop ── */
@@ -958,47 +1141,110 @@
   </div>
 
   <!-- ════════════════════════════════════════════
-       HOW IT WORKS
+       HOW IT WORKS — Horizontal Scroll
        ════════════════════════════════════════════ -->
-  <section class="how-it-works">
-    <div class="section-inner">
-      <h2 class="section-heading reveal">How Venn works</h2>
-      <div class="steps">
+  <section class="how-it-works" id="howItWorks">
+    <h2 class="how-it-works-heading reveal">How Venn works</h2>
+    <div class="steps-track">
 
-        <div class="step reveal reveal-d1">
-          <div class="step-number">1</div>
-          <div class="step-content">
+      <!-- Panel 1: Pair -->
+      <div class="step-panel">
+        <div class="step-panel-bg-num">01</div>
+        <div class="step-panel-inner">
+          <div class="step-panel-text">
+            <div class="step-number">1</div>
             <h3>Create your pair</h3>
-            <p>One partner creates a room code. The other joins with it. That's the only setup.</p>
+            <p>One partner creates a room code. The other joins with it. That's the only setup — no accounts, no profiles.</p>
+          </div>
+          <div class="step-panel-visual">
+            <div class="step-visual-card">
+              <div class="step-visual-label">Your code</div>
+              <div class="step-visual-code">X7K2M9</div>
+              <div class="step-visual-label">Share with your partner</div>
+            </div>
           </div>
         </div>
-
-        <div class="step reveal reveal-d2">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Browse independently</h3>
-            <p>Each of you swipes through desires at your own pace. No pressure, no rush.</p>
-          </div>
-        </div>
-
-        <div class="step reveal reveal-d3">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>Matches appear</h3>
-            <p>When you both say yes to the same thing, it surfaces as a match. Everything else stays hidden.</p>
-          </div>
-        </div>
-
-        <div class="step reveal reveal-d4">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>Explore together</h3>
-            <p>Your matches become a shared wishlist. A starting point for conversations, not an endpoint.</p>
-          </div>
-        </div>
-
       </div>
+
+      <!-- Panel 2: Swipe -->
+      <div class="step-panel">
+        <div class="step-panel-bg-num">02</div>
+        <div class="step-panel-inner">
+          <div class="step-panel-text">
+            <div class="step-number">2</div>
+            <h3>Browse independently</h3>
+            <p>Each of you swipes through desires at your own pace. Your choices are completely private — no one sees what you decline.</p>
+          </div>
+          <div class="step-panel-visual">
+            <div class="step-visual-swipe-stack">
+              <div class="swipe-card-mini">
+                <span class="s-emoji">💆</span>
+                <span class="s-name">Sensual Massage</span>
+              </div>
+              <div class="swipe-card-mini">
+                <span class="s-emoji">🛁</span>
+                <span class="s-name">Bath Together</span>
+              </div>
+              <div class="swipe-card-mini">
+                <span class="s-emoji">🌹</span>
+                <span class="s-name">Blindfold Surprise</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Match -->
+      <div class="step-panel">
+        <div class="step-panel-bg-num">03</div>
+        <div class="step-panel-inner">
+          <div class="step-panel-text">
+            <div class="step-number">3</div>
+            <h3>Matches appear</h3>
+            <p>When you both say yes to the same thing, it surfaces as a match — in real time. Everything else stays hidden forever.</p>
+          </div>
+          <div class="step-panel-visual">
+            <div class="step-visual-card">
+              <div class="step-visual-label">Mutual matches</div>
+              <div class="step-visual-match-list">
+                <div class="mini-match">
+                  <div class="mini-match-icon">💆</div>
+                  <div class="mini-match-text">Sensual Massage</div>
+                </div>
+                <div class="mini-match">
+                  <div class="mini-match-icon">🛁</div>
+                  <div class="mini-match-text">Bath Together</div>
+                </div>
+                <div class="mini-match">
+                  <div class="mini-match-icon">🎭</div>
+                  <div class="mini-match-text">Role Play</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Explore -->
+      <div class="step-panel">
+        <div class="step-panel-bg-num">04</div>
+        <div class="step-panel-inner">
+          <div class="step-panel-text">
+            <div class="step-number">4</div>
+            <h3>Explore together</h3>
+            <p>Your matches become a shared wishlist. A starting point for real conversations, not an endpoint.</p>
+          </div>
+          <div class="step-panel-visual">
+            <div class="step-visual-card">
+              <div class="step-visual-emoji">💜</div>
+              <div class="step-visual-label" style="text-transform: none; font-size: 0.88rem; letter-spacing: 0;">Your shared wishlist grows with every swipe session</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+    <div class="hiw-progress"><div class="hiw-progress-fill" id="hiwProgressFill"></div></div>
   </section>
 
   <!-- ════════════════════════════════════════════
@@ -1150,6 +1396,8 @@
        JAVASCRIPT (minimal, no dependencies)
        ════════════════════════════════════════════ -->
   <script>
+    gsap.registerPlugin(ScrollTrigger);
+
     document.addEventListener('DOMContentLoaded', () => {
       // ── Scroll-triggered reveals ──
       const reveals = document.querySelectorAll('.reveal');
@@ -1181,6 +1429,64 @@
           orb.style.transform = `translateY(${-y}px)`;
         });
       }, { passive: true });
+
+      // ── GSAP Horizontal Scroll: How It Works ──
+      const hiwSection = document.querySelector('.how-it-works');
+      const stepsTrack = document.querySelector('.steps-track');
+      const progressFill = document.getElementById('hiwProgressFill');
+
+      if (hiwSection && stepsTrack) {
+        const totalScroll = stepsTrack.scrollWidth - window.innerWidth;
+
+        gsap.to(stepsTrack, {
+          x: () => -totalScroll,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hiwSection,
+            pin: true,
+            scrub: 1,
+            end: () => '+=' + stepsTrack.scrollWidth,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              if (progressFill) {
+                progressFill.style.width = (self.progress * 100) + '%';
+              }
+            },
+          },
+        });
+
+        // Animate each panel's content as it enters
+        const panels = gsap.utils.toArray('.step-panel');
+        panels.forEach((panel) => {
+          const text = panel.querySelector('.step-panel-text');
+          const visual = panel.querySelector('.step-panel-visual');
+
+          gsap.from(text, {
+            opacity: 0,
+            x: 80,
+            scrollTrigger: {
+              trigger: panel,
+              containerAnimation: gsap.getById ? undefined : undefined,
+              start: 'left 80%',
+              end: 'left 40%',
+              scrub: 1,
+            },
+          });
+
+          if (visual) {
+            gsap.from(visual, {
+              opacity: 0,
+              scale: 0.85,
+              scrollTrigger: {
+                trigger: panel,
+                start: 'left 70%',
+                end: 'left 30%',
+                scrub: 1,
+              },
+            });
+          }
+        });
+      }
     });
   </script>
 
