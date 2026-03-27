@@ -28,11 +28,7 @@ module.exports = {
       cwd: '/root/venn/backend',
       env: loadEnv('/root/venn/backend/.env'),
     },
-    {
-      name: 'venn-frontend',
-      script: 'npm',
-      args: 'run dev',
-      cwd: '/root/venn/frontend',
-    },
+    // Frontend is served by nginx from frontend/dist — no pm2 process needed.
+    // To rebuild: cd frontend && npm run build
   ],
 };

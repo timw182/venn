@@ -19,16 +19,16 @@ cd backend
 source ../.venv/bin/activate
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
-Production: `systemctl restart venn-api`
+Production: `pm2 restart venn-api`
 
 ### Frontend
 ```bash
 cd frontend
-npm run dev      # Vite dev server on port 5500, proxies /api → localhost:8000
+npm run dev      # Vite dev server on port 81, proxies /api → localhost:8000
 npm run build    # Production build
 npm run lint     # ESLint
 ```
-Production: `systemctl restart venn-frontend`
+Production: `pm2 restart venn-frontend`
 
 ### Mobile
 ```bash
@@ -49,7 +49,9 @@ npm run ios
 - **ws.py** — WebSocket connection manager for real-time match notifications
 - **seed.py** — catalog seed data (~200 items across 6 categories)
 
-Session auth via secure httponly cookies (`kl_session`, 7-day TTL, domain `venn.amoreapp.net`). No JWT.
+Session auth via secure httponly cookies (`kl_session`, 7-day TTL, domain `venn.lu`). No JWT.
+
+Frontend: `https://venn.lu` — API: `https://api.venn.lu`
 
 ### Frontend (React/Vite)
 - **src/App.jsx** — all routes + route guards (AuthGuard, PairGuard, AdminGuard)
@@ -72,7 +74,7 @@ Session auth via secure httponly cookies (`kl_session`, 7-day TTL, domain `venn.
 
 ### Environment Variables (backend)
 - `SECRET_KEY` — session signing (required)
-- `FRONTEND_ORIGIN` — CORS origin (default `https://venn.amoreapp.net`)
+- `FRONTEND_ORIGIN` — CORS origin (default `https://venn.lu`)
 - `EXTRA_ORIGINS` — additional CORS origins, comma-separated
 - `DEBUG` — enables `/api/docs` and `/api/redoc`
 - `DB_PATH` — SQLite path (default `kinklink.db`)

@@ -11,7 +11,8 @@ router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 
 @router.get("", response_model=List[CatalogItem])
-async def get_catalog(db: Connection = Depends(get_db)):
+async def get_catalog(request: Request, db: Connection = Depends(get_db)):
+    await _session_user_id(request, db)
     cur = await db.execute(
         "SELECT id, title, category, description, emoji, tier FROM catalog_items ORDER BY RANDOM()"
     )
@@ -44,7 +45,7 @@ SPAM_THRESHOLD = 0.9   # 90 %+ same direction triggers alert
 SPAM_COOLDOWN_H = 24   # hours between repeated alerts
 
 
-@router.post("/respond", status_code=204)
+@router.post("/respond")
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
 
@@ -73,6 +74,7 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
         partner_id = couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
 
     # ── Match detection ──────────────────────────────────────────────────────
+    matched_item = None
     if body.response == "yes" and partner_id:
         cur = await db.execute(
             "SELECT 1 FROM user_responses WHERE user_id = ? AND item_id = ? AND response = 'yes'",
@@ -86,17 +88,18 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
             )
             match_item = await cur.fetchone()
             if match_item:
+                matched_item = {
+                    "id": match_item["id"],
+                    "title": match_item["title"],
+                    "category": match_item["category"],
+                    "description": match_item["description"],
+                    "emoji": match_item["emoji"],
+                    "tier": match_item["tier"],
+                }
                 await manager.broadcast(couple_id, {
                     "type": "match",
                     "triggered_by": uid,
-                    "item": {
-                        "id": match_item["id"],
-                        "title": match_item["title"],
-                        "category": match_item["category"],
-                        "description": match_item["description"],
-                        "emoji": match_item["emoji"],
-                        "tier": match_item["tier"],
-                    }
+                    "item": matched_item,
                 })
 
     # ── Spam-swipe detection ─────────────────────────────────────────────────
@@ -140,6 +143,10 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
                         "partner_name": swiper["display_name"] if swiper else "Your partner",
                         "pattern": dominant,
                     })
+
+    if matched_item:
+        return {"match": matched_item}
+    return None
 
 
 @router.get("/swipe-alerts")

@@ -1,8 +1,9 @@
 import os
 import secrets
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
@@ -36,6 +37,17 @@ class SecurityHeadersMiddleware:
                     (b"x-content-type-options", b"nosniff"),
                     (b"x-frame-options", b"DENY"),
                     (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                    (b"content-security-policy", (
+                        b"default-src 'self'; "
+                        b"script-src 'self' https://unpkg.com; "
+                        b"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                        b"font-src 'self' data: https://fonts.gstatic.com; "
+                        b"connect-src 'self' https://api.venn.lu wss://api.venn.lu "
+                        b"https://faro-collector-prod-eu-west-2.grafana.net "
+                        b"https://fonts.googleapis.com; "
+                        b"img-src 'self' data: blob:; "
+                        b"frame-ancestors 'none';"
+                    )),
                 ]
                 message = {**message, "headers": headers}
             await send(message)
@@ -50,7 +62,7 @@ if not SECRET_KEY:
         SECRET_KEY = secrets.token_hex(32)  # Allow ephemeral key in dev only
     else:
         raise RuntimeError("SECRET_KEY environment variable must be set in production")
-FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://venn.amoreapp.net")
+FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "https://venn.lu")
 EXTRA_ORIGINS = [o.strip() for o in os.environ.get("EXTRA_ORIGINS", "").split(",") if o.strip()]
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
@@ -74,7 +86,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Explicit host (no leading dot) so the cookie is never sent to other subdomains.
-COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "venn.amoreapp.net")
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "venn.lu")
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
@@ -110,18 +122,48 @@ app.include_router(tickets_router.router, prefix="/api", dependencies=_auth_dep)
 app.include_router(custom_items.router, prefix="/api", dependencies=_auth_dep)
 
 
-@app.websocket("/api/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    uid = websocket.session.get("user_id")
-    # Fallback: token-based auth for mobile clients (passed as query param)
+# Short-lived WS auth tickets: ticket_hex -> (user_id, expires_at)
+# Mobile clients exchange their session token for a one-time ticket via GET /api/ws/ticket,
+# then pass ?ticket=<nonce> in the WS URL to avoid logging long-lived tokens.
+_ws_tickets: dict[str, tuple[int, float]] = {}
+
+
+@app.get("/api/ws/ticket")
+@limiter.limit("10/minute")
+async def ws_ticket(request: Request):
+    """Issue a 60-second single-use ticket for WebSocket auth (mobile clients)."""
+    uid = request.session.get("user_id")
     if not uid:
-        token = websocket.query_params.get("token")
+        token = request.headers.get("X-Session-Token")
         if token:
             async with get_db_ctx() as db:
                 cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
                 row = await cur.fetchone()
                 if row:
                     uid = row["id"]
+    if not uid:
+        raise HTTPException(401, "Not authenticated")
+    now = time.time()
+    # Prune expired tickets
+    expired = [k for k, (_, exp) in list(_ws_tickets.items()) if exp < now]
+    for k in expired:
+        del _ws_tickets[k]
+    ticket = secrets.token_hex(16)
+    _ws_tickets[ticket] = (uid, now + 60)
+    return {"ticket": ticket}
+
+
+@app.websocket("/api/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    uid = websocket.session.get("user_id")
+    # Fallback: one-time ticket for mobile clients
+    if not uid:
+        ticket = websocket.query_params.get("ticket")
+        if ticket:
+            now = time.time()
+            entry = _ws_tickets.pop(ticket, None)
+            if entry and entry[1] >= now:
+                uid = entry[0]
     if not uid:
         await websocket.accept()
         await websocket.close(code=4001)
@@ -144,7 +186,9 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             if data == "ping":
                 await websocket.send_text("pong")
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, Exception):
+        pass
+    finally:
         manager.disconnect(websocket, couple_id)
 
 

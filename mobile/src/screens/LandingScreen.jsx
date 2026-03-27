@@ -283,16 +283,17 @@ export default function LandingScreen() {
             )}
 
             <View style={styles.field}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
-                placeholder={mode === 'login' ? 'Enter your username' : 'Pick something just for you'}
+                placeholder="your@email.com"
                 placeholderTextColor={colors.textLight}
                 autoCapitalize="none"
                 autoCorrect={false}
-                textContentType="username"
+                keyboardType="email-address"
+                textContentType="emailAddress"
               />
             </View>
 

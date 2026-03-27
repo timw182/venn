@@ -79,9 +79,14 @@ nav {
   }
 
   /* non-catalog pages scroll themselves */
-  .shell-content > *:not(.catalog):not(.matches-page) {
+  .shell-content > *:not(.catalog) {
     overflow-y: auto;
     height: 100%;
+  }
+
+  /* matches-page uses internal grid scroll — prevent double scrollbar */
+  .shell-content > .matches-page {
+    overflow: hidden;
   }
 
   .shell-header {

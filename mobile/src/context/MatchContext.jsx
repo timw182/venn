@@ -1,13 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import client from "../api/client";
 import { useAuth } from "./useAuth";
 
-const TOKEN_KEY = 'kl_session_token';
-
 const MatchContext = createContext(null);
 
-const WS_URL = "wss://venn.amoreapp.net/api/ws";
+const WS_URL = "wss://api.venn.lu/api/ws";
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 
@@ -74,8 +71,20 @@ export function MatchProvider({ children }) {
     const state = wsRef.current?.readyState;
     if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
 
-    const token = await AsyncStorage.getItem(TOKEN_KEY).catch(() => null);
-    const url = token ? `${WS_URL}?token=${token}` : WS_URL;
+    let url;
+    try {
+      const data = await client.get('/ws/ticket');
+      if (typeof data.ticket === 'string' && data.ticket.length > 0) {
+        url = `${WS_URL}?ticket=${data.ticket}`;
+      }
+    } catch {}
+    if (!url) {
+      // Ticket fetch failed; schedule retry via reconnect logic
+      const delay = Math.min(RECONNECT_BASE * 2 ** retryRef.current, RECONNECT_MAX);
+      retryRef.current++;
+      retryTimer.current = setTimeout(connect, delay);
+      return;
+    }
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
@@ -105,10 +114,7 @@ export function MatchProvider({ children }) {
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
-          // Only show animation for the user who completed the match
-          if (msg.triggered_by === userRef.current?.id) {
-            showMatch(msg.item);
-          }
+          // Triggerer sees the effect via HTTP response; no WS animation needed
         } else if (msg.type === "mood_update" || msg.type === "mood_cleared") {
           if (msg.from_user_id !== userRef.current?.id) {
             setPartnerMood(msg.mood || null);

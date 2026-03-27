@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/useAuth';
 import { ROUTES } from './lib/constants';
 import FloatingHearts from './components/shared/FloatingHearts';
+import CookieBanner from './components/shared/CookieBanner';
 import Shell from './components/layout/Shell';
 import Landing from './pages/Landing';
 import Pairing from './pages/Pairing';
@@ -56,6 +57,7 @@ export default function App() {
   return (
     <>
       <FloatingHearts />
+      <CookieBanner />
       <Routes>
         {/* Public */}
         <Route path={ROUTES.LOGIN} element={<LandingRedirect />} />

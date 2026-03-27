@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://venn.amoreapp.net/api';
+const API_BASE = 'https://api.venn.lu/api';
 const TOKEN_KEY = 'kl_session_token';
 
 async function getToken() {

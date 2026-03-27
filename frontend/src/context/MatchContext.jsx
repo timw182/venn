@@ -5,7 +5,7 @@ import { STORAGE_KEYS } from "../lib/constants";
 
 const MatchContext = createContext(null);
 
-const WS_URL = `wss://${window.location.host}/api/ws`;
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws`;
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 
@@ -106,10 +106,7 @@ export function MatchProvider({ children }) {
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
           });
-          // Only show animation for the partner, not the user who triggered the match
-          if (msg.triggered_by === userRef.current?.id) {
-            showMatch(msg.item);
-          }
+          // Triggerer sees the effect via HTTP response; no WS animation needed
         } else if (msg.type === "custom_message") {
           if (msg.from_user_id !== userRef.current?.id) {
             setPartnerMessage(msg.message || null);

@@ -473,11 +473,11 @@ export default function SettingsScreen({ navigation }) {
             </Text>
             <View style={styles.aboutLinks}>
               <Button variant="secondary" size="sm"
-                onPress={() => Linking.openURL('https://venn.amoreapp.net/privacy')}>
+                onPress={() => Linking.openURL('https://venn.lu/privacy')}>
                 Privacy Policy
               </Button>
               <Button variant="secondary" size="sm"
-                onPress={() => Linking.openURL('https://venn.amoreapp.net/experts')}>
+                onPress={() => Linking.openURL('https://venn.lu/experts')}>
                 What Experts say
               </Button>
             </View>

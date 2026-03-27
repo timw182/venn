@@ -1,7 +1,8 @@
 
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import Literal, Optional
 from aiosqlite import Connection
 from database import get_db
 
@@ -28,64 +29,67 @@ async def _require_superadmin(request: Request, db: Connection = Depends(get_db)
 
 # ── Stats ──────────────────────────────────────────────────────
 RANGE_MAP = {
-    "today": "0 days",
-    "7d":    "7 days",
-    "14d":   "14 days",
-    "30d":   "30 days",
+    "today": 0,
+    "7d":    7,
+    "14d":   14,
+    "30d":   30,
 }
 
 
 @router.get("/stats")
 async def get_stats(range: str = "14d", db: Connection = Depends(get_db), admin=Depends(_require_admin)):
-    # Date filter — "all" means no filter
-    date_offset = RANGE_MAP.get(range)
-    date_filter = f"DATE('now', '-{date_offset}')" if date_offset else None
+    if range not in RANGE_MAP and range != "all":
+        from fastapi import HTTPException as _E
+        raise _E(400, f"Invalid range — must be one of: {', '.join(RANGE_MAP)} or 'all'")
+    days = RANGE_MAP.get(range)
+    cutoff = (date.today() - timedelta(days=days)).isoformat() if days is not None else None
+    p = (cutoff,) if cutoff else ()
 
-    def where(col: str) -> str:
-        return f"WHERE {col} >= {date_filter}" if date_filter else ""
+    def w(col: str) -> str:
+        return f"WHERE {col} >= ?" if cutoff else ""
 
-    def and_where(col: str) -> str:
-        return f"AND {col} >= {date_filter}" if date_filter else ""
+    def aw(col: str) -> str:
+        return f"AND {col} >= ?" if cutoff else ""
 
-    total_users   = (await (await db.execute(f"SELECT COUNT(*) FROM users {where('created_at')}")).fetchone())[0]
-    paired_users  = (await (await db.execute(f"SELECT COUNT(*) FROM users WHERE couple_id IS NOT NULL {'AND created_at >= ' + date_filter if date_filter else ''}")).fetchone())[0]
-    total_swipes  = (await (await db.execute(f"SELECT COUNT(*) FROM user_responses {where('responded_at')}")).fetchone())[0]
+    total_users   = (await (await db.execute(f"SELECT COUNT(*) FROM users {w('created_at')}", p)).fetchone())[0]
+    paired_users  = (await (await db.execute(f"SELECT COUNT(*) FROM users WHERE couple_id IS NOT NULL {aw('created_at')}", p)).fetchone())[0]
+    total_swipes  = (await (await db.execute(f"SELECT COUNT(*) FROM user_responses {w('responded_at')}", p)).fetchone())[0]
     total_matches = (await (await db.execute(
         "SELECT COUNT(*) FROM user_responses r1 JOIN user_responses r2 "
         "ON r1.item_id=r2.item_id AND r1.user_id!=r2.user_id "
-        f"WHERE r1.response='yes' AND r2.response='yes' {and_where('r1.responded_at')}"
+        f"WHERE r1.response='yes' AND r2.response='yes' {aw('r1.responded_at')}",
+        p,
     )).fetchone())[0]
     open_tickets  = (await (await db.execute("SELECT COUNT(*) FROM tickets WHERE status='open'")).fetchone())[0]
 
     # Signups per day
-    cur = await db.execute(f"""
-        SELECT DATE(created_at) as day, COUNT(*) as count
-        FROM users {where('created_at')}
-        GROUP BY day ORDER BY day ASC
-    """)
+    cur = await db.execute(
+        f"SELECT DATE(created_at) as day, COUNT(*) as count FROM users {w('created_at')} GROUP BY day ORDER BY day ASC",
+        p,
+    )
     signups = [{"day": r["day"], "count": r["count"]} for r in await cur.fetchall()]
 
     # Swipes per day
-    cur = await db.execute(f"""
-        SELECT DATE(responded_at) as day, COUNT(*) as count
-        FROM user_responses {where('responded_at')}
-        GROUP BY day ORDER BY day ASC
-    """)
+    cur = await db.execute(
+        f"SELECT DATE(responded_at) as day, COUNT(*) as count FROM user_responses {w('responded_at')} GROUP BY day ORDER BY day ASC",
+        p,
+    )
     swipes_by_day = [{"day": r["day"], "count": r["count"]} for r in await cur.fetchall()]
 
     # Response breakdown
-    cur = await db.execute(f"""
-        SELECT response, COUNT(*) as count FROM user_responses {where('responded_at')} GROUP BY response
-    """)
+    cur = await db.execute(
+        f"SELECT response, COUNT(*) as count FROM user_responses {w('responded_at')} GROUP BY response",
+        p,
+    )
     response_dist = [{"name": r["response"], "value": r["count"]} for r in await cur.fetchall()]
 
     # Top categories by yes count
-    cur = await db.execute(f"""
-        SELECT ci.category, COUNT(*) as yes_count
-        FROM user_responses r JOIN catalog_items ci ON r.item_id = ci.id
-        WHERE r.response = 'yes' {and_where('r.responded_at')}
-        GROUP BY ci.category ORDER BY yes_count DESC
-    """)
+    cur = await db.execute(
+        f"SELECT ci.category, COUNT(*) as yes_count FROM user_responses r "
+        f"JOIN catalog_items ci ON r.item_id = ci.id "
+        f"WHERE r.response = 'yes' {aw('r.responded_at')} GROUP BY ci.category ORDER BY yes_count DESC",
+        p,
+    )
     top_categories = [{"category": r["category"], "yes": r["yes_count"]} for r in await cur.fetchall()]
 
     return {
@@ -166,8 +170,15 @@ async def list_tickets(db: Connection = Depends(get_db), _=Depends(_require_admi
 
 
 class TicketUpdate(BaseModel):
-    status: Optional[str] = None
+    status: Optional[Literal["open", "resolved", "closed"]] = None
     admin_note: Optional[str] = None
+
+    @field_validator("admin_note")
+    @classmethod
+    def note_length(cls, v):
+        if v is not None and len(v) > 1000:
+            raise ValueError("Admin note must be 1000 characters or less")
+        return v
 
 
 @router.patch("/tickets/{ticket_id}")

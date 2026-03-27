@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 81,
     host: "0.0.0.0",
-    allowedHosts: ["venn.amoreapp.net", "kinklink.amoreapp.net"],
+    allowedHosts: ["venn.lu"],
     proxy: {
       "/api": {
         target: "http://localhost:8000",

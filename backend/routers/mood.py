@@ -2,6 +2,8 @@ from ws import manager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from aiosqlite import Connection
 from datetime import datetime, timedelta, timezone
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from models import MoodRequest, MoodOut
@@ -9,6 +11,7 @@ from routers.auth import _session_user_id
 from routers.deps import require_couple, get_partner_id
 
 router = APIRouter(prefix="/mood", tags=["mood"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 def _active_mood(row) -> str | None:
@@ -110,6 +113,7 @@ async def clear_mood(request: Request, db: Connection = Depends(get_db)):
 
 
 @router.put("/message")
+@limiter.limit("10/minute")
 async def set_custom_message(request: Request, db: Connection = Depends(get_db)):
     """Set a free-text message visible to partner (separate from mood emoji)."""
     from fastapi import Body

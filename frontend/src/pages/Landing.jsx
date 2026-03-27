@@ -169,15 +169,15 @@ export default function Landing() {
                 )}
 
                 <div className="landing-field">
-                  <label className="landing-label">Username</label>
+                  <label className="landing-label">Email</label>
                   <input
                     className="landing-input"
-                    type="text"
+                    type="email"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder={mode === "login" ? "Enter your username" : "Pick something just for you"}
+                    placeholder="your@email.com"
                     required
-                    autoComplete="username"
+                    autoComplete="email"
                   />
                 </div>
 

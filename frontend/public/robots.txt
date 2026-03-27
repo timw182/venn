@@ -6,4 +6,4 @@ Disallow: /mood
 Disallow: /settings
 Disallow: /pair
 
-Sitemap: https://venn.amoreapp.net/sitemap.xml
+Sitemap: https://venn.lu/sitemap.xml

@@ -10,6 +10,9 @@ VALID_MOODS = {
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
+_EMAIL_RE = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -18,11 +21,11 @@ class RegisterRequest(BaseModel):
     @field_validator("username")
     @classmethod
     def username_valid(cls, v: str) -> str:
-        v = v.strip()
-        if len(v) < 2 or len(v) > 32:
-            raise ValueError("Username must be 2–32 characters")
-        if not re.match(r'^[a-zA-Z0-9_.-]+$', v):
-            raise ValueError("Username may only contain letters, numbers, _ . -")
+        v = v.strip().lower()
+        if len(v) > 254:
+            raise ValueError("Email address too long")
+        if not _EMAIL_RE.match(v):
+            raise ValueError("Must be a valid email address")
         return v
 
     @field_validator("password")
@@ -30,6 +33,12 @@ class RegisterRequest(BaseModel):
     def password_valid(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
+        if not re.search(r'[A-Z]', v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r'[a-z]', v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r'[0-9]', v):
+            raise ValueError("Password must contain at least one number")
         return v
 
     @field_validator("display_name")
@@ -38,12 +47,19 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError("Display name is required")
-        return v[:40]
+        if len(v) > 40:
+            raise ValueError("Display name must be 40 characters or less")
+        return v
 
 
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+    @field_validator("username")
+    @classmethod
+    def username_normalise(cls, v: str) -> str:
+        return v.strip().lower()
 
 
 class UserOut(BaseModel):
@@ -152,4 +168,6 @@ class UpdateProfileRequest(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError("Display name is required")
-        return v[:40]
+        if len(v) > 40:
+            raise ValueError("Display name must be 40 characters or less")
+        return v

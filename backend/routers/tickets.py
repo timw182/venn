@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from aiosqlite import Connection
 from database import get_db
+from routers.auth import _session_user_id
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -13,9 +14,7 @@ class TicketIn(BaseModel):
 
 @router.post("")
 async def submit_ticket(body: TicketIn, request: Request, db: Connection = Depends(get_db)):
-    uid = request.session.get("user_id")
-    if not uid:
-        raise HTTPException(401, "Not authenticated")
+    uid = await _session_user_id(request, db)
     if not body.message.strip():
         raise HTTPException(400, "Message required")
     await db.execute(

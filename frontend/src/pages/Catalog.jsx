@@ -50,7 +50,13 @@ export default function Catalog() {
   useEffect(() => { applyPiles(catalog, responses, activeCategory); }, [activeCategory]);
 
   const matchTimerRef = useRef(null);
-  const { latestNewMatch, dismissLatest, refetch, swipeAlert, setSwipeAlert } = useMatches();
+  const knownMatchIds = useRef(new Set());
+  const { matches: allMatches, latestNewMatch, dismissLatest, refetch, swipeAlert, setSwipeAlert } = useMatches();
+
+  // Seed known match IDs so we can detect new ones
+  useEffect(() => {
+    allMatches.forEach((m) => knownMatchIds.current.add(m.id));
+  }, [allMatches]);
 
   // ── Data loading ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -156,9 +162,35 @@ export default function Catalog() {
       return next;
     });
     client.post('/catalog/respond', { item_id: itemId, response })
-      .then(() => { if (response === 'yes') refetch(); })
+      .then(async (data) => {
+        if (response !== 'yes') return;
+        // Check for new match — prefer inline HTTP response, fall back to refetch diff
+        let matchedItem = data?.match || null;
+        if (!matchedItem) {
+          const updated = await client.get('/matches');
+          const newMatch = updated.find(
+            (m) => m.id === itemId && !knownMatchIds.current.has(m.id)
+          );
+          if (newMatch) matchedItem = newMatch;
+        }
+        refetch();
+        if (matchedItem) {
+          const display = catalog.find((i) => i.id === matchedItem.id) || matchedItem;
+          knownMatchIds.current.add(matchedItem.id);
+          haptic.success();
+          setTimeout(burstConfetti, 650);
+          clearTimeout(matchTimerRef.current);
+          setTimeout(() => {
+            setMatchItem(display);
+            matchTimerRef.current = setTimeout(() => {
+              setMatchItem(null);
+              dismissLatest();
+            }, 4000);
+          }, 200);
+        }
+      })
       .catch(() => {});
-  }, [catalog, refetch]);
+  }, [catalog, refetch, burstConfetti, dismissLatest]);
 
   const handleMatchDismiss = useCallback(() => {
     clearTimeout(matchTimerRef.current);

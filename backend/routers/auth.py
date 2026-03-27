@@ -126,13 +126,31 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
 
 
 @router.post("/logout", status_code=204)
-async def logout(request: Request):
+async def logout(request: Request, db: Connection = Depends(get_db)):
+    uid = request.session.get("user_id")
+    if not uid:
+        token = request.headers.get("X-Session-Token")
+        if token:
+            cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
+            row = await cur.fetchone()
+            if row:
+                uid = row["id"]
+    if uid:
+        await db.execute("UPDATE users SET session_token = NULL WHERE id = ?", (uid,))
+        await db.commit()
     request.session.clear()
 
 
 @router.get("/me")
 async def me(request: Request, db: Connection = Depends(get_db)):
     uid = request.session.get("user_id")
+    if not uid:
+        token = request.headers.get("X-Session-Token")
+        if token:
+            cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
+            row = await cur.fetchone()
+            if row:
+                uid = row["id"]
     if not uid:
         return None  # 200 with null body — avoids noisy 401 in browser console
     return await _get_user_out(db, uid)
@@ -150,6 +168,7 @@ async def update_profile(body: UpdateProfileRequest, request: Request, db: Conne
 DISCONNECT_COOLDOWN_HOURS = 120  # 5 days
 
 @router.post("/disconnect", status_code=204)
+@limiter.limit("5/minute")
 async def disconnect_partner(request: Request, db: Connection = Depends(get_db)):
     """Remove the current couple pairing. Rate-limited to once per 24 hours."""
     uid = await _session_user_id(request, db)

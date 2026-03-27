@@ -39,7 +39,7 @@ export default function PairingScreen({ navigation }) {
         const raw = await client.get('/auth/me');
         if (raw.couple_id) {
           clearInterval(poll);
-          setUser(raw.couple_id ? { ...raw, coupleId: raw.couple_id, partnerName: raw.partner_name } : raw);
+          setUser({ id: raw.id, username: raw.username, displayName: raw.display_name, avatarColor: raw.avatar_color, coupleId: raw.couple_id ?? null, partnerName: raw.partner_name ?? null });
           navigation.replace(SCREENS.CONNECTED);
         }
       } catch {}

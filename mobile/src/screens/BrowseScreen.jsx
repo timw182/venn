@@ -77,9 +77,22 @@ export default function BrowseScreen() {
     if (item) setLastResponse({ item, response });
     setResponses((prev) => ({ ...prev, [String(itemId)]: response }));
     client.post('/catalog/respond', { item_id: itemId, response })
-      .then(() => { if (response === 'yes') refetch(); })
+      .then((data) => {
+        if (response === 'yes') refetch();
+        if (data?.match) {
+          const matched = catalog.find((i) => i.id === data.match.id) || data.match;
+          clearTimeout(matchTimerRef.current);
+          setTimeout(() => {
+            setMatchItem(matched);
+            matchTimerRef.current = setTimeout(() => {
+              setMatchItem(null);
+              dismissLatest();
+            }, 3000);
+          }, 300);
+        }
+      })
       .catch(() => {});
-  }, [catalog, refetch]);
+  }, [catalog, refetch, dismissLatest]);
 
   return (
     <SlideView>

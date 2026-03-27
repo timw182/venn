@@ -28,6 +28,7 @@ async def init_db():
                 password_hash TEXT   NOT NULL,
                 display_name TEXT    NOT NULL,
                 avatar_color TEXT    NOT NULL DEFAULT '#C4754B',
+                email        TEXT,
                 couple_id    INTEGER REFERENCES couples(id),
                 last_disconnected_at TEXT,
                 pairing_code TEXT    UNIQUE,
@@ -70,11 +71,12 @@ async def init_db():
             );
 
             CREATE TABLE IF NOT EXISTS user_mood (
-                id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id    INTEGER NOT NULL UNIQUE REFERENCES users(id),
-                mood       TEXT    NOT NULL,
-                expires_at TEXT    NOT NULL,
-                updated_at TEXT    NOT NULL DEFAULT (datetime('now'))
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id        INTEGER NOT NULL UNIQUE REFERENCES users(id),
+                mood           TEXT    NOT NULL DEFAULT '',
+                custom_message TEXT,
+                expires_at     TEXT    NOT NULL DEFAULT (datetime('now')),
+                updated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
             );
 
             CREATE TABLE IF NOT EXISTS reset_requests (
@@ -93,17 +95,36 @@ async def init_db():
                 dismissed     INTEGER NOT NULL DEFAULT 0,
                 alerted_at    TEXT    NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS tickets (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER NOT NULL REFERENCES users(id),
+                message    TEXT    NOT NULL,
+                status     TEXT    NOT NULL DEFAULT 'open' CHECK(status IN ('open','resolved','closed')),
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS custom_catalog_items (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                couple_id  INTEGER NOT NULL REFERENCES couples(id),
+                created_by INTEGER NOT NULL REFERENCES users(id),
+                title      TEXT    NOT NULL,
+                emoji      TEXT    NOT NULL DEFAULT '✨',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         await db.commit()
 
         # Migrations — add columns that may be missing from older databases
-        for col, definition in [
-            ("is_admin",       "INTEGER NOT NULL DEFAULT 0"),
-            ("is_superadmin",  "INTEGER NOT NULL DEFAULT 0"),
-            ("session_token",  "TEXT"),
+        for table, col, definition in [
+            ("users",     "is_admin",       "INTEGER NOT NULL DEFAULT 0"),
+            ("users",     "is_superadmin",  "INTEGER NOT NULL DEFAULT 0"),
+            ("users",     "session_token",  "TEXT"),
+            ("users",     "email",          "TEXT"),
+            ("user_mood", "custom_message", "TEXT"),
         ]:
             try:
-                await db.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
+                await db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")
                 await db.commit()
             except Exception:
                 pass  # column already exists
