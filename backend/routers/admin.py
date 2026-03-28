@@ -11,6 +11,14 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 async def _require_admin(request: Request, db: Connection = Depends(get_db)):
     uid = request.session.get("user_id")
+    # Fallback: mobile token header
+    if not uid:
+        token = request.headers.get("X-Session-Token")
+        if token:
+            cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
+            row = await cur.fetchone()
+            if row:
+                uid = row["id"]
     if not uid:
         raise HTTPException(401, "Not authenticated")
     cur = await db.execute("SELECT is_admin, is_superadmin FROM users WHERE id=?", (uid,))

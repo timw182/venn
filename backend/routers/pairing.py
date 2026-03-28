@@ -66,28 +66,25 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
     cur = await db.execute("SELECT * FROM users WHERE pairing_code = ?", (code,))
     other = await cur.fetchone()
     if not other:
-        raise HTTPException(404, "Code not found")
+        raise HTTPException(404, "Invalid or expired code")
     if other["id"] == uid:
         raise HTTPException(400, "Cannot pair with yourself")
     if other["couple_id"]:
-        raise HTTPException(400, "This code has already been used")
+        raise HTTPException(404, "Invalid or expired code")
 
-    # Check code hasn't expired
-    expires_at = other["pairing_code_expires_at"]
-    if expires_at:
-        exp = datetime.fromisoformat(expires_at)
-        if exp.tzinfo is None:
-            exp = exp.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) > exp:
-            raise HTTPException(410, "Pairing code has expired")
-
-    # Atomically claim the code: clear it first so concurrent joins fail
+    # Atomically claim the code + check expiry in one UPDATE to prevent races
     cur = await db.execute(
         "UPDATE users SET pairing_code = NULL, pairing_code_expires_at = NULL "
-        "WHERE id = ? AND pairing_code = ?",
-        (other["id"], code),
+        "WHERE id = ? AND pairing_code = ? "
+        "AND (pairing_code_expires_at IS NULL OR pairing_code_expires_at > ?)",
+        (other["id"], code, datetime.now(timezone.utc).isoformat()),
     )
     if cur.rowcount == 0:
+        # Distinguish expired vs already-used for user feedback
+        cur2 = await db.execute("SELECT pairing_code FROM users WHERE id = ?", (other["id"],))
+        row2 = await cur2.fetchone()
+        if row2 and row2["pairing_code"] == code:
+            raise HTTPException(410, "Pairing code has expired")
         raise HTTPException(409, "Code was just used by someone else")
 
     # Create couple
@@ -97,11 +94,20 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
     )
     couple_id = cursor.lastrowid
 
-    # Link both users
-    await db.execute(
-        "UPDATE users SET couple_id = ? WHERE id IN (?,?)",
+    # Link both users — WHERE couple_id IS NULL prevents double-pairing races
+    cur = await db.execute(
+        "UPDATE users SET couple_id = ? WHERE id IN (?,?) AND couple_id IS NULL",
         (couple_id, other["id"], uid),
     )
+    if cur.rowcount < 2:
+        # One user got paired by another concurrent request; roll back
+        await db.execute("DELETE FROM couples WHERE id = ?", (couple_id,))
+        await db.execute(
+            "UPDATE users SET couple_id = NULL WHERE id IN (?,?) AND couple_id = ?",
+            (other["id"], uid, couple_id),
+        )
+        await db.commit()
+        raise HTTPException(409, "Pairing conflict — please try again")
     await db.commit()
 
     return await _get_user_out(db, uid)

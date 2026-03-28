@@ -1,14 +1,29 @@
-.privacy-page {
-  padding: 0 var(--space-6) var(--space-10);
+/* ── Legal pages (Privacy, Impressum) ─────────────────────── */
+.legal-page {
   max-width: 640px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: auto;
-  max-height: 100dvh;
-  -webkit-overflow-scrolling: touch;
+  min-height: 100dvh;
+  padding: 0 var(--space-6) var(--space-10);
+  display: flex;
+  flex-direction: column;
 }
 
-.privacy-back {
+/* ── Header ── */
+.legal-header {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  position: sticky;
+  top: 0;
+  background: linear-gradient(to bottom, var(--color-bg) 80%, transparent);
+  z-index: 10;
+}
+
+.legal-nav {
+  margin-bottom: var(--space-4);
+}
+
+.legal-back {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -21,29 +36,33 @@
   transition: color var(--duration-fast);
 }
 
-.privacy-back:hover {
-  color: var(--color-text);
+.legal-back:hover {
+  color: var(--color-accent);
 }
 
-.privacy-title {
+.legal-title {
   font-size: var(--text-3xl);
   font-weight: var(--weight-medium);
   font-style: italic;
+  color: var(--color-text);
   margin-bottom: var(--space-1);
+  line-height: var(--leading-tight);
 }
 
-.privacy-updated {
+.legal-subtitle {
   font-size: var(--text-sm);
-  margin-bottom: var(--space-8);
+  letter-spacing: var(--tracking-wide);
 }
 
-.privacy-sections {
+/* ── Section cards ── */
+.legal-sections {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
+  flex: 1;
 }
 
-.privacy-section {
+.legal-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -51,9 +70,40 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  transition: border-color var(--duration-fast);
 }
 
-.privacy-section-title {
+.legal-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.legal-card--highlight {
+  background: linear-gradient(135deg, rgba(155, 128, 212, 0.06), rgba(196, 84, 122, 0.06));
+  border-color: rgba(155, 128, 212, 0.2);
+}
+
+.legal-card--highlight:hover {
+  border-color: rgba(155, 128, 212, 0.35);
+}
+
+.legal-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.legal-card--highlight .legal-card-icon {
+  background: rgba(155, 128, 212, 0.12);
+  color: var(--color-violet);
+}
+
+.legal-card-title {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wider);
@@ -61,26 +111,26 @@
   color: var(--color-text-light);
 }
 
-.privacy-section p,
-.privacy-section li {
+.legal-card p,
+.legal-card li {
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
   color: var(--color-text-muted);
 }
 
-.privacy-section ul {
+.legal-card ul {
   padding-left: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.privacy-section strong {
+.legal-card strong {
   color: var(--color-text);
   font-weight: var(--weight-medium);
 }
 
-.privacy-section code {
+.legal-card code {
   font-family: monospace;
   font-size: 0.85em;
   background: var(--color-surface-alt);
@@ -88,32 +138,21 @@
   border-radius: 3px;
 }
 
-.privacy-section a {
+.legal-card a {
   color: var(--color-accent);
   text-decoration: none;
+  transition: opacity var(--duration-fast);
 }
 
-.privacy-section a:hover {
+.legal-card a:hover {
   text-decoration: underline;
 }
 
-/* ── Fixed-header variant (Impressum) ─────────────────────── */
-.privacy-page--fixed-header {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding-bottom: 0;
+/* ── Footer note ── */
+.legal-footer-note {
+  text-align: center;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  padding: var(--space-8) 0 var(--space-4);
 }
 
-.privacy-header-fixed {
-  flex-shrink: 0;
-  padding: 0 var(--space-6);
-}
-
-.privacy-sections--scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 var(--space-6) var(--space-10);
-}

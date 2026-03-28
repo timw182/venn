@@ -11,6 +11,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import ItemCard, { CARD_WIDTH, getCardHeight } from './ItemCard';
+import MatchEffect from './MatchEffect';
 import { colors, fonts, radii, space } from '../theme/tokens';
 
 const SWIPE_X = 100;
@@ -68,16 +69,27 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     });
   }
 
+  const exitTimer = useRef(null);
+
   function finishExit() {
     // Update items first to avoid blink (old card jumping back to center)
     setLocalItems([...itemsRef.current]);
-    setTimeout(() => {
+    clearTimeout(exitTimer.current);
+    exitTimer.current = setTimeout(() => {
       tx.value = 0;
       ty.value = 0;
       respondingRef.current = false;
       setExiting(false);
     }, 16);
   }
+
+  // Safety: if respondingRef stays stuck for >2s, force-unlock
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (respondingRef.current && !exiting) respondingRef.current = false;
+    }, 2000);
+    return () => { clearInterval(id); clearTimeout(exitTimer.current); };
+  }, [exiting]);
 
   const panGesture = Gesture.Pan()
     .onUpdate((e) => {
@@ -120,16 +132,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
 
   return (
     <View style={styles.wrapper}>
-      {matchItem && (
-        <View style={styles.matchOverlay}>
-          <View style={styles.matchContent}>
-            <Text style={styles.matchEmoji}>{matchItem.emoji}</Text>
-            <Text style={styles.matchTitle}>It's a match</Text>
-            <Text style={styles.matchItem}>{matchItem.title}</Text>
-            <Text style={styles.matchSub}>You both want this</Text>
-          </View>
-        </View>
-      )}
+      {matchItem && <MatchEffect item={matchItem} />}
 
       {/* Swipe tag */}
       {lastTag && (
@@ -240,17 +243,4 @@ const styles = StyleSheet.create({
   emptyTitle: { fontFamily: fonts.serif, fontSize: 20, color: colors.text },
   emptySub: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 
-  matchOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.overlay,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-    borderRadius: radii.xl,
-  },
-  matchContent: { alignItems: 'center', gap: space[3] },
-  matchEmoji: { fontSize: 56 },
-  matchTitle: { fontFamily: fonts.serif, fontSize: 26, color: '#fff' },
-  matchItem: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.accentSoft },
-  matchSub: { fontFamily: fonts.sans, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 });

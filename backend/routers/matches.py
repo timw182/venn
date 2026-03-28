@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from aiosqlite import Connection
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from models import MatchItem
@@ -8,6 +10,7 @@ from routers.auth import _session_user_id
 from routers.deps import require_couple, get_partner_id
 
 router = APIRouter(prefix="/matches", tags=["matches"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("", response_model=List[MatchItem])
@@ -56,6 +59,7 @@ async def get_matches(request: Request, db: Connection = Depends(get_db)):
 
 
 @router.post("/{item_id}/seen", status_code=204)
+@limiter.limit("60/minute")
 async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
     await require_couple(db, uid)
@@ -68,6 +72,7 @@ async def mark_seen(item_id: int, request: Request, db: Connection = Depends(get
 
 
 @router.delete("/{item_id}", status_code=204)
+@limiter.limit("30/minute")
 async def remove_match(item_id: int, request: Request, db: Connection = Depends(get_db)):
     """Remove a match by changing the current user's response to 'no'."""
     uid = await _session_user_id(request, db)

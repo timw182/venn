@@ -2,36 +2,11 @@ import { useNavigate } from "react-router-dom";
 import "./Experts.css";
 
 const QUOTES = [
-  {
-    quote: "Couples who openly communicate their desires report significantly higher levels of relationship satisfaction and emotional intimacy.",
-    author: "Dr. Emily Hartmann",
-    title: "Clinical Psychologist & Relationship Therapist",
-    institution: "University of Amsterdam",
-  },
-  {
-    quote: "The biggest barrier to intimacy isn't incompatibility — it's the fear of asking. Tools that remove that awkwardness can genuinely transform a relationship.",
-    author: "Dr. James Okafor",
-    title: "Sex Therapist, AASECT Certified",
-    institution: "London Centre for Couple Therapy",
-  },
-  {
-    quote: "Mutual exploration, when approached with playfulness and consent, strengthens trust far more than grand romantic gestures ever could.",
-    author: "Prof. Sophie Renard",
-    title: "Professor of Relationship Psychology",
-    institution: "Université Paris Cité",
-  },
-  {
-    quote: "Long-term couples often fall into routine not from lack of desire, but from lack of a safe space to express it. Creating that space is half the work.",
-    author: "Dr. Marcus Breil",
-    title: "Couples Counsellor & Author",
-    institution: "Berlin Institute for Relationship Research",
-  },
-  {
-    quote: "Research consistently shows that partners who discover shared preferences — even small ones — experience a meaningful boost in closeness and relationship longevity.",
-    author: "Dr. Annika Svensson",
-    title: "Behavioural Scientist",
-    institution: "Karolinska Institute, Stockholm",
-  },
+  { emoji: "🔬", text: "We asked a scientist but they said they were busy swiping." },
+  { emoji: "🎓", text: '"Venn is the most important discovery since gravity." — Someone, probably.' },
+  { emoji: "📋", text: "Our clinical trials consisted of two people on a couch. Results were positive." },
+  { emoji: "🧠", text: '"Communication is key." We just made the lock a little more fun.' },
+  { emoji: "🏆", text: "Winner of zero awards. But we believe in ourselves." },
 ];
 
 export default function Experts() {
@@ -39,36 +14,39 @@ export default function Experts() {
 
   return (
     <main className="experts-page">
-      <nav className="page-back-header">
-        <button className="experts-back" onClick={() => navigate(-1)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
-        </button>
-      </nav>
+      <div className="experts-top">
+        <nav className="experts-nav">
+          <button className="experts-back" onClick={() => navigate(-1)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+        </nav>
 
-      <div className="experts-header">
-        <h1 className="experts-title serif">What Experts Say</h1>
-        <p className="experts-subtitle text-muted">
-          Leading therapists and researchers on the importance of open communication in relationships.
+        <div className="experts-header">
+          <h1 className="experts-title serif">What Experts Say</h1>
+          <p className="experts-subtitle text-muted">...once we find some</p>
+        </div>
+      </div>
+
+      <div className="experts-hero">
+        <span className="experts-hero-emoji">🧑‍🔬</span>
+        <h2 className="experts-hero-title">Still looking for experts</h2>
+        <p className="experts-hero-body text-muted">
+          Turns out, nobody has a PhD in "couple swiping dynamics" yet. If you know someone, send them our way.
         </p>
       </div>
 
       <div className="experts-quotes">
         {QUOTES.map((q, i) => (
           <article key={i} className="experts-card">
-            <span className="experts-mark">"</span>
-            <blockquote className="experts-quote">{q.quote}</blockquote>
-            <div className="experts-attribution">
-              <span className="experts-author">{q.author}</span>
-              <span className="experts-role text-muted">{q.title}</span>
-              <span className="experts-institution text-muted">{q.institution}</span>
-            </div>
+            <span className="experts-card-emoji">{q.emoji}</span>
+            <p className="experts-card-text">{q.text}</p>
           </article>
         ))}
       </div>
 
-      <p className="experts-disclaimer text-muted">
-        Quotes are illustrative and represent general findings in relationship psychology research.
+      <p className="experts-footer text-muted">
+        In all seriousness — Venn is built on the simple idea that talking about what you want shouldn't be awkward.
       </p>
     </main>
   );

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from aiosqlite import Connection
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from models import CatalogItem, RespondRequest
@@ -8,6 +10,7 @@ from routers.auth import _session_user_id
 from ws import manager
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("", response_model=List[CatalogItem])
@@ -46,6 +49,7 @@ SPAM_COOLDOWN_H = 24   # hours between repeated alerts
 
 
 @router.post("/respond")
+@limiter.limit("120/minute")
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
 

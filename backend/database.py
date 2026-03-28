@@ -116,18 +116,25 @@ async def init_db():
         await db.commit()
 
         # Migrations — add columns that may be missing from older databases
+        import sqlite3, logging
+        _mig_log = logging.getLogger("venn.migrations")
         for table, col, definition in [
             ("users",     "is_admin",       "INTEGER NOT NULL DEFAULT 0"),
             ("users",     "is_superadmin",  "INTEGER NOT NULL DEFAULT 0"),
             ("users",     "session_token",  "TEXT"),
             ("users",     "email",          "TEXT"),
             ("user_mood", "custom_message", "TEXT"),
+            ("tickets",   "admin_note",     "TEXT"),
+            ("tickets",   "resolved_at",    "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")
                 await db.commit()
-            except Exception:
-                pass  # column already exists
+            except (sqlite3.OperationalError, Exception) as e:
+                if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                    pass  # column already exists
+                else:
+                    _mig_log.warning("Migration failed for %s.%s: %s", table, col, e)
 
 
 @asynccontextmanager

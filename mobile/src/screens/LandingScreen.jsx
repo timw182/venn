@@ -75,6 +75,7 @@ import { useAuth } from '../context/useAuth';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
+import { SCREENS } from '../lib/constants';
 import LogoMark from '../components/LogoMark';
 import VennAnimatedLogo from '../components/VennAnimatedLogo';
 import { LockKeyIcon, MoonStarsIcon, UsersIcon } from '../components/FeatureIcons';
@@ -116,7 +117,7 @@ function GlitterIcon({ Icon }) {
   );
 }
 
-export default function LandingScreen() {
+export default function LandingScreen({ navigation }) {
   const [mode, setMode] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -227,18 +228,31 @@ export default function LandingScreen() {
           </View>
 
           <View style={styles.footer}>
-            <TouchableOpacity onPress={() => Linking.openURL('https://instagram.com/venn.app')} style={styles.footerIcon}>
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <Rect x={2} y={2} width={20} height={20} rx={5} />
-                <Circle cx={12} cy={12} r={5} />
-                <Circle cx={17.5} cy={6.5} r={1.2} fill={colors.textLight} stroke="none" />
-              </Svg>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => Linking.openURL('https://facebook.com/venn.app')} style={styles.footerIcon}>
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <Path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-              </Svg>
-            </TouchableOpacity>
+            <View style={styles.footerLinks}>
+              <Text style={styles.footerCopy}>© 2026 Kern Studio</Text>
+              <Text style={styles.footerDot}>·</Text>
+              <TouchableOpacity onPress={() => navigation.navigate(SCREENS.IMPRESSUM)}>
+                <Text style={styles.footerLinkText}>Impressum</Text>
+              </TouchableOpacity>
+              <Text style={styles.footerDot}>·</Text>
+              <TouchableOpacity onPress={() => navigation.navigate(SCREENS.PRIVACY)}>
+                <Text style={styles.footerLinkText}>Privacy</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.footerSocial}>
+              <TouchableOpacity onPress={() => Linking.openURL('https://www.instagram.com/kernstudio.dev/')} style={styles.footerIcon}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <Rect x={2} y={2} width={20} height={20} rx={5} />
+                  <Circle cx={12} cy={12} r={5} />
+                  <Circle cx={17.5} cy={6.5} r={1.2} fill={colors.textLight} stroke="none" />
+                </Svg>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => Linking.openURL('https://www.facebook.com/kernstudio.dev/')} style={styles.footerIcon}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <Path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
           </View>
 
         </ScrollView>
@@ -374,15 +388,26 @@ const styles = StyleSheet.create({
   toggleLink: { color: colors.accent },
 
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: space[6],
+    gap: space[3],
     marginTop: 'auto',
     paddingTop: space[4],
   },
+  footerLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
+  },
+  footerCopy: { fontFamily: fonts.sans, fontSize: 11, color: colors.textLight, letterSpacing: 0.3 },
+  footerDot: { fontSize: 11, color: colors.textLight, opacity: 0.4 },
+  footerLinkText: { fontFamily: fonts.sans, fontSize: 11, color: colors.textLight, letterSpacing: 0.3 },
+  footerSocial: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[5],
+  },
   footerIcon: {
-    padding: space[2],
+    padding: space[1],
   },
 
   formScroll: {

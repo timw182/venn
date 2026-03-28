@@ -34,6 +34,7 @@ export default function MoodScreen() {
     setPartnerMoodLocal(wsMood);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setPartnerMood(null), 4000);
+    return () => clearTimeout(toastTimer.current);
   }, [wsMood]);
 
   async function handleSet() {

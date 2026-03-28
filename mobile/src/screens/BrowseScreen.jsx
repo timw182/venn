@@ -17,6 +17,7 @@ export default function BrowseScreen() {
   const [lastResponse, setLastResponse] = useState(null);
   const [stackHeight, setStackHeight] = useState(0);
   const matchTimerRef = useRef(null);
+  const matchDelayRef = useRef(null);
   const handledMatchRef = useRef(null);
 
   const { latestNewMatch, dismissLatest, refetch } = useMatches();
@@ -37,13 +38,15 @@ export default function BrowseScreen() {
     handledMatchRef.current = latestNewMatch.id;
     const item = catalog.find((i) => i.id === latestNewMatch.id) || latestNewMatch;
     clearTimeout(matchTimerRef.current);
-    setTimeout(() => {
+    clearTimeout(matchDelayRef.current);
+    matchDelayRef.current = setTimeout(() => {
       setMatchItem(item);
       matchTimerRef.current = setTimeout(() => {
         setMatchItem(null);
         dismissLatest();
       }, 3000);
     }, 300);
+    return () => { clearTimeout(matchDelayRef.current); clearTimeout(matchTimerRef.current); };
   }, [latestNewMatch, catalog, dismissLatest]);
 
   const categoryItems = useMemo(() => {
@@ -82,7 +85,8 @@ export default function BrowseScreen() {
         if (data?.match) {
           const matched = catalog.find((i) => i.id === data.match.id) || data.match;
           clearTimeout(matchTimerRef.current);
-          setTimeout(() => {
+          clearTimeout(matchDelayRef.current);
+          matchDelayRef.current = setTimeout(() => {
             setMatchItem(matched);
             matchTimerRef.current = setTimeout(() => {
               setMatchItem(null);

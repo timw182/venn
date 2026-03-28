@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/useAuth';
@@ -19,6 +20,9 @@ import BrowseScreen from '../screens/BrowseScreen';
 import MatchesScreen from '../screens/MatchesScreen';
 import MoodScreen from '../screens/MoodScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
+import ImpressumScreen from '../screens/ImpressumScreen';
+import ExpertsScreen from '../screens/ExpertsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,6 +52,7 @@ const MOOD_LABELS = {
 };
 
 function MoodToast({ mood, partnerName }) {
+  const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-20)).current;
 
@@ -70,7 +75,7 @@ function MoodToast({ mood, partnerName }) {
   const m = MOOD_LABELS[mood] || { emoji: '💫', label: mood };
 
   return (
-    <Animated.View style={[styles.toast, { opacity, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: insets.top + 8, opacity, transform: [{ translateY }] }]}>
       <Text style={styles.toastText}>{partnerName} is feeling {m.emoji} {m.label}</Text>
     </Animated.View>
   );
@@ -150,7 +155,11 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
         {!user ? (
-          <Stack.Screen name={SCREENS.LANDING} component={LandingScreen} />
+          <>
+            <Stack.Screen name={SCREENS.LANDING}   component={LandingScreen}   />
+            <Stack.Screen name={SCREENS.PRIVACY}   component={PrivacyScreen}   />
+            <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
+          </>
         ) : !user.coupleId && !isSolo ? (
           <>
             <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
@@ -161,6 +170,9 @@ export default function AppNavigator() {
             <Stack.Screen name="Main" component={MainTabs} />
             <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
+            <Stack.Screen name={SCREENS.PRIVACY}   component={PrivacyScreen}   />
+            <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
+            <Stack.Screen name={SCREENS.EXPERTS}   component={ExpertsScreen}   />
           </>
         )}
       </Stack.Navigator>

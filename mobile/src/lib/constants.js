@@ -32,4 +32,7 @@ export const SCREENS = {
   MATCHES: 'Matches',
   MOOD: 'Mood',
   SETTINGS: 'Settings',
+  PRIVACY: 'Privacy',
+  IMPRESSUM: 'Impressum',
+  EXPERTS: 'Experts',
 };

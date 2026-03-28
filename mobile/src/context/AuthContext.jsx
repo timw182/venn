@@ -1,4 +1,5 @@
-import { createContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useState, useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import client, { clearSession, storeToken } from '../api/client';
 
@@ -27,6 +28,20 @@ export function AuthProvider({ children }) {
       client.get('/auth/me').then((raw) => setUser(toUser(raw))).catch(() => {}),
       AsyncStorage.getItem(SOLO_KEY).then((v) => { if (v) setIsSolo(true); }).catch(() => {}),
     ]).finally(() => setLoading(false));
+  }, []);
+
+  // Revalidate session when app comes to foreground
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (appState.current.match(/inactive|background/) && next === 'active') {
+        client.get('/auth/me')
+          .then((raw) => setUser(toUser(raw)))
+          .catch(() => { setUser(null); });
+      }
+      appState.current = next;
+    });
+    return () => sub.remove();
   }, []);
 
   const login = useCallback(async (username, password) => {

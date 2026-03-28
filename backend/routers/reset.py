@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db_ctx as get_db
 from routers.auth import _session_user_id
 from routers.deps import require_couple, get_partner_id
 from ws import manager
 
 router = APIRouter(prefix="/reset", tags=["reset"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 async def _get_couple(db, uid):
@@ -29,6 +32,7 @@ async def reset_status(request: Request):
 
 
 @router.post("/request")
+@limiter.limit("5/minute")
 async def request_reset(request: Request):
     async with get_db() as db:
         uid = await _session_user_id(request, db)
@@ -47,6 +51,7 @@ async def request_reset(request: Request):
 
 
 @router.post("/confirm")
+@limiter.limit("5/minute")
 async def confirm_reset(request: Request):
     async with get_db() as db:
         uid = await _session_user_id(request, db)

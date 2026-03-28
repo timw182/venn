@@ -1,9 +1,12 @@
 import os
 import secrets
 import time
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+
+logger = logging.getLogger("venn.api")
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
@@ -186,8 +189,10 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             if data == "ping":
                 await websocket.send_text("pong")
-    except (WebSocketDisconnect, Exception):
+    except WebSocketDisconnect:
         pass
+    except Exception as e:
+        logger.warning("WebSocket error for couple %s: %s", couple_id, e)
     finally:
         manager.disconnect(websocket, couple_id)
 

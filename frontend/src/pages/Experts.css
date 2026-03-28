@@ -1,8 +1,21 @@
 .experts-page {
-  padding: 0 var(--space-6) var(--space-10);
   max-width: 640px;
   margin: 0 auto;
   width: 100%;
+  min-height: 100dvh;
+  padding: 0 var(--space-6) var(--space-10);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top section ── */
+.experts-top {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-4);
+}
+
+.experts-nav {
+  margin-bottom: var(--space-4);
 }
 
 .experts-back {
@@ -19,89 +32,100 @@
 }
 
 .experts-back:hover {
-  color: var(--color-text);
+  color: var(--color-accent);
 }
 
 .experts-header {
   text-align: center;
-  margin-bottom: var(--space-8);
 }
 
 .experts-title {
   font-size: var(--text-3xl);
   font-weight: var(--weight-medium);
   font-style: italic;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .experts-subtitle {
   font-size: var(--text-sm);
-  line-height: var(--leading-relaxed);
-  max-width: 420px;
-  margin: 0 auto;
+  font-style: italic;
+  letter-spacing: var(--tracking-wide);
 }
 
-/* ── Quote cards ─────────────────────────────────────────── */
-.experts-quotes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.experts-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+/* ── Hero card ── */
+.experts-hero {
+  background: linear-gradient(135deg, rgba(155, 128, 212, 0.06), rgba(196, 84, 122, 0.06));
+  border: 1px solid rgba(155, 128, 212, 0.2);
   border-radius: var(--radius-lg);
-  padding: var(--space-6) var(--space-5) var(--space-5);
-  position: relative;
-}
-
-.experts-mark {
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-4);
-  font-size: 48px;
-  line-height: 1;
-  font-style: italic;
-  color: var(--color-border-strong);
-  font-family: var(--font-serif, Georgia, serif);
-  pointer-events: none;
-}
-
-.experts-quote {
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text);
-  font-style: italic;
-  margin: 0 0 var(--space-4);
-  padding-top: var(--space-4);
-}
-
-.experts-attribution {
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
-.experts-author {
-  font-size: var(--text-sm);
+.experts-hero-emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.experts-hero-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
   color: var(--color-text);
 }
 
-.experts-role,
-.experts-institution {
-  font-size: var(--text-xs);
-  line-height: 1.4;
+.experts-hero-body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  max-width: 380px;
 }
 
-/* ── Disclaimer ──────────────────────────────────────────── */
-.experts-disclaimer {
-  font-size: var(--text-xs);
-  text-align: center;
-  margin-top: var(--space-8);
-  font-style: italic;
+/* ── Quote cards ── */
+.experts-quotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.experts-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  transition: border-color var(--duration-fast);
+}
+
+.experts-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.experts-card-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.experts-card-text {
+  font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ── Footer ── */
+.experts-footer {
+  text-align: center;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  padding: var(--space-8) var(--space-4) var(--space-4);
+  max-width: 420px;
+  margin: 0 auto;
 }

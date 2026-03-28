@@ -1,19 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
-  Linking, Modal, Animated, Pressable, Dimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Circle, Rect, G, Line } from 'react-native-svg';
-import { useAuth } from '../context/useAuth';
-import { useMatches } from '../context/MatchContext';
-import { colors, fonts, space, radii } from '../theme/tokens';
-import Button from '../components/Button';
-import client from '../api/client';
-import SlideView from '../components/SlideView';
-import * as Haptics from 'expo-haptics';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Linking,
+  Modal,
+  Animated,
+  Pressable,
+  Dimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path, Circle, Rect, G, Line } from "react-native-svg";
+import { useAuth } from "../context/useAuth";
+import { useMatches } from "../context/MatchContext";
+import { colors, fonts, space, radii } from "../theme/tokens";
+import { SCREENS } from "../lib/constants";
+import Button from "../components/Button";
+import client from "../api/client";
+import SlideView from "../components/SlideView";
+import * as Haptics from "expo-haptics";
 
-const { width: SW, height: SH } = Dimensions.get('window');
+const { width: SW, height: SH } = Dimensions.get("window");
 const TILE_SIZE = (SW - space[5] * 2 - space[3]) / 2;
 
 /* ── Tile icons ───────────────────────────────────────────────────────── */
@@ -55,7 +65,6 @@ function DataIcon({ size = 32 }) {
         opacity={0.6}
         transform="translate(0, 56) scale(1, -1) translate(0, -152)"
       />
-      <Circle cx="128" cy="128" r="88" stroke={colors.coral} strokeWidth="12" fill="none" opacity={0.3} />
     </Svg>
   );
 }
@@ -93,10 +102,10 @@ function AboutIcon({ size = 32 }) {
 }
 
 const TILES = [
-  { id: 'profile', label: 'Profile', Icon: ProfileIcon },
-  { id: 'data',    label: 'Data',    Icon: DataIcon },
-  { id: 'support', label: 'Support', Icon: SupportIcon },
-  { id: 'about',   label: 'About',   Icon: AboutIcon },
+  { id: "profile", label: "Profile", Icon: ProfileIcon },
+  { id: "data", label: "Data", Icon: DataIcon },
+  { id: "support", label: "Support", Icon: SupportIcon },
+  { id: "about", label: "About", Icon: AboutIcon },
 ];
 
 /* ── Bottom sheet ─────────────────────────────────────────────────────── */
@@ -104,6 +113,9 @@ function Sheet({ open, onClose, title, children }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const [visible, setVisible] = useState(false);
+
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
   useEffect(() => {
     if (open) {
@@ -113,10 +125,12 @@ function Sheet({ open, onClose, title, children }) {
         Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, stiffness: 400, damping: 28 }),
       ]).start();
     } else if (visible) {
-      Animated.parallel([
+      const anim = Animated.parallel([
         Animated.timing(fadeAnim, { toValue: 0, duration: 160, useNativeDriver: true }),
         Animated.timing(scaleAnim, { toValue: 0.92, duration: 160, useNativeDriver: true }),
-      ]).start(() => setVisible(false));
+      ]);
+      anim.start(() => { if (mountedRef.current) setVisible(false); });
+      return () => anim.stop();
     }
   }, [open]);
 
@@ -127,12 +141,7 @@ function Sheet({ open, onClose, title, children }) {
       <Pressable style={sheetStyles.backdrop} onPress={onClose}>
         <Animated.View style={[sheetStyles.backdrop, { opacity: fadeAnim, backgroundColor: colors.overlay }]} />
       </Pressable>
-      <Animated.View
-        style={[
-          sheetStyles.card,
-          { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-        ]}
-      >
+      <Animated.View style={[sheetStyles.card, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <View style={sheetStyles.header}>
           <Text style={sheetStyles.title}>{title}</Text>
           <TouchableOpacity onPress={onClose} style={sheetStyles.closeBtn}>
@@ -149,10 +158,10 @@ function Sheet({ open, onClose, title, children }) {
 }
 
 const sheetStyles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+  backdrop: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   card: {
-    position: 'absolute',
-    alignSelf: 'center',
+    position: "absolute",
+    alignSelf: "center",
     top: Math.round(SH * 0.18),
     width: SW - space[8],
     maxWidth: 400,
@@ -160,23 +169,26 @@ const sheetStyles = StyleSheet.create({
     borderRadius: radii.xl,
     paddingHorizontal: space[6],
     paddingBottom: space[6],
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.18,
     shadowRadius: 32,
     elevation: 24,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: space[5],
     paddingBottom: space[4],
   },
   title: { fontFamily: fonts.sansMedium, fontSize: 17, color: colors.text, letterSpacing: 0.2 },
   closeBtn: {
-    width: 32, height: 32, borderRadius: radii.full,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: radii.full,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.surfaceAlt,
   },
   body: { gap: space[5] },
@@ -190,9 +202,9 @@ export default function SettingsScreen({ navigation }) {
   const [activeSheet, setActiveSheet] = useState(null);
 
   // Profile
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState('');
+  const [saveError, setSaveError] = useState("");
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState(null);
 
@@ -201,9 +213,9 @@ export default function SettingsScreen({ navigation }) {
   const [deleteMsg, setDeleteMsg] = useState(false);
 
   // Support
-  const [ticketMsg, setTicketMsg] = useState('');
+  const [ticketMsg, setTicketMsg] = useState("");
   const [ticketSent, setTicketSent] = useState(false);
-  const [ticketError, setTicketError] = useState('');
+  const [ticketError, setTicketError] = useState("");
   const [ticketSending, setTicketSending] = useState(false);
 
   function openSheet(id) {
@@ -216,62 +228,69 @@ export default function SettingsScreen({ navigation }) {
   }
 
   async function handleSave() {
-    setSaveError('');
+    setSaveError("");
     try {
       await updateProfile(displayName);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      setSaveError(err.message || 'Could not save');
+      setSaveError(err.message || "Could not save");
     }
   }
 
-  async function handleLogout() { await logout(); }
+  async function handleLogout() {
+    await logout();
+  }
 
   async function handleDisconnect() {
-    Alert.alert(
-      'Disconnect partner',
-      'Disconnect from your partner? You can reconnect with a new pairing code.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Disconnect', style: 'destructive',
-          onPress: async () => {
-            setDisconnecting(true);
-            setDisconnectError(null);
-            try {
-              await client.post('/auth/disconnect');
-              await logout();
-            } catch (e) {
-              setDisconnectError(e?.message || "Couldn't disconnect. Try again.");
-            }
-            setDisconnecting(false);
-          },
+    Alert.alert("Disconnect partner", "Disconnect from your partner? You can reconnect with a new pairing code.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Disconnect",
+        style: "destructive",
+        onPress: async () => {
+          setDisconnecting(true);
+          setDisconnectError(null);
+          try {
+            await client.post("/auth/disconnect");
+            await logout();
+          } catch (e) {
+            setDisconnectError(e?.message || "Couldn't disconnect. Try again.");
+          }
+          setDisconnecting(false);
         },
-      ]
-    );
+      },
+    ]);
   }
 
   async function handleRequestReset() {
-    await client.post('/reset/request');
-    setResetState('pending_mine');
+    await client.post("/reset/request");
+    setResetState("pending_mine");
     setResetConfirm(false);
   }
-  async function handleConfirmReset() { await client.post('/reset/confirm'); }
-  async function handleDeclineReset()  { await client.post('/reset/decline');  setResetState('none'); }
-  async function handleCancelReset()   { await client.post('/reset/cancel');   setResetState('none'); }
+  async function handleConfirmReset() {
+    await client.post("/reset/confirm");
+  }
+  async function handleDeclineReset() {
+    await client.post("/reset/decline");
+    setResetState("none");
+  }
+  async function handleCancelReset() {
+    await client.post("/reset/cancel");
+    setResetState("none");
+  }
 
   async function handleTicketSubmit() {
     if (!ticketMsg.trim()) return;
     setTicketSending(true);
-    setTicketError('');
+    setTicketError("");
     try {
-      await client.post('/tickets', { message: ticketMsg.trim() });
+      await client.post("/tickets", { message: ticketMsg.trim() });
       setTicketSent(true);
-      setTicketMsg('');
+      setTicketMsg("");
       setTimeout(() => setTicketSent(false), 4000);
     } catch (err) {
-      setTicketError(err.message || 'Could not send. Try again.');
+      setTicketError(err.message || "Could not send. Try again.");
     } finally {
       setTicketSending(false);
     }
@@ -280,26 +299,30 @@ export default function SettingsScreen({ navigation }) {
   // Stagger tile entrances
   const tileAnims = useRef(TILES.map(() => new Animated.Value(0))).current;
   useEffect(() => {
-    Animated.stagger(60, tileAnims.map(a =>
-      Animated.spring(a, { toValue: 1, useNativeDriver: true, stiffness: 300, damping: 22 })
-    )).start();
+    Animated.stagger(
+      60,
+      tileAnims.map((a) => Animated.spring(a, { toValue: 1, useNativeDriver: true, stiffness: 300, damping: 22 })),
+    ).start();
   }, []);
 
   return (
     <SlideView>
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.page}>
-
           <View style={styles.headerRow}>
             <Text style={styles.title}>Settings</Text>
             <View style={styles.headerActions}>
               {user?.isAdmin && (
-                <Button variant="secondary" size="sm" onPress={() => navigation.navigate('Admin')}>
+                <Button variant="secondary" size="sm" onPress={() => navigation.navigate("Admin")}>
                   Admin
                 </Button>
               )}
-              <Button variant="secondary" size="sm" onPress={handleLogout}
-                style={{ borderColor: '#f5c2c2', backgroundColor: '#fff5f5' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={handleLogout}
+                style={{ borderColor: "#f5c2c2", backgroundColor: "#fff5f5" }}
+              >
                 Sign out
               </Button>
             </View>
@@ -317,11 +340,7 @@ export default function SettingsScreen({ navigation }) {
                   transform: [{ translateY: tileAnims[i].interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }],
                 }}
               >
-                <TouchableOpacity
-                  style={styles.tile}
-                  activeOpacity={0.7}
-                  onPress={() => openSheet(tile.id)}
-                >
+                <TouchableOpacity style={styles.tile} activeOpacity={0.7} onPress={() => openSheet(tile.id)}>
                   <tile.Icon size={36} />
                   <Text style={styles.tileLabel}>{tile.label}</Text>
                 </TouchableOpacity>
@@ -333,7 +352,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         {/* ── Profile sheet ── */}
-        <Sheet open={activeSheet === 'profile'} onClose={closeSheet} title="Profile">
+        <Sheet open={activeSheet === "profile"} onClose={closeSheet} title="Profile">
           <View style={styles.field}>
             <Text style={styles.label}>Display Name</Text>
             <View style={styles.inputRow}>
@@ -345,7 +364,7 @@ export default function SettingsScreen({ navigation }) {
                 placeholderTextColor={colors.textLight}
               />
               <Button variant="secondary" size="sm" onPress={handleSave}>
-                {saved ? 'Saved!' : 'Save'}
+                {saved ? "Saved!" : "Save"}
               </Button>
             </View>
             {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
@@ -358,8 +377,13 @@ export default function SettingsScreen({ navigation }) {
                 <View style={[styles.input, styles.inputReadonly]}>
                   <Text style={styles.inputReadonlyText}>{user.partnerName}</Text>
                 </View>
-                <Button variant="secondary" size="sm" onPress={handleDisconnect}
-                  disabled={disconnecting} loading={disconnecting}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={handleDisconnect}
+                  disabled={disconnecting}
+                  loading={disconnecting}
+                >
                   Disconnect
                 </Button>
               </View>
@@ -368,7 +392,14 @@ export default function SettingsScreen({ navigation }) {
           ) : (
             <View style={styles.field}>
               <Text style={styles.muted}>You're exploring solo. Connect with a partner to see your matches.</Text>
-              <Button variant="primary" size="sm" onPress={() => { closeSheet(); navigation.navigate('Pairing'); }}>
+              <Button
+                variant="primary"
+                size="sm"
+                onPress={() => {
+                  closeSheet();
+                  navigation.navigate("Pairing");
+                }}
+              >
                 Create or enter a code
               </Button>
             </View>
@@ -376,42 +407,54 @@ export default function SettingsScreen({ navigation }) {
         </Sheet>
 
         {/* ── Data sheet ── */}
-        <Sheet open={activeSheet === 'data'} onClose={closeSheet} title="Data">
+        <Sheet open={activeSheet === "data"} onClose={closeSheet} title="Data">
           {user?.coupleId && (
             <>
               <View style={styles.field}>
                 <Text style={styles.label}>Reset swipes & matches</Text>
-                <Text style={styles.muted}>Clears all swipes and matches for both of you. Both partners must confirm.</Text>
+                <Text style={styles.muted}>
+                  Clears all swipes and matches for both of you. Both partners must confirm.
+                </Text>
 
-                {resetState === 'none' && !resetConfirm && (
+                {resetState === "none" && !resetConfirm && (
                   <Button variant="secondary" size="sm" onPress={() => setResetConfirm(true)}>
                     Request reset
                   </Button>
                 )}
 
-                {resetState === 'none' && resetConfirm && (
+                {resetState === "none" && resetConfirm && (
                   <View style={{ gap: space[3] }}>
                     <Text style={styles.warning}>Are you sure? Your partner will also need to confirm.</Text>
                     <View style={styles.sheetActions}>
-                      <Button variant="danger" size="sm" onPress={handleRequestReset}>Yes, send request</Button>
-                      <Button variant="ghost" size="sm" onPress={() => setResetConfirm(false)}>Cancel</Button>
+                      <Button variant="danger" size="sm" onPress={handleRequestReset}>
+                        Yes, send request
+                      </Button>
+                      <Button variant="ghost" size="sm" onPress={() => setResetConfirm(false)}>
+                        Cancel
+                      </Button>
                     </View>
                   </View>
                 )}
 
-                {resetState === 'pending_mine' && (
+                {resetState === "pending_mine" && (
                   <View>
                     <Text style={styles.muted}>Waiting for your partner to confirm…</Text>
-                    <Button variant="ghost" size="sm" onPress={handleCancelReset}>Cancel request</Button>
+                    <Button variant="ghost" size="sm" onPress={handleCancelReset}>
+                      Cancel request
+                    </Button>
                   </View>
                 )}
 
-                {resetState === 'pending_partner' && (
+                {resetState === "pending_partner" && (
                   <View>
                     <Text style={styles.warning}>Your partner wants to reset all swipes and matches.</Text>
                     <View style={styles.sheetActions}>
-                      <Button variant="danger" size="sm" onPress={handleConfirmReset}>Confirm reset</Button>
-                      <Button variant="ghost" size="sm" onPress={handleDeclineReset}>Decline</Button>
+                      <Button variant="danger" size="sm" onPress={handleConfirmReset}>
+                        Confirm reset
+                      </Button>
+                      <Button variant="ghost" size="sm" onPress={handleDeclineReset}>
+                        Decline
+                      </Button>
                     </View>
                   </View>
                 )}
@@ -445,11 +488,11 @@ export default function SettingsScreen({ navigation }) {
         </Sheet>
 
         {/* ── Support sheet ── */}
-        <Sheet open={activeSheet === 'support'} onClose={closeSheet} title="Support">
+        <Sheet open={activeSheet === "support"} onClose={closeSheet} title="Support">
           <View style={styles.field}>
             <Text style={styles.label}>Send us a message</Text>
             <TextInput
-              style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+              style={[styles.input, { height: 100, textAlignVertical: "top" }]}
               placeholder="Describe your issue or feedback…"
               placeholderTextColor={colors.textLight}
               value={ticketMsg}
@@ -458,32 +501,52 @@ export default function SettingsScreen({ navigation }) {
             />
             {!!ticketError && <Text style={styles.errorText}>{ticketError}</Text>}
             {ticketSent && <Text style={styles.successText}>Message sent! We'll look into it.</Text>}
-            <Button variant="secondary" size="sm" onPress={handleTicketSubmit}
-              disabled={ticketSending || !ticketMsg.trim()}>
-              {ticketSending ? 'Sending…' : 'Send'}
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={handleTicketSubmit}
+              disabled={ticketSending || !ticketMsg.trim()}
+            >
+              {ticketSending ? "Sending…" : "Send"}
             </Button>
           </View>
         </Sheet>
 
         {/* ── About sheet ── */}
-        <Sheet open={activeSheet === 'about'} onClose={closeSheet} title="About Venn">
-          <View style={[styles.field, { alignItems: 'center' }]}>
-            <Text style={[styles.muted, { textAlign: 'center' }]}>
-              Discover what you both want — without the awkwardness. Your responses are never shared unless you both say yes.
+        <Sheet open={activeSheet === "about"} onClose={closeSheet} title="About Venn">
+          <View style={[styles.field, { alignItems: "center" }]}>
+            <Text style={[styles.muted, { textAlign: "center" }]}>
+              Discover what you both want — without the awkwardness. Your responses are never shared unless you both say
+              yes.
             </Text>
             <View style={styles.aboutLinks}>
-              <Button variant="secondary" size="sm"
-                onPress={() => Linking.openURL('https://venn.lu/privacy')}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => {
+                  closeSheet();
+                  navigation.navigate(SCREENS.PRIVACY);
+                }}
+              >
                 Privacy Policy
               </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => {
+                  closeSheet();
+                  navigation.navigate(SCREENS.IMPRESSUM);
+                }}
+              >
+                Impressum
+              </Button>
               <Button variant="secondary" size="sm"
-                onPress={() => Linking.openURL('https://venn.lu/experts')}>
+                onPress={() => { closeSheet(); navigation.navigate(SCREENS.EXPERTS); }}>
                 What Experts say
               </Button>
             </View>
           </View>
         </Sheet>
-
       </SafeAreaView>
     </SlideView>
   );
@@ -499,29 +562,29 @@ const styles = StyleSheet.create({
   },
 
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: space[4],
   },
-  headerActions: { flexDirection: 'row', gap: space[2] },
-  title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text, fontStyle: 'italic' },
+  headerActions: { flexDirection: "row", gap: space[2] },
+  title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text, fontStyle: "italic" },
 
   /* ── 2×2 tile grid ── */
   grid: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: space[3],
-    alignContent: 'center',
-    justifyContent: 'center',
+    alignContent: "center",
+    justifyContent: "center",
   },
   tile: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: space[2],
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: "rgba(255,255,255,0.6)",
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.xl,
@@ -534,7 +597,7 @@ const styles = StyleSheet.create({
   },
 
   version: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 11,
     fontFamily: fonts.sans,
     color: colors.textLight,
@@ -548,10 +611,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sansMedium,
     fontSize: 11,
     color: colors.textMuted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1,
   },
-  inputRow: { flexDirection: 'row', gap: space[3], alignItems: 'center' },
+  inputRow: { flexDirection: "row", gap: space[3], alignItems: "center" },
   input: {
     flex: 1,
     backgroundColor: colors.surfaceAlt,
@@ -564,14 +627,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
-  inputReadonly: { justifyContent: 'center' },
+  inputReadonly: { justifyContent: "center" },
   inputReadonlyText: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
 
   muted: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted, lineHeight: 19 },
   warning: { fontFamily: fonts.sans, fontSize: 13, color: colors.no, lineHeight: 18 },
   errorText: { fontFamily: fonts.sans, fontSize: 12, color: colors.no },
-  successText: { fontFamily: fonts.sans, fontSize: 13, color: '#4caf88' },
+  successText: { fontFamily: fonts.sans, fontSize: 13, color: "#4caf88" },
 
-  sheetActions: { flexDirection: 'row', gap: space[3], alignItems: 'center', flexWrap: 'wrap' },
-  aboutLinks: { flexDirection: 'row', gap: space[3], flexWrap: 'wrap', marginTop: space[2] },
+  sheetActions: { flexDirection: "row", gap: space[3], alignItems: "center", flexWrap: "wrap" },
+  aboutLinks: { flexDirection: "row", gap: space[3], flexWrap: "wrap", marginTop: space[2] },
 });

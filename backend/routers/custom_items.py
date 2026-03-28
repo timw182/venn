@@ -1,12 +1,14 @@
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Request, Depends
+from pydantic import BaseModel, field_validator
 from aiosqlite import Connection
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
-from fastapi import Depends
 from routers.auth import _session_user_id
 from routers.deps import require_couple
 
 router = APIRouter(prefix="/catalog/custom", tags=["catalog"])
+limiter = Limiter(key_func=get_remote_address)
 
 # ── Word filter ───────────────────────────────────────────────
 # Block genuinely harmful content; this is an adult app so normal kink terms are fine
@@ -36,8 +38,16 @@ class CustomItemIn(BaseModel):
     title: str
     emoji: str = "✨"
 
+    @field_validator("emoji")
+    @classmethod
+    def emoji_length(cls, v):
+        if len(v) > 10:
+            raise ValueError("Emoji must be 10 characters or less")
+        return v
+
 
 @router.post("")
+@limiter.limit("20/minute")
 async def create_custom(body: CustomItemIn, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
