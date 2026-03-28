@@ -35,4 +35,5 @@ export const SCREENS = {
   PRIVACY: 'Privacy',
   IMPRESSUM: 'Impressum',
   EXPERTS: 'Experts',
+  TERMS: 'Terms',
 };

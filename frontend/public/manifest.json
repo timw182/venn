@@ -1,0 +1,17 @@
+{
+  "name": "Venn",
+  "short_name": "Venn",
+  "description": "Find your overlap",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7FC",
+  "theme_color": "#C4547A",
+  "icons": [
+    {
+      "src": "/favicon_venn.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

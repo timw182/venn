@@ -548,6 +548,16 @@ export default function SettingsScreen({ navigation }) {
               >
                 Impressum
               </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => {
+                  closeSheet();
+                  navigation.navigate(SCREENS.TERMS);
+                }}
+              >
+                Terms of Service
+              </Button>
               <Button variant="secondary" size="sm"
                 onPress={() => { closeSheet(); navigation.navigate(SCREENS.EXPERTS); }}>
                 What Experts say

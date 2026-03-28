@@ -2,9 +2,36 @@ import os
 import secrets
 import time
 import logging
+import json as _json
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+
+
+# ---------------------------------------------------------------------------
+# Structured JSON logging (built-in only, no extra dependencies)
+# ---------------------------------------------------------------------------
+class _JSONFormatter(logging.Formatter):
+    """Emit each log record as a single JSON object."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        entry = {
+            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0] is not None:
+            entry["exception"] = self.formatException(record.exc_info)
+        return _json.dumps(entry)
+
+
+_log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+_handler = logging.StreamHandler()
+_handler.setFormatter(_JSONFormatter())
+logging.root.handlers = [_handler]
+logging.root.setLevel(getattr(logging, _log_level, logging.INFO))
 
 logger = logging.getLogger("venn.api")
 from fastapi.middleware.cors import CORSMiddleware

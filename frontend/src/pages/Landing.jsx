@@ -233,6 +233,8 @@ export default function Landing() {
           <a href="/impressum" className="landing-footer-link">Impressum</a>
           <span className="landing-footer-dot">·</span>
           <a href="/privacy" className="landing-footer-link">Privacy</a>
+          <span className="landing-footer-dot">·</span>
+          <a href="/terms" className="landing-footer-link">Terms</a>
         </div>
         <div className="landing-footer-social">
           <a

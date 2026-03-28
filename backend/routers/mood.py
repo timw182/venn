@@ -45,8 +45,8 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
         if last_update.tzinfo is None:
             last_update = last_update.replace(tzinfo=timezone.utc)
         elapsed = (datetime.now(timezone.utc) - last_update).total_seconds()
-        if elapsed < 300:
-            wait = int(300 - elapsed)
+        if elapsed < 60:
+            wait = int(60 - elapsed)
             raise HTTPException(429, f"Wait {wait} seconds before changing your mood again.")
 
     await db.execute(

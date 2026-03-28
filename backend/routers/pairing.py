@@ -28,10 +28,20 @@ def _gen_code(length: int = 6) -> str:
 async def create_pairing_code(request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
 
-    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    cur = await db.execute(
+        "SELECT couple_id, pairing_code, pairing_code_expires_at FROM users WHERE id = ?", (uid,)
+    )
     user = await cur.fetchone()
     if user and user["couple_id"]:
         raise HTTPException(400, "Already paired")
+
+    # Return existing code if still valid
+    if user and user["pairing_code"] and user["pairing_code_expires_at"]:
+        exp = datetime.fromisoformat(user["pairing_code_expires_at"])
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) < exp:
+            return PairingCodeOut(code=user["pairing_code"])
 
     # Generate a unique code
     for _ in range(10):

@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler';
+import React, { Component } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useFonts,
   Comfortaa_400Regular,
   Comfortaa_600SemiBold,
@@ -11,9 +12,89 @@ import {
   DMSans_400Regular,
   DMSans_500Medium,
 } from '@expo-google-fonts/dm-sans';
+import * as Updates from 'expo-updates';
 import { AuthProvider } from './src/context/AuthContext';
 import { MatchProvider } from './src/context/MatchContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import { colors, fonts, radii, space } from './src/theme/tokens';
+
+// ── Error Boundary ───────────────────────────────────────────────────────────
+
+class ErrorBoundary extends Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('ErrorBoundary caught:', error, info.componentStack);
+  }
+
+  handleRestart = async () => {
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      // Fallback: reset state so the app re-renders
+      this.setState({ hasError: false, error: null });
+    }
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={ebStyles.container}>
+          <Text style={ebStyles.title}>Something went wrong</Text>
+          <Text style={ebStyles.message}>
+            {this.state.error?.message || 'An unexpected error occurred.'}
+          </Text>
+          <TouchableOpacity style={ebStyles.button} onPress={this.handleRestart}>
+            <Text style={ebStyles.buttonText}>Restart app</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const ebStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: space[6],
+  },
+  title: {
+    fontFamily: fonts.serif,
+    fontSize: 22,
+    color: colors.text,
+    marginBottom: space[3],
+    textAlign: 'center',
+  },
+  message: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginBottom: space[6],
+    lineHeight: 20,
+  },
+  button: {
+    backgroundColor: colors.accent,
+    paddingVertical: space[3],
+    paddingHorizontal: space[6],
+    borderRadius: radii.full,
+  },
+  buttonText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 15,
+    color: colors.textInverse,
+  },
+});
+
+// ── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -28,13 +109,15 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <AuthProvider>
-        <MatchProvider>
-        <AppNavigator />
-        </MatchProvider>
-      </AuthProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={styles.root}>
+        <AuthProvider>
+          <MatchProvider>
+            <AppNavigator />
+          </MatchProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

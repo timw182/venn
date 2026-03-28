@@ -1,0 +1,53 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "bundleIdentifier": "net.amoreapp.venn"
+      },
+      "android": {
+        "buildType": "apk",
+        "package": "net.amoreapp.venn"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "bundleIdentifier": "net.amoreapp.venn"
+      },
+      "android": {
+        "buildType": "apk",
+        "package": "net.amoreapp.venn"
+      }
+    },
+    "production": {
+      "ios": {
+        "bundleIdentifier": "net.amoreapp.venn",
+        "autoIncrement": true
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "package": "net.amoreapp.venn",
+        "autoIncrement": true
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "",
+        "ascAppId": "",
+        "appleTeamId": ""
+      },
+      "android": {
+        "serviceAccountKeyPath": "",
+        "track": "internal"
+      }
+    }
+  }
+}

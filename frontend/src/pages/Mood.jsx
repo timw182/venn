@@ -59,10 +59,18 @@ export default function Mood() {
       const data = await client.put("/mood", { mood: picking, expires_hours: 24 });
       setMyMood(data.mine || null);
       setPartnerMoodLocal(data.partner || null);
+      const moodObj = MOODS.find((m) => m.key === picking);
+      clearTimeout(toastRef.current);
+      setToast(moodObj ? `${moodObj.emoji} Mood set to ${moodObj.label}` : "Mood updated");
+      toastRef.current = setTimeout(() => setToast(null), 3000);
       setPicking(null);
     } catch (e) {
-      const msg = e?.detail || e?.message || "";
-      setError(msg.includes("Wait") ? msg : "Couldn\'t update mood. Try again.");
+      const msg = e?.message || "";
+      if (msg.includes("Wait") || msg.includes("wait") || msg.includes("429")) {
+        setError(msg);
+      } else {
+        setError("Couldn't update mood. Try again.");
+      }
     }
     setLoading(false);
   }

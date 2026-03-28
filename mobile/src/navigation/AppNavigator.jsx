@@ -23,6 +23,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import ImpressumScreen from '../screens/ImpressumScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
+import TermsScreen from '../screens/TermsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -159,6 +160,7 @@ export default function AppNavigator() {
             <Stack.Screen name={SCREENS.LANDING}   component={LandingScreen}   />
             <Stack.Screen name={SCREENS.PRIVACY}   component={PrivacyScreen}   />
             <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
+            <Stack.Screen name={SCREENS.TERMS}     component={TermsScreen}     />
           </>
         ) : !user.coupleId && !isSolo ? (
           <>
@@ -172,6 +174,7 @@ export default function AppNavigator() {
             <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
             <Stack.Screen name={SCREENS.PRIVACY}   component={PrivacyScreen}   />
             <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
+            <Stack.Screen name={SCREENS.TERMS}     component={TermsScreen}     />
             <Stack.Screen name={SCREENS.EXPERTS}   component={ExpertsScreen}   />
           </>
         )}
