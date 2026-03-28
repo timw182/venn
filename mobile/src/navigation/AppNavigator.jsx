@@ -88,7 +88,7 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const tab = TABS.find((t) => t.name === route.name);
-        const color = focused ? colors.accent : colors.textLight;
+        const iconColor = focused ? colors.accent : colors.textLight;
         const badge = route.name === SCREENS.MATCHES ? matchCount : 0;
 
         return (
@@ -105,7 +105,7 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
             activeOpacity={0.7}
           >
             <View style={styles.iconWrap}>
-              <Feather name={tab.icon} size={22} color={color} />
+              <Feather name={tab.icon} size={22} color={iconColor} />
               {badge > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>

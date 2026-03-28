@@ -3,7 +3,7 @@ export const CATEGORIES = [
   { key: 'positions',   label: 'Positions',   emoji: '🌀' },
   { key: 'settings',    label: 'Settings',    emoji: '🌙' },
   { key: 'roleplay',    label: 'Roleplay',    emoji: '🎭' },
-  { key: 'toys-gear',   label: 'Toys & Gear', emoji: '🎁' },
+  { key: 'toys-gear',   label: 'Toys & Accessories', emoji: '🎁' },
   { key: 'adventurous', label: 'Adventurous', emoji: '✨' },
 ];
 

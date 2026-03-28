@@ -264,20 +264,28 @@ export default function SettingsScreen({ navigation }) {
   }
 
   async function handleRequestReset() {
-    await client.post("/reset/request");
-    setResetState("pending_mine");
-    setResetConfirm(false);
+    try {
+      await client.post("/reset/request");
+      setResetState("pending_mine");
+      setResetConfirm(false);
+    } catch {}
   }
   async function handleConfirmReset() {
-    await client.post("/reset/confirm");
+    try { await client.post("/reset/confirm"); } catch {}
   }
   async function handleDeclineReset() {
-    await client.post("/reset/decline");
+    try {
+      await client.post("/reset/decline");
+    } catch {}
     setResetState("none");
   }
   async function handleCancelReset() {
-    await client.post("/reset/cancel");
-    setResetState("none");
+    try {
+      await client.post("/reset/cancel");
+      setResetState("none");
+    } catch {
+      setResetState("none");
+    }
   }
 
   async function handleTicketSubmit() {
