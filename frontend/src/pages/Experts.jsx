@@ -45,9 +45,13 @@ export default function Experts() {
         ))}
       </div>
 
-      <p className="experts-footer text-muted">
-        In all seriousness — Venn is built on the simple idea that talking about what you want shouldn't be awkward.
-      </p>
+      <div className="experts-why">
+        <h3 className="experts-why-title">Why we built Venn</h3>
+        <p>Most couples have things they'd love to try but never bring up — not because they don't trust each other, but because the conversation itself feels risky. What if they say no? What if it gets weird?</p>
+        <p>We built Venn to take that pressure away. Both of you swipe independently, and only the things you <em>both</em> said yes to ever surface. No one sees a rejection. No one feels judged.</p>
+        <p>It's not about fixing something that's broken. It's about giving couples a low-stakes way to discover what they already have in common — and maybe be surprised by it.</p>
+        <p>No algorithms trying to keep you scrolling. No ads. No data sold. Just you two, finding your overlap.</p>
+      </div>
     </main>
   );
 }

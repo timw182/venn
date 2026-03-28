@@ -41,7 +41,13 @@ export default function ExpertsScreen({ navigation }) {
           </View>
         ))}
 
-        <Text style={s.footer}>In all seriousness — Venn is built on the simple idea that talking about what you want shouldn't be awkward.</Text>
+        <View style={s.whyCard}>
+          <Text style={s.whyTitle}>Why we built Venn</Text>
+          <Text style={s.whyBody}>Most couples have things they'd love to try but never bring up — not because they don't trust each other, but because the conversation itself feels risky. What if they say no? What if it gets weird?</Text>
+          <Text style={s.whyBody}>We built Venn to take that pressure away. Both of you swipe independently, and only the things you both said yes to ever surface. No one sees a rejection. No one feels judged.</Text>
+          <Text style={s.whyBody}>It's not about fixing something that's broken. It's about giving couples a low-stakes way to discover what they already have in common — and maybe be surprised by it.</Text>
+          <Text style={s.whyBody}>No algorithms trying to keep you scrolling. No ads. No data sold. Just you two, finding your overlap.</Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -81,13 +87,25 @@ const s = StyleSheet.create({
   },
   cardEmoji: { fontSize: 24 },
   cardText: { flex: 1, fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, lineHeight: 21, fontStyle: 'italic' },
-  footer: {
+  whyCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
+    padding: space[5],
+    gap: space[3],
+    marginTop: space[3],
+  },
+  whyTitle: {
+    fontFamily: fonts.serifBold,
+    fontSize: 18,
+    color: colors.text,
+    fontStyle: 'italic',
+  },
+  whyBody: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    color: colors.textLight,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingTop: space[4],
-    paddingHorizontal: space[4],
+    fontSize: 14,
+    color: colors.textMuted,
+    lineHeight: 21,
   },
 });

@@ -120,12 +120,34 @@
   font-style: italic;
 }
 
-/* ── Footer ── */
-.experts-footer {
-  text-align: center;
+/* ── Why section ── */
+.experts-why {
+  margin-top: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.experts-why-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  font-style: italic;
+}
+
+.experts-why p {
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
-  padding: var(--space-8) var(--space-4) var(--space-4);
-  max-width: 420px;
-  margin: 0 auto;
+  color: var(--color-text-muted);
+}
+
+.experts-why em {
+  font-style: normal;
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
 }
