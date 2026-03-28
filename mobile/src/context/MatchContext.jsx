@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import client from "../api/client";
 import { useAuth } from "./useAuth";
 
 const MatchContext = createContext(null);
 
-const WS_URL = "wss://api.venn.lu/api/ws";
+const WS_URL = Constants.expoConfig?.extra?.wsBase || "wss://api.venn.lu/api/ws";
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 

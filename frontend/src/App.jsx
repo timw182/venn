@@ -20,8 +20,20 @@ import Terms from './pages/Terms';
 
 // ── Route guards ──────────────────────────────────────────────────────────────
 
-/** Shows Landing when logged out; redirects based on pairing status when logged in */
-function LandingRedirect() {
+/** Root "/" — sends unauthenticated users to marketing page; logged-in users to the app */
+function RootRedirect() {
+  const { user, isSolo, loading } = useAuth();
+  if (loading) return null;
+  if (!user) {
+    window.location.replace('/download.html');
+    return null;
+  }
+  if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
+  return <Navigate to={ROUTES.PAIR} replace />;
+}
+
+/** /login — shows login/register form; redirects logged-in users to the app */
+function LoginRedirect() {
   const { user, isSolo, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Landing />;
@@ -63,7 +75,8 @@ export default function App() {
       <ErrorBoundary>
       <Routes>
         {/* Public */}
-        <Route path={ROUTES.LOGIN} element={<LandingRedirect />} />
+        <Route path="/" element={<RootRedirect />} />
+        <Route path={ROUTES.LOGIN} element={<LoginRedirect />} />
         <Route path="/impressum"   element={<Impressum />} />
         <Route path="/privacy"     element={<Privacy />} />
         <Route path="/terms"       element={<Terms />} />
@@ -95,7 +108,7 @@ export default function App() {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </ErrorBoundary>
     </>

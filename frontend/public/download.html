@@ -1,1494 +1,1983 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Venn — Find your overlap.</title>
-  <meta name="description" content="Venn helps couples explore and discover shared desires together — privately, playfully, and without the awkwardness of asking." />
-  <meta name="theme-color" content="#FAF7FC" />
-  <link rel="icon" href="favicon-32x32.png" type="image/png" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Venn — Find your overlap.</title>
+    <meta
+      name="description"
+      content="Venn helps couples explore and discover shared desires together — privately, playfully, and without the awkwardness of asking."
+    />
+    <meta name="theme-color" content="#FAF7FC" />
+    <link rel="icon" href="favicon-32x32.png" type="image/png" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
 
-  <!-- OG -->
-  <meta property="og:title" content="Venn — Find your overlap." />
-  <meta property="og:description" content="The couple's app where desires stay private and only matches are revealed." />
-  <meta property="og:image" content="venn_hori.png" />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
+    <!-- OG -->
+    <meta property="og:title" content="Venn — Find your overlap." />
+    <meta
+      property="og:description"
+      content="The couple's app where desires stay private and only matches are revealed."
+    />
+    <meta property="og:image" content="venn_hori.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
-  <style>
-    /* ═══════════════════════════════════════════════
+    <style>
+      /* ═══════════════════════════════════════════════
        TOKENS  (reproduced from tokens.css)
        ═══════════════════════════════════════════════ */
-    :root {
-      --color-bg: #FAF7FC;
-      --color-surface: #FFFFFF;
-      --color-surface-alt: #F4EFF8;
-      --color-surface-hover: #EDE5F4;
-      --color-border: #E4D8EE;
-      --color-border-strong: #D0BFE0;
+      :root {
+        --color-bg: #faf7fc;
+        --color-surface: #ffffff;
+        --color-surface-alt: #f4eff8;
+        --color-surface-hover: #ede5f4;
+        --color-border: #e4d8ee;
+        --color-border-strong: #d0bfe0;
 
-      --color-text: #2D1F3D;
-      --color-text-muted: #5C4A72;
-      --color-text-light: #7A6490;
-      --color-text-inverse: #FAF7FC;
+        --color-text: #2d1f3d;
+        --color-text-muted: #5c4a72;
+        --color-text-light: #7a6490;
+        --color-text-inverse: #faf7fc;
 
-      --color-accent: #C4547A;
-      --color-accent-hover: #AD3F65;
-      --color-accent-soft: #F4D0DC;
-      --color-accent-glow: rgba(196, 84, 122, 0.15);
-      --color-accent-bg: #FDF5F8;
+        --color-accent: #c4547a;
+        --color-accent-hover: #ad3f65;
+        --color-accent-soft: #f4d0dc;
+        --color-accent-glow: rgba(196, 84, 122, 0.15);
+        --color-accent-bg: #fdf5f8;
 
-      --color-coral: #F07A6A;
-      --color-rose: #C4547A;
-      --color-violet: #9B80D4;
-      --color-deep-violet: #4A3570;
-      --color-dark-bg: #1A0E2E;
+        --color-coral: #f07a6a;
+        --color-rose: #c4547a;
+        --color-violet: #9b80d4;
+        --color-deep-violet: #4a3570;
+        --color-dark-bg: #1a0e2e;
 
-      --color-yes-soft: rgba(155, 128, 212, 0.12);
-      --color-maybe-soft: rgba(232, 168, 192, 0.12);
+        --color-yes-soft: rgba(155, 128, 212, 0.12);
+        --color-maybe-soft: rgba(232, 168, 192, 0.12);
 
-      --font-display: 'Comfortaa', 'Varela Round', sans-serif;
-      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --font-display: "Comfortaa", "Varela Round", sans-serif;
+        --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-      --radius-sm: 6px;
-      --radius-md: 12px;
-      --radius-lg: 20px;
-      --radius-xl: 28px;
-      --radius-full: 9999px;
+        --radius-sm: 6px;
+        --radius-md: 12px;
+        --radius-lg: 20px;
+        --radius-xl: 28px;
+        --radius-full: 9999px;
 
-      --shadow-card: 0 2px 8px rgba(45, 31, 61, 0.06), 0 0 1px rgba(45, 31, 61, 0.1);
-      --shadow-card-hover: 0 8px 24px rgba(45, 31, 61, 0.1), 0 0 1px rgba(45, 31, 61, 0.12);
-      --shadow-glow: 0 0 30px rgba(196, 84, 122, 0.2);
+        --shadow-card: 0 2px 8px rgba(45, 31, 61, 0.06), 0 0 1px rgba(45, 31, 61, 0.1);
+        --shadow-card-hover: 0 8px 24px rgba(45, 31, 61, 0.1), 0 0 1px rgba(45, 31, 61, 0.12);
+        --shadow-glow: 0 0 30px rgba(196, 84, 122, 0.2);
 
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        RESET
        ═══════════════════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-    body {
-      font-family: var(--font-body);
-      color: var(--color-text);
-      background: var(--color-bg);
-      line-height: 1.6;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    img { display: block; max-width: 100%; }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; cursor: pointer; border: none; background: none; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        font-family: var(--font-body);
+        color: var(--color-text);
+        background: var(--color-bg);
+        line-height: 1.6;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: none;
+        background: none;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        SCROLL PROGRESS BAR
        ═══════════════════════════════════════════════ */
-    .scroll-progress {
-      position: fixed;
-      top: 0; left: 0;
-      width: 0%;
-      height: 2px;
-      background: linear-gradient(90deg, var(--color-coral), var(--color-rose), var(--color-violet));
-      z-index: 9999;
-      transition: width 60ms linear;
-    }
+      .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--color-coral), var(--color-rose), var(--color-violet));
+        z-index: 9999;
+        transition: width 60ms linear;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        NOISE OVERLAY  (from global.css)
        ═══════════════════════════════════════════════ */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.3;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.3;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        SCROLL REVEAL
        ═══════════════════════════════════════════════ */
-    .reveal {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .reveal-d1 { transition-delay: 0.08s; }
-    .reveal-d2 { transition-delay: 0.16s; }
-    .reveal-d3 { transition-delay: 0.24s; }
-    .reveal-d4 { transition-delay: 0.32s; }
+      .reveal {
+        opacity: 0;
+        transform: translateY(32px);
+        transition:
+          opacity 0.7s var(--ease-out),
+          transform 0.7s var(--ease-out);
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-d1 {
+        transition-delay: 0.08s;
+      }
+      .reveal-d2 {
+        transition-delay: 0.16s;
+      }
+      .reveal-d3 {
+        transition-delay: 0.24s;
+      }
+      .reveal-d4 {
+        transition-delay: 0.32s;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        SECTION LAYOUT
        ═══════════════════════════════════════════════ */
-    section {
-      position: relative;
-      z-index: 1;
-    }
-    .section-inner {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-    .section-heading {
-      font-family: var(--font-display);
-      font-size: clamp(1.6rem, 4vw, 2.25rem);
-      font-weight: 600;
-      color: var(--color-text);
-      text-align: center;
-      margin-bottom: 48px;
-      letter-spacing: -0.01em;
-    }
+      section {
+        position: relative;
+        z-index: 1;
+      }
+      .section-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .section-heading {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 4vw, 2.25rem);
+        font-weight: 600;
+        color: var(--color-text);
+        text-align: center;
+        margin-bottom: 48px;
+        letter-spacing: -0.01em;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        HERO
        ═══════════════════════════════════════════════ */
-    .hero {
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 24px 48px;
-      position: relative;
-      overflow: hidden;
-    }
+      .hero {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 24px 48px;
+        position: relative;
+        overflow: hidden;
+      }
 
-    /* Atmospheric orbs */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .orb-1 {
-      width: 380px; height: 380px;
-      background: var(--color-accent-soft);
-      opacity: 0.5;
-      top: -120px; right: -100px;
-      animation: orb-float 9s ease-in-out infinite;
-    }
-    .orb-2 {
-      width: 240px; height: 240px;
-      background: var(--color-maybe-soft);
-      opacity: 0.5;
-      bottom: 10%; left: -80px;
-      animation: orb-float 11s ease-in-out infinite 2.5s;
-    }
-    .orb-3 {
-      width: 180px; height: 180px;
-      background: var(--color-yes-soft);
-      opacity: 0.4;
-      top: 40%; right: -50px;
-      animation: orb-float 13s ease-in-out infinite 5s;
-    }
+      /* Atmospheric orbs */
+      .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .orb-1 {
+        width: 380px;
+        height: 380px;
+        background: var(--color-accent-soft);
+        opacity: 0.5;
+        top: -120px;
+        right: -100px;
+        animation: orb-float 9s ease-in-out infinite;
+      }
+      .orb-2 {
+        width: 240px;
+        height: 240px;
+        background: var(--color-maybe-soft);
+        opacity: 0.5;
+        bottom: 10%;
+        left: -80px;
+        animation: orb-float 11s ease-in-out infinite 2.5s;
+      }
+      .orb-3 {
+        width: 180px;
+        height: 180px;
+        background: var(--color-yes-soft);
+        opacity: 0.4;
+        top: 40%;
+        right: -50px;
+        animation: orb-float 13s ease-in-out infinite 5s;
+      }
 
-    @keyframes orb-float {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50%      { transform: translateY(-18px) scale(1.03); }
-    }
+      @keyframes orb-float {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-18px) scale(1.03);
+        }
+      }
 
-    /* Hero content */
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 8px;
-    }
+      /* Hero content */
+      .hero-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+      }
 
-    /* Animated Venn SVG logo */
-    .hero-logo-svg {
-      width: 140px;
-      height: 140px;
-      margin-bottom: 4px;
-    }
+      /* Animated Venn SVG logo */
+      .hero-logo-svg {
+        width: 140px;
+        height: 140px;
+        margin-bottom: 4px;
+      }
 
-    .hero-wordmark {
-      width: clamp(200px, 42vw, 340px);
-      height: auto;
-      margin-bottom: 6px;
-    }
+      .hero-wordmark {
+        width: clamp(200px, 42vw, 340px);
+        height: auto;
+        margin-bottom: 6px;
+      }
 
-    .hero-tagline {
-      font-family: var(--font-display);
-      font-size: clamp(1.35rem, 4.5vw, 2.1rem);
-      font-weight: 400;
-      color: var(--color-text);
-      letter-spacing: -0.01em;
-      line-height: 1.3;
-      margin-bottom: 4px;
-      opacity: 0;
-      animation: fade-up 0.7s var(--ease-out) 3s forwards;
-    }
-    .hero-tagline .gradient-word {
-      background: linear-gradient(135deg, var(--color-coral) 0%, var(--color-rose) 45%, var(--color-violet) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 600;
-    }
+      .hero-tagline {
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 4.5vw, 2.1rem);
+        font-weight: 400;
+        color: var(--color-text);
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+        margin-bottom: 4px;
+        opacity: 0;
+        animation: fade-up 0.7s var(--ease-out) 3s forwards;
+      }
+      .hero-tagline .gradient-word {
+        background: linear-gradient(135deg, var(--color-coral) 0%, var(--color-rose) 45%, var(--color-violet) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
+      }
 
-    .hero-subtitle {
-      font-size: clamp(0.9rem, 2.2vw, 1.1rem);
-      color: var(--color-text-muted);
-      font-weight: 300;
-      max-width: 420px;
-      line-height: 1.6;
-      opacity: 0;
-      animation: fade-up 0.7s var(--ease-out) 3.2s forwards;
-    }
+      .hero-subtitle {
+        font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+        color: var(--color-text-muted);
+        font-weight: 300;
+        max-width: 460px;
+        line-height: 1.7;
+        opacity: 0;
+        animation: fade-up 0.7s var(--ease-out) 3.1s forwards;
+      }
 
-    .hero-badges {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-      opacity: 0;
-      animation: fade-up 0.7s var(--ease-out) 3.5s forwards;
-    }
+      /* Hero flow strip */
+      .hero-flow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 24px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-full);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        opacity: 0;
+        animation: fade-up 0.7s var(--ease-out) 3.3s forwards;
+      }
+      .hero-flow-step {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+      }
+      .hero-flow-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-family: var(--font-display);
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--color-coral), var(--color-rose));
+      }
+      .hero-flow-arrow {
+        color: var(--color-border-strong);
+        font-size: 0.75rem;
+        font-weight: 300;
+      }
 
-    .hero-availability {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--color-text-light);
-      opacity: 0;
-      animation: fade-up 0.5s var(--ease-out) 3.8s forwards;
-    }
+      .hero-badges {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+        opacity: 0;
+        animation: fade-up 0.7s var(--ease-out) 3.5s forwards;
+      }
 
-    /* Scroll hint */
-    .hero-scroll-hint {
-      position: absolute;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      opacity: 0;
-      animation: fade-up 0.6s var(--ease-out) 4.2s forwards;
-    }
-    .hero-scroll-hint span {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--color-text-light);
-    }
-    .scroll-arrow {
-      width: 18px; height: 18px;
-      border-right: 1.5px solid var(--color-text-light);
-      border-bottom: 1.5px solid var(--color-text-light);
-      transform: rotate(45deg);
-      animation: scroll-bounce 2s ease-in-out infinite;
-    }
-    @keyframes scroll-bounce {
-      0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.5; }
-      50%      { transform: rotate(45deg) translateY(5px); opacity: 1; }
-    }
+      .hero-availability {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-light);
+        opacity: 0;
+        animation: fade-up 0.5s var(--ease-out) 3.8s forwards;
+      }
 
-    /* ═══════════════════════════════════════════════
+
+      /* Scroll hint */
+      .hero-scroll-hint {
+        position: absolute;
+        bottom: 28px;
+        left: 50%;
+        translate: -50% 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        opacity: 0;
+        animation: fade-up 0.6s var(--ease-out) 4.2s forwards;
+      }
+      .hero-scroll-hint span {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--color-text-light);
+      }
+      .scroll-arrow {
+        width: 18px;
+        height: 18px;
+        border-right: 1.5px solid var(--color-text-light);
+        border-bottom: 1.5px solid var(--color-text-light);
+        transform: rotate(45deg);
+        animation: scroll-bounce 2s ease-in-out infinite;
+      }
+      @keyframes scroll-bounce {
+        0%,
+        100% {
+          transform: rotate(45deg) translateY(0);
+          opacity: 0.5;
+        }
+        50% {
+          transform: rotate(45deg) translateY(5px);
+          opacity: 1;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════
        STORE BADGES (custom CSS)
        ═══════════════════════════════════════════════ */
-    .store-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 24px;
-      background: var(--color-dark-bg);
-      border-radius: var(--radius-lg);
-      color: #fff;
-      font-family: var(--font-body);
-      text-decoration: none;
-      transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
-      position: relative;
-      overflow: hidden;
-    }
-    .store-badge:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(26, 14, 46, 0.3);
-    }
-    /* Shimmer */
-    .store-badge::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -120%;
-      width: 60%; height: 100%;
-      background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-      transform: skewX(-20deg);
-      transition: left 0.55s var(--ease-out);
-      pointer-events: none;
-    }
-    .store-badge:hover::after { left: 160%; }
+      .store-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: var(--color-dark-bg);
+        border-radius: var(--radius-lg);
+        color: #fff;
+        font-family: var(--font-body);
+        text-decoration: none;
+        transition:
+          transform 0.25s var(--ease-out),
+          box-shadow 0.25s var(--ease-out);
+        position: relative;
+        overflow: hidden;
+      }
+      .store-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(26, 14, 46, 0.3);
+      }
+      /* Shimmer */
+      .store-badge::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+        transform: skewX(-20deg);
+        transition: left 0.55s var(--ease-out);
+        pointer-events: none;
+      }
+      .store-badge:hover::after {
+        left: 160%;
+      }
 
-    .store-badge svg { flex-shrink: 0; }
-    .store-badge-text { display: flex; flex-direction: column; line-height: 1.2; }
-    .store-badge-label { font-size: 0.6rem; opacity: 0.7; letter-spacing: 0.04em; }
-    .store-badge-store { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+      .store-badge svg {
+        flex-shrink: 0;
+      }
+      .store-badge-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+      .store-badge-label {
+        font-size: 0.6rem;
+        opacity: 0.7;
+        letter-spacing: 0.04em;
+      }
+      .store-badge-store {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        FEATURES
        ═══════════════════════════════════════════════ */
-    .features {
-      padding: 100px 0 80px;
-    }
-    .features-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      max-width: 820px;
-      margin: 0 auto;
-    }
-    .feature-card {
-      display: flex;
-      align-items: flex-start;
-      gap: 20px;
-      padding: 24px 28px;
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: var(--shadow-card);
-      transition: box-shadow 0.3s var(--ease-out), transform 0.3s var(--ease-out);
-    }
-    .feature-card:hover {
-      box-shadow: var(--shadow-card-hover);
-      transform: translateY(-2px);
-    }
-    .feature-icon {
-      flex-shrink: 0;
-      width: 44px;
-      height: 44px;
-    }
-    /* Icon animations from Landing.css */
-    .feature-card:nth-child(1) .feature-icon { animation: icon-rock 4s ease-in-out infinite 1.2s; transform-origin: center bottom; }
-    .feature-card:nth-child(2) .feature-icon { animation: icon-pulse 3.5s ease-in-out infinite 1.4s; }
-    .feature-card:nth-child(3) .feature-icon { animation: icon-float 3s ease-in-out infinite 1.6s; }
+      .features {
+        padding: 100px 0 80px;
+        background:
+          radial-gradient(ellipse 50% 40% at 75% 0%, rgba(196, 84, 122, 0.04) 0%, transparent 100%),
+          radial-gradient(ellipse 40% 50% at 10% 80%, rgba(155, 128, 212, 0.03) 0%, transparent 100%);
+      }
+      .features-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        max-width: 820px;
+        margin: 0 auto;
+      }
+      .feature-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 24px 28px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-card);
+        transition:
+          box-shadow 0.3s var(--ease-out),
+          transform 0.3s var(--ease-out);
+      }
+      .feature-card:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-2px);
+      }
+      .feature-icon {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+      }
+      /* Icon animations from Landing.css */
+      .feature-card:nth-child(1) .feature-icon {
+        animation: icon-rock 4s ease-in-out infinite 1.2s;
+        transform-origin: center bottom;
+      }
+      .feature-card:nth-child(2) .feature-icon {
+        animation: icon-pulse 3.5s ease-in-out infinite 1.4s;
+      }
+      .feature-card:nth-child(3) .feature-icon {
+        animation: icon-float 3s ease-in-out infinite 1.6s;
+      }
 
-    @keyframes icon-rock {
-      0%, 100% { transform: rotate(0deg); }
-      20% { transform: rotate(-14deg); }
-      40% { transform: rotate(10deg); }
-      60% { transform: rotate(-6deg); }
-      80% { transform: rotate(3deg); }
-    }
-    @keyframes icon-pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.18); opacity: 0.75; }
-    }
-    @keyframes icon-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
+      @keyframes icon-rock {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        20% {
+          transform: rotate(-14deg);
+        }
+        40% {
+          transform: rotate(10deg);
+        }
+        60% {
+          transform: rotate(-6deg);
+        }
+        80% {
+          transform: rotate(3deg);
+        }
+      }
+      @keyframes icon-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.18);
+          opacity: 0.75;
+        }
+      }
+      @keyframes icon-float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
 
-    .feature-text h3 {
-      font-family: var(--font-display);
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 4px;
-      letter-spacing: -0.01em;
-    }
-    .feature-text p {
-      font-size: 0.9rem;
-      color: var(--color-text-muted);
-      line-height: 1.6;
-    }
+      .feature-text h3 {
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
+      }
+      .feature-text p {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        HOW IT WORKS — Horizontal Scroll
        ═══════════════════════════════════════════════ */
-    .how-it-works {
-      overflow: hidden;
-      position: relative;
-    }
+      .how-it-works {
+        overflow: hidden;
+        position: relative;
+        background:
+          radial-gradient(ellipse 80% 60% at 20% 40%, rgba(155, 128, 212, 0.04) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 50% at 80% 70%, rgba(196, 84, 122, 0.04) 0%, transparent 60%),
+          var(--color-bg);
+      }
 
-    .how-it-works-heading {
-      font-family: var(--font-display);
-      font-size: clamp(1.6rem, 4vw, 2.25rem);
-      font-weight: 600;
-      color: var(--color-text);
-      text-align: center;
-      padding-top: 80px;
-      margin-bottom: 0;
-      letter-spacing: -0.01em;
-      position: relative;
-      z-index: 2;
-    }
+      /* Floating dots decoration */
+      .hiw-dots {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .hiw-dot {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        opacity: 0;
+        animation: dot-drift 14s ease-in-out infinite;
+      }
+      .hiw-dot:nth-child(1) { left: 8%; top: 20%; background: var(--color-coral); animation-delay: 0s; animation-duration: 12s; }
+      .hiw-dot:nth-child(2) { left: 22%; top: 70%; background: var(--color-violet); animation-delay: 2s; animation-duration: 16s; }
+      .hiw-dot:nth-child(3) { left: 45%; top: 15%; background: var(--color-rose); animation-delay: 4s; animation-duration: 13s; }
+      .hiw-dot:nth-child(4) { left: 65%; top: 80%; background: var(--color-coral); animation-delay: 1s; animation-duration: 15s; }
+      .hiw-dot:nth-child(5) { left: 80%; top: 30%; background: var(--color-violet); animation-delay: 3s; animation-duration: 11s; }
+      .hiw-dot:nth-child(6) { left: 92%; top: 60%; background: var(--color-rose); animation-delay: 5s; animation-duration: 14s; }
+      @keyframes dot-drift {
+        0%, 100% { opacity: 0; transform: translateY(0) scale(1); }
+        15% { opacity: 0.35; }
+        50% { opacity: 0.2; transform: translateY(-30px) scale(1.4); }
+        85% { opacity: 0.35; }
+      }
 
-    .steps-track {
-      display: flex;
-      width: fit-content;
-    }
+      .how-it-works-heading {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 4vw, 2.25rem);
+        font-weight: 600;
+        color: var(--color-text);
+        text-align: center;
+        padding-top: 80px;
+        margin-bottom: 0;
+        letter-spacing: -0.01em;
+        position: relative;
+        z-index: 2;
+      }
 
-    .step-panel {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      position: relative;
-      padding: 0 48px;
-    }
+      .steps-track {
+        display: flex;
+        width: fit-content;
+      }
 
-    .step-panel-inner {
-      display: flex;
-      align-items: center;
-      gap: 64px;
-      max-width: 900px;
-      width: 100%;
-    }
+      .step-panel {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        padding: 0 48px;
+      }
 
-    .step-panel-text {
-      flex: 1;
-      min-width: 0;
-    }
+      /* Subtle radial glow per panel — different hue each */
+      .step-panel::before {
+        content: "";
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(100px);
+        opacity: 0;
+        animation: panel-glow-breathe 8s ease-in-out infinite;
+      }
+      .step-panel:nth-child(1)::before {
+        background: var(--color-accent-soft);
+        top: 15%;
+        right: 10%;
+        animation-delay: 0s;
+      }
+      .step-panel:nth-child(2)::before {
+        background: rgba(155, 128, 212, 0.15);
+        bottom: 10%;
+        left: 8%;
+        animation-delay: 2s;
+      }
+      .step-panel:nth-child(3)::before {
+        background: rgba(240, 122, 106, 0.12);
+        top: 20%;
+        left: 15%;
+        animation-delay: 4s;
+      }
+      .step-panel:nth-child(4)::before {
+        background: var(--color-accent-soft);
+        bottom: 15%;
+        right: 12%;
+        animation-delay: 6s;
+      }
+      @keyframes panel-glow-breathe {
+        0%, 100% { opacity: 0.3; transform: scale(0.9); }
+        50% { opacity: 0.55; transform: scale(1.05); }
+      }
 
-    .step-panel-visual {
-      flex-shrink: 0;
-      width: 280px;
-      height: 360px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      .step-panel-inner {
+        display: flex;
+        align-items: center;
+        gap: 64px;
+        max-width: 900px;
+        width: 100%;
+      }
 
-    /* Big step number watermark */
-    .step-panel-bg-num {
-      position: absolute;
-      top: 50%;
-      left: 48px;
-      transform: translateY(-50%);
-      font-family: var(--font-display);
-      font-size: clamp(8rem, 20vw, 14rem);
-      font-weight: 700;
-      color: var(--color-border);
-      opacity: 0.12;
-      line-height: 1;
-      pointer-events: none;
-      user-select: none;
-    }
+      .step-panel-text {
+        flex: 1;
+        min-width: 0;
+      }
 
-    .step-number {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--color-accent);
-      background: var(--color-surface);
-      border: 2px solid transparent;
-      background-image:
-        linear-gradient(var(--color-surface), var(--color-surface)),
-        linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
-      background-origin: padding-box, border-box;
-      background-clip: padding-box, border-box;
-      margin-bottom: 20px;
-    }
+      .step-panel-visual {
+        flex-shrink: 0;
+        width: 280px;
+        height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .step-panel-text h3 {
-      font-family: var(--font-display);
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 12px;
-      letter-spacing: -0.01em;
-    }
+      /* Big step number watermark */
+      .step-panel-bg-num {
+        position: absolute;
+        top: 50%;
+        left: 48px;
+        transform: translateY(-50%);
+        font-family: var(--font-display);
+        font-size: clamp(8rem, 20vw, 14rem);
+        font-weight: 700;
+        color: var(--color-border-strong);
+        opacity: 0.18;
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+      }
 
-    .step-panel-text p {
-      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
-      color: var(--color-text-muted);
-      line-height: 1.7;
-      max-width: 400px;
-    }
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--color-accent);
+        background: var(--color-surface);
+        border: 2px solid transparent;
+        background-image:
+          linear-gradient(var(--color-surface), var(--color-surface)),
+          linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
+        background-origin: padding-box, border-box;
+        background-clip: padding-box, border-box;
+        margin-bottom: 20px;
+      }
 
-    /* Connector dots between panels */
-    .step-panel::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1px;
-      height: 120px;
-      background: repeating-linear-gradient(
-        to bottom,
-        var(--color-border) 0, var(--color-border) 4px,
-        transparent 4px, transparent 10px
-      );
-      opacity: 0.5;
-    }
-    .step-panel:last-child::after { display: none; }
+      .step-panel-text h3 {
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
+      }
 
-    /* Progress bar at bottom of horizontal section */
-    .hiw-progress {
-      position: absolute;
-      bottom: 48px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      height: 2px;
-      background: var(--color-border);
-      border-radius: 2px;
-      z-index: 10;
-      overflow: hidden;
-    }
+      .step-panel-text p {
+        font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+        color: var(--color-text-muted);
+        line-height: 1.7;
+        max-width: 400px;
+      }
 
-    .hiw-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--color-coral), var(--color-rose), var(--color-violet));
-      border-radius: 2px;
-    }
+      /* Connector dots between panels */
+      .step-panel::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 120px;
+        background: repeating-linear-gradient(
+          to bottom,
+          var(--color-border) 0,
+          var(--color-border) 4px,
+          transparent 4px,
+          transparent 10px
+        );
+        opacity: 0.5;
+      }
+      .step-panel:last-child::after {
+        display: none;
+      }
 
-    /* Step visual cards */
-    .step-visual-card {
-      width: 240px;
-      padding: 32px 24px;
-      background: rgba(255, 255, 255, 0.8);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow-card);
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
+      /* Progress bar at bottom of horizontal section */
+      .hiw-progress {
+        position: absolute;
+        bottom: 48px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 2px;
+        background: var(--color-border);
+        border-radius: 2px;
+        z-index: 10;
+        overflow: hidden;
+      }
 
-    .step-visual-code {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: 6px;
-      background: linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+      .hiw-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--color-coral), var(--color-rose), var(--color-violet));
+        border-radius: 2px;
+      }
 
-    .step-visual-label {
-      font-size: 0.78rem;
-      color: var(--color-text-light);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+      /* Step visual cards */
+      .step-visual-card {
+        width: 240px;
+        padding: 32px 24px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        backdrop-filter: blur(12px);
+        box-shadow: var(--shadow-card);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
 
-    .step-visual-emoji {
-      font-size: 3rem;
-      line-height: 1;
-    }
+      .step-visual-code {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 6px;
+        background: linear-gradient(135deg, var(--color-coral), var(--color-rose), var(--color-violet));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
 
-    .step-visual-swipe-stack {
-      position: relative;
-      width: 200px;
-      height: 240px;
-    }
+      .step-visual-label {
+        font-size: 0.78rem;
+        color: var(--color-text-light);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
 
-    .swipe-card-mini {
-      position: absolute;
-      width: 180px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-card);
-      text-align: center;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-    .swipe-card-mini:nth-child(1) { bottom: 0; z-index: 3; }
-    .swipe-card-mini:nth-child(2) { bottom: 14px; z-index: 2; transform: translateX(-50%) scale(0.95); opacity: 0.7; }
-    .swipe-card-mini:nth-child(3) { bottom: 28px; z-index: 1; transform: translateX(-50%) scale(0.9); opacity: 0.4; }
+      .step-visual-emoji {
+        font-size: 3rem;
+        line-height: 1;
+      }
 
-    .swipe-card-mini .s-emoji { font-size: 1.8rem; }
-    .swipe-card-mini .s-name { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; }
+      .step-visual-swipe-stack {
+        position: relative;
+        width: 200px;
+        height: 240px;
+      }
 
-    .step-visual-match-list {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+      .swipe-card-mini {
+        position: absolute;
+        width: 180px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        text-align: center;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .swipe-card-mini:nth-child(1) {
+        bottom: 0;
+        z-index: 3;
+      }
+      .swipe-card-mini:nth-child(2) {
+        bottom: 14px;
+        z-index: 2;
+        transform: translateX(-50%) scale(0.95);
+        opacity: 0.7;
+      }
+      .swipe-card-mini:nth-child(3) {
+        bottom: 28px;
+        z-index: 1;
+        transform: translateX(-50%) scale(0.9);
+        opacity: 0.4;
+      }
 
-    .mini-match {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--color-surface-alt);
-      border-radius: var(--radius-md);
-    }
+      .swipe-card-mini .s-emoji {
+        font-size: 1.8rem;
+      }
+      .swipe-card-mini .s-name {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
 
-    .mini-match-icon {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      background: var(--color-yes-soft);
-    }
+      .step-visual-match-list {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-    .mini-match-text {
-      font-family: var(--font-display);
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
+      .mini-match {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--color-surface-alt);
+        border-radius: var(--radius-md);
+      }
 
-    @keyframes step-glow {
-      0%, 100% { box-shadow: 0 0 0 0 transparent; }
-      50% { box-shadow: 0 0 20px rgba(196, 84, 122, 0.2), 0 0 40px rgba(196, 84, 122, 0.08); }
-    }
+      .mini-match-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        background: var(--color-yes-soft);
+      }
 
-    @media (max-width: 768px) {
-      .step-panel { padding: 0 24px; }
-      .step-panel-inner { flex-direction: column; text-align: center; gap: 32px; }
-      .step-panel-visual { width: 220px; height: auto; }
-      .step-panel-text { display: flex; flex-direction: column; align-items: center; }
-      .step-panel-bg-num { font-size: 6rem; left: 24px; opacity: 0.06; }
-      .hiw-progress { width: 140px; }
-    }
+      .mini-match-text {
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
 
-    /* ═══════════════════════════════════════════════
+      @keyframes step-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 transparent;
+        }
+        50% {
+          box-shadow:
+            0 0 20px rgba(196, 84, 122, 0.2),
+            0 0 40px rgba(196, 84, 122, 0.08);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .step-panel {
+          padding: 0 24px;
+        }
+        .step-panel-inner {
+          flex-direction: column;
+          text-align: center;
+          gap: 32px;
+        }
+        .step-panel-visual {
+          width: 220px;
+          height: auto;
+        }
+        .step-panel-text {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .step-panel-bg-num {
+          font-size: 6rem;
+          left: 24px;
+          opacity: 0.06;
+        }
+        .hiw-progress {
+          width: 140px;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════
        VENN DIVIDER (brand motif)
        ═══════════════════════════════════════════════ */
-    .venn-divider {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 0;
-    }
-    .venn-divider svg { opacity: 0.25; }
+      .venn-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 0;
+      }
+      .venn-divider svg {
+        opacity: 0.25;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        TRUST — DARK SECTION
        ═══════════════════════════════════════════════ */
-    .trust {
-      padding: 100px 0;
-      background: var(--color-dark-bg);
-      position: relative;
-      overflow: hidden;
-    }
-    .trust .section-heading {
-      color: var(--color-text-inverse);
-    }
+      .trust {
+        padding: 100px 0;
+        background: var(--color-dark-bg);
+        position: relative;
+        overflow: hidden;
+      }
+      .trust .section-heading {
+        color: var(--color-text-inverse);
+      }
 
-    /* Aurora background */
-    .trust-aurora {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .trust-aurora::before {
-      content: '';
-      position: absolute;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      top: -200px; left: -100px;
-      background: radial-gradient(circle, rgba(196, 84, 122, 0.12) 0%, transparent 70%);
-      animation: aurora-drift 12s ease-in-out infinite;
-    }
-    .trust-aurora::after {
-      content: '';
-      position: absolute;
-      width: 500px; height: 500px;
-      border-radius: 50%;
-      bottom: -200px; right: -100px;
-      background: radial-gradient(circle, rgba(155, 128, 212, 0.1) 0%, transparent 70%);
-      animation: aurora-drift 15s ease-in-out infinite 4s;
-    }
-    @keyframes aurora-drift {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(40px, -20px) scale(1.1); }
-      66% { transform: translate(-20px, 30px) scale(0.95); }
-    }
+      /* Aurora background */
+      .trust-aurora {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .trust-aurora::before {
+        content: "";
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        top: -200px;
+        left: -100px;
+        background: radial-gradient(circle, rgba(196, 84, 122, 0.12) 0%, transparent 70%);
+        animation: aurora-drift 12s ease-in-out infinite;
+      }
+      .trust-aurora::after {
+        content: "";
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        bottom: -200px;
+        right: -100px;
+        background: radial-gradient(circle, rgba(155, 128, 212, 0.1) 0%, transparent 70%);
+        animation: aurora-drift 15s ease-in-out infinite 4s;
+      }
+      @keyframes aurora-drift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(40px, -20px) scale(1.1);
+        }
+        66% {
+          transform: translate(-20px, 30px) scale(0.95);
+        }
+      }
 
-    /* Decorative large Venn circles */
-    .trust-deco-circles {
-      position: absolute;
-      top: 50%; right: -60px;
-      transform: translateY(-50%);
-      opacity: 0.03;
-      pointer-events: none;
-    }
+      /* Decorative large Venn circles */
+      .trust-deco-circles {
+        position: absolute;
+        top: 50%;
+        right: -60px;
+        transform: translateY(-50%);
+        opacity: 0.03;
+        pointer-events: none;
+      }
 
-    .trust-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      position: relative;
-      z-index: 1;
-      max-width: 820px;
-      margin: 0 auto;
-    }
-    .trust-card {
-      padding: 28px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-xl);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      transition: background 0.3s, border-color 0.3s;
-    }
-    .trust-card:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.14);
-    }
-    .trust-card-icon {
-      width: 36px; height: 36px;
-      margin-bottom: 16px;
-      opacity: 0.85;
-    }
-    .trust-card h3 {
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--color-text-inverse);
-      margin-bottom: 8px;
-    }
-    .trust-card p {
-      font-size: 0.88rem;
-      color: rgba(250, 247, 252, 0.6);
-      line-height: 1.65;
-    }
+      .trust-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+        max-width: 820px;
+        margin: 0 auto;
+      }
+      .trust-card {
+        padding: 28px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-xl);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition:
+          background 0.3s,
+          border-color 0.3s;
+      }
+      .trust-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+      .trust-card-icon {
+        width: 36px;
+        height: 36px;
+        margin-bottom: 16px;
+        opacity: 0.85;
+      }
+      .trust-card h3 {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text-inverse);
+        margin-bottom: 8px;
+      }
+      .trust-card p {
+        font-size: 0.88rem;
+        color: rgba(250, 247, 252, 0.6);
+        line-height: 1.65;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        EXPERT QUOTES
        ═══════════════════════════════════════════════ */
-    .quotes {
-      padding: 100px 0 80px;
-    }
-    .quotes-grid {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      padding: 4px 24px 16px;
-      scrollbar-width: none;
-    }
-    .quotes-grid::-webkit-scrollbar { display: none; }
+      .quotes {
+        padding: 100px 0 80px;
+      }
+      .quotes-grid {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 24px 16px;
+        scrollbar-width: none;
+      }
+      .quotes-grid::-webkit-scrollbar {
+        display: none;
+      }
 
-    .quote-card {
-      flex: 0 0 300px;
-      scroll-snap-align: center;
-      padding: 28px;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-card);
-      position: relative;
-      transition: box-shadow 0.3s, transform 0.3s;
-    }
-    .quote-card:hover {
-      box-shadow: var(--shadow-card-hover);
-      transform: translateY(-2px);
-    }
-    .quote-mark {
-      font-family: var(--font-display);
-      font-size: 4rem;
-      line-height: 1;
-      color: var(--color-border-strong);
-      position: absolute;
-      top: 12px; left: 20px;
-      pointer-events: none;
-      user-select: none;
-    }
-    .quote-text {
-      font-size: 0.88rem;
-      color: var(--color-text-muted);
-      line-height: 1.7;
-      margin-top: 24px;
-      margin-bottom: 20px;
-      font-style: italic;
-    }
-    .quote-author {
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 2px;
-    }
-    .quote-role {
-      font-size: 0.75rem;
-      color: var(--color-text-light);
-      line-height: 1.4;
-    }
+      .quote-card {
+        flex: 0 0 300px;
+        scroll-snap-align: center;
+        padding: 28px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-card);
+        position: relative;
+        transition:
+          box-shadow 0.3s,
+          transform 0.3s;
+      }
+      .quote-card:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-2px);
+      }
+      .quote-mark {
+        font-family: var(--font-display);
+        font-size: 4rem;
+        line-height: 1;
+        color: var(--color-border-strong);
+        position: absolute;
+        top: 12px;
+        left: 20px;
+        pointer-events: none;
+        user-select: none;
+      }
+      .quote-text {
+        font-size: 0.88rem;
+        color: var(--color-text-muted);
+        line-height: 1.7;
+        margin-top: 24px;
+        margin-bottom: 20px;
+        font-style: italic;
+      }
+      .quote-author {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 2px;
+      }
+      .quote-role {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        line-height: 1.4;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        FINAL CTA
        ═══════════════════════════════════════════════ */
-    .final-cta {
-      padding: 80px 0 60px;
-      text-align: center;
-      position: relative;
-    }
-    .final-cta::before {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 600px; height: 400px;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(ellipse, rgba(196, 84, 122, 0.06) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .final-cta .section-heading {
-      margin-bottom: 12px;
-    }
-    .final-cta-sub {
-      font-size: clamp(0.9rem, 2vw, 1.05rem);
-      color: var(--color-text-muted);
-      font-weight: 300;
-      margin-bottom: 32px;
-    }
-    .final-cta-badges {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-    .final-cta-note {
-      font-size: 0.78rem;
-      color: var(--color-text-light);
-      letter-spacing: 0.02em;
-    }
+      .final-cta {
+        padding: 80px 0 60px;
+        text-align: center;
+        position: relative;
+      }
+      .final-cta::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 600px;
+        height: 400px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(ellipse, rgba(196, 84, 122, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .final-cta .section-heading {
+        margin-bottom: 12px;
+      }
+      .final-cta-sub {
+        font-size: clamp(0.9rem, 2vw, 1.05rem);
+        color: var(--color-text-muted);
+        font-weight: 300;
+        margin-bottom: 32px;
+      }
+      .final-cta-badges {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .final-cta-note {
+        font-size: 0.78rem;
+        color: var(--color-text-light);
+        letter-spacing: 0.02em;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        FOOTER
        ═══════════════════════════════════════════════ */
-    .site-footer {
-      padding: 40px 24px 36px;
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      position: relative;
-      z-index: 1;
-    }
-    .footer-logo { width: 100px; opacity: 0.6; }
-    .footer-links {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.78rem;
-      color: var(--color-text-light);
-    }
-    .footer-links a { transition: color 0.15s; }
-    .footer-links a:hover { color: var(--color-text-muted); }
-    .footer-dot { opacity: 0.35; }
-    .footer-copy {
-      font-size: 0.72rem;
-      color: var(--color-text-light);
-      opacity: 0.7;
-    }
+      .site-footer {
+        padding: 40px 24px 36px;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+      }
+      .footer-logo {
+        width: 100px;
+        opacity: 0.6;
+      }
+      .footer-links {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.78rem;
+        color: var(--color-text-light);
+      }
+      .footer-links a {
+        transition: color 0.15s;
+      }
+      .footer-links a:hover {
+        color: var(--color-text-muted);
+      }
+      .footer-dot {
+        opacity: 0.35;
+      }
+      .footer-copy {
+        font-size: 0.72rem;
+        color: var(--color-text-light);
+        opacity: 0.7;
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        ANIMATIONS  (global keyframes)
        ═══════════════════════════════════════════════ */
-    @keyframes fade-up {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fade-in {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
 
-    /* Venn logo CSS animation (mirrors VennAnimatedLogo.jsx) */
-    .venn-circle-left {
-      opacity: 0;
-      transform: translateX(-120px);
-      animation: venn-slide-left 1.2s var(--ease-out) 0.2s forwards;
-    }
-    .venn-spin-left {
-      transform-origin: 82px 128px;
-      transform: rotate(-180deg);
-      animation: venn-spin 1.2s ease-in-out 1.4s forwards;
-    }
-    .venn-circle-right {
-      opacity: 0;
-      transform: translateX(120px);
-      animation: venn-slide-right 1.2s var(--ease-out) 0.2s forwards;
-    }
-    .venn-spin-right {
-      transform-origin: 174px 128px;
-      transform: rotate(-180deg);
-      animation: venn-spin 1.2s ease-in-out 1.4s forwards;
-    }
-    .venn-title {
-      opacity: 0;
-      animation: fade-in 0.8s ease-in 2.7s forwards;
-    }
-    @keyframes venn-slide-left {
-      0%   { opacity: 0; transform: translateX(-120px); }
-      35%  { opacity: 1; }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes venn-slide-right {
-      0%   { opacity: 0; transform: translateX(120px); }
-      35%  { opacity: 1; }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes venn-spin {
-      from { transform: rotate(-180deg); }
-      to   { transform: rotate(0deg); }
-    }
+      /* Venn logo CSS animation (mirrors VennAnimatedLogo.jsx) */
+      .venn-circle-left {
+        opacity: 0;
+        transform: translateX(-120px);
+        animation: venn-slide-left 1.2s var(--ease-out) 0.2s forwards;
+      }
+      .venn-spin-left {
+        transform-origin: 82px 128px;
+        transform: rotate(-180deg);
+        animation: venn-spin 1.2s ease-in-out 1.4s forwards;
+      }
+      .venn-circle-right {
+        opacity: 0;
+        transform: translateX(120px);
+        animation: venn-slide-right 1.2s var(--ease-out) 0.2s forwards;
+      }
+      .venn-spin-right {
+        transform-origin: 174px 128px;
+        transform: rotate(-180deg);
+        animation: venn-spin 1.2s ease-in-out 1.4s forwards;
+      }
+      .venn-title {
+        opacity: 0;
+        animation: fade-in 0.8s ease-in 2.7s forwards;
+      }
+      @keyframes venn-slide-left {
+        0% {
+          opacity: 0;
+          transform: translateX(-120px);
+        }
+        35% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes venn-slide-right {
+        0% {
+          opacity: 0;
+          transform: translateX(120px);
+        }
+        35% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes venn-spin {
+        from {
+          transform: rotate(-180deg);
+        }
+        to {
+          transform: rotate(0deg);
+        }
+      }
 
-    /* ═══════════════════════════════════════════════
+      /* ═══════════════════════════════════════════════
        RESPONSIVE
        ═══════════════════════════════════════════════ */
 
-    /* ── Tablet+ ── */
-    @media (min-width: 768px) {
-      .features-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+      /* ── Tablet+ ── */
+      @media (min-width: 768px) {
+        .features-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+        .feature-card {
+          flex-direction: column;
+          text-align: center;
+          align-items: center;
+          padding: 32px 24px;
+        }
+        .trust-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+        .quotes-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          overflow: visible;
+          padding: 4px 0 16px;
+        }
+        .quote-card {
+          flex: unset;
+        }
+        /* steps handled by horizontal scroll now */
       }
-      .feature-card {
-        flex-direction: column;
-        text-align: center;
-        align-items: center;
-        padding: 32px 24px;
+
+      /* ── Desktop ── */
+      @media (min-width: 1024px) {
+        .features {
+          padding: 120px 0 100px;
+        }
+        .how-it-works {
+          padding: 100px 0 120px;
+        }
+        .trust {
+          padding: 120px 0;
+        }
+        .quotes {
+          padding: 120px 0 100px;
+        }
+        .final-cta {
+          padding: 100px 0 80px;
+        }
       }
-      .trust-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+
+      /* ── Small phones ── */
+      @media (max-width: 479px) {
+        .hero {
+          padding: 48px 20px 40px;
+        }
+        .hero-logo-svg {
+          width: 110px;
+          height: 110px;
+        }
+        .store-badge {
+          padding: 10px 18px;
+        }
+        .store-badge-store {
+          font-size: 0.88rem;
+        }
+        .hero-scroll-hint {
+          bottom: 18px;
+        }
+        .section-inner {
+          padding: 0 20px;
+        }
+        .quote-card {
+          flex: 0 0 270px;
+        }
       }
-      .quotes-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        overflow: visible;
-        padding: 4px 0 16px;
-      }
-      .quote-card {
-        flex: unset;
-      }
-      /* steps handled by horizontal scroll now */
-    }
+    </style>
+  </head>
 
-    /* ── Desktop ── */
-    @media (min-width: 1024px) {
-      .features { padding: 120px 0 100px; }
-      .how-it-works { padding: 100px 0 120px; }
-      .trust { padding: 120px 0; }
-      .quotes { padding: 120px 0 100px; }
-      .final-cta { padding: 100px 0 80px; }
-    }
+  <body>
+    <!-- Scroll progress -->
+    <div class="scroll-progress" id="scrollProgress"></div>
 
-    /* ── Small phones ── */
-    @media (max-width: 479px) {
-      .hero { padding: 48px 20px 40px; }
-      .hero-logo-svg { width: 110px; height: 110px; }
-      .store-badge { padding: 10px 18px; }
-      .store-badge-store { font-size: 0.88rem; }
-      .hero-scroll-hint { bottom: 18px; }
-      .section-inner { padding: 0 20px; }
-      .quote-card { flex: 0 0 270px; }
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- Scroll progress -->
-  <div class="scroll-progress" id="scrollProgress"></div>
-
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        HERO
        ════════════════════════════════════════════ -->
-  <section class="hero">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
+    <section class="hero">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
 
-    <div class="hero-content">
-      <!-- Animated Venn SVG -->
-      <svg class="hero-logo-svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <linearGradient id="vl1" x1="13.71" y1="128" x2="145.3" y2="128" gradientUnits="userSpaceOnUse">
-            <stop offset="0.15" stop-color="#f07a6a"/>
-            <stop offset="0.34" stop-color="#f3807a"/>
-            <stop offset="0.79" stop-color="#fa8e9e"/>
-          </linearGradient>
-          <linearGradient id="vl2" x1="110.7" y1="128" x2="242.29" y2="128" gradientUnits="userSpaceOnUse">
-            <stop offset="0.11" stop-color="#fa8e9e"/>
-            <stop offset="0.71" stop-color="#9b80d4"/>
-          </linearGradient>
-        </defs>
-        <g class="venn-circle-left"><g class="venn-spin-left">
-          <path fill="url(#vl1)" d="M82.08,196.37c-37.7,0-68.37-30.67-68.37-68.37S44.38,59.63,82.08,59.63c27.54,0,52.26,16.39,62.99,41.75.62,1.47-.07,3.17-1.54,3.8s-3.17-.07-3.8-1.54c-9.82-23.22-32.45-38.22-57.66-38.22-34.5,0-62.57,28.07-62.57,62.57s28.07,62.57,62.57,62.57c23.77,0,45.19-13.19,55.9-34.43.72-1.43,2.46-2,3.89-1.28,1.43.72,2,2.46,1.28,3.89-5.62,11.13-14.17,20.53-24.74,27.17-10.87,6.83-23.43,10.44-36.33,10.44Z"/>
-        </g></g>
-        <g class="venn-circle-right"><g class="venn-spin-right">
-          <path fill="url(#vl2)" d="M173.92,196.37c-12.9,0-25.46-3.61-36.33-10.44-10.57-6.64-19.13-16.04-24.74-27.17-.72-1.43-.15-3.17,1.28-3.89,1.43-.72,3.17-.15,3.89,1.28,10.71,21.24,32.13,34.43,55.9,34.43,34.5,0,62.57-28.07,62.57-62.57s-28.07-62.57-62.57-62.57c-25.21,0-47.84,15-57.66,38.22-.62,1.47-2.32,2.16-3.8,1.54-1.47-.62-2.16-2.32-1.54-3.8,10.73-25.36,35.45-41.75,62.99-41.75,37.7,0,68.37,30.67,68.37,68.37s-30.67,68.37-68.37,68.37Z"/>
-        </g></g>
-        <text class="venn-title" x="128" y="142" font-family="Comfortaa, sans-serif" font-size="38" fill="#3a3a3a" text-anchor="middle">venn</text>
-      </svg>
+      <div class="hero-content">
+        <!-- Animated Venn SVG -->
+        <svg class="hero-logo-svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="vl1" x1="13.71" y1="128" x2="145.3" y2="128" gradientUnits="userSpaceOnUse">
+              <stop offset="0.15" stop-color="#f07a6a" />
+              <stop offset="0.34" stop-color="#f3807a" />
+              <stop offset="0.79" stop-color="#fa8e9e" />
+            </linearGradient>
+            <linearGradient id="vl2" x1="110.7" y1="128" x2="242.29" y2="128" gradientUnits="userSpaceOnUse">
+              <stop offset="0.11" stop-color="#fa8e9e" />
+              <stop offset="0.71" stop-color="#9b80d4" />
+            </linearGradient>
+          </defs>
+          <g class="venn-circle-left">
+            <g class="venn-spin-left">
+              <path
+                fill="url(#vl1)"
+                d="M82.08,196.37c-37.7,0-68.37-30.67-68.37-68.37S44.38,59.63,82.08,59.63c27.54,0,52.26,16.39,62.99,41.75.62,1.47-.07,3.17-1.54,3.8s-3.17-.07-3.8-1.54c-9.82-23.22-32.45-38.22-57.66-38.22-34.5,0-62.57,28.07-62.57,62.57s28.07,62.57,62.57,62.57c23.77,0,45.19-13.19,55.9-34.43.72-1.43,2.46-2,3.89-1.28,1.43.72,2,2.46,1.28,3.89-5.62,11.13-14.17,20.53-24.74,27.17-10.87,6.83-23.43,10.44-36.33,10.44Z"
+              />
+            </g>
+          </g>
+          <g class="venn-circle-right">
+            <g class="venn-spin-right">
+              <path
+                fill="url(#vl2)"
+                d="M173.92,196.37c-12.9,0-25.46-3.61-36.33-10.44-10.57-6.64-19.13-16.04-24.74-27.17-.72-1.43-.15-3.17,1.28-3.89,1.43-.72,3.17-.15,3.89,1.28,10.71,21.24,32.13,34.43,55.9,34.43,34.5,0,62.57-28.07,62.57-62.57s-28.07-62.57-62.57-62.57c-25.21,0-47.84,15-57.66,38.22-.62,1.47-2.32,2.16-3.8,1.54-1.47-.62-2.16-2.32-1.54-3.8,10.73-25.36,35.45-41.75,62.99-41.75,37.7,0,68.37,30.67,68.37,68.37s-30.67,68.37-68.37,68.37Z"
+              />
+            </g>
+          </g>
+          <text
+            class="venn-title"
+            x="128"
+            y="142"
+            font-family="Comfortaa, sans-serif"
+            font-size="38"
+            fill="#3a3a3a"
+            text-anchor="middle"
+          >
+            venn
+          </text>
+        </svg>
 
-      <h1 class="hero-tagline">Find your <span class="gradient-word">overlap.</span></h1>
+        <h1 class="hero-tagline">Find your <span class="gradient-word">overlap.</span></h1>
 
-      <p class="hero-subtitle">
-        The couple's app where desires stay private<br>and only matches are revealed.
-      </p>
+        <p class="hero-subtitle">Swipe through intimate ideas independently. When you both say yes, it becomes a match. Everything else stays hidden — forever.</p>
 
-      <div class="hero-badges">
-        <!-- Apple App Store -->
-        <a href="#" class="store-badge" aria-label="Download on the App Store">
-          <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.128 13.784c-.029-3.223 2.639-4.791 2.761-4.864-1.511-2.203-3.853-2.504-4.676-2.528-1.967-.207-3.875 1.177-4.877 1.177-1.022 0-2.565-1.157-4.228-1.123-2.14.032-4.142 1.272-5.24 3.196-2.266 3.923-.578 9.688 1.594 12.859 1.086 1.553 2.355 3.287 4.016 3.226 1.625-.067 2.232-1.036 4.193-1.036 1.943 0 2.513 1.036 4.207.997 1.744-.028 2.842-1.56 3.89-3.127 1.255-1.78 1.759-3.533 1.779-3.623-.04-.014-3.387-1.291-3.419-5.154zM14.928 3.89C15.842 2.78 16.475 1.25 16.304 0c-1.312.056-2.962.914-3.912 2.002-.838.972-1.59 2.572-1.395 4.074 1.474.112 2.988-.756 3.931-2.186z" fill="#fff"/></svg>
-          <div class="store-badge-text">
-            <span class="store-badge-label">Download on the</span>
-            <span class="store-badge-store">App Store</span>
+        <div class="hero-flow">
+          <div class="hero-flow-step">
+            <span class="hero-flow-num">1</span>
+            <span>Pair up</span>
           </div>
-        </a>
-        <!-- Google Play -->
-        <a href="#" class="store-badge" aria-label="Get it on Google Play">
-          <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.22.587l12.124 6.94L3.756 17.65.67 1.573A1.05 1.05 0 011.22.587z" fill="#4285F4"/><path d="M21.02 10.77l-4.516 2.586-3.648-3.44 3.67-3.46 4.494 2.573a1.172 1.172 0 010 1.741z" fill="#FBBC04"/><path d="M1.17 23.393L3.756 17.65l9.588-10.123L1.22.587A1.05 1.05 0 00.17 1.44v20.942c0 .614.465 1.08 1 1.011z" fill="#34A853"/><path d="M16.504 13.356L13.344 9.916l3.648 3.44-3.648 3.44 3.16-3.44z" fill="#EA4335"/><path d="M1.17 23.393l12.174-6.597 3.16-3.44-12.748 4.294L1.17 23.393z" fill="#EA4335"/></svg>
-          <div class="store-badge-text">
-            <span class="store-badge-label">Get it on</span>
-            <span class="store-badge-store">Google Play</span>
+          <span class="hero-flow-arrow">→</span>
+          <div class="hero-flow-step">
+            <span class="hero-flow-num">2</span>
+            <span>Swipe privately</span>
           </div>
-        </a>
+          <span class="hero-flow-arrow">→</span>
+          <div class="hero-flow-step">
+            <span class="hero-flow-num">3</span>
+            <span>See matches</span>
+          </div>
+        </div>
+
+        <div class="hero-badges">
+          <!-- Apple App Store -->
+          <a href="#" class="store-badge" aria-label="Download on the App Store">
+            <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M18.128 13.784c-.029-3.223 2.639-4.791 2.761-4.864-1.511-2.203-3.853-2.504-4.676-2.528-1.967-.207-3.875 1.177-4.877 1.177-1.022 0-2.565-1.157-4.228-1.123-2.14.032-4.142 1.272-5.24 3.196-2.266 3.923-.578 9.688 1.594 12.859 1.086 1.553 2.355 3.287 4.016 3.226 1.625-.067 2.232-1.036 4.193-1.036 1.943 0 2.513 1.036 4.207.997 1.744-.028 2.842-1.56 3.89-3.127 1.255-1.78 1.759-3.533 1.779-3.623-.04-.014-3.387-1.291-3.419-5.154zM14.928 3.89C15.842 2.78 16.475 1.25 16.304 0c-1.312.056-2.962.914-3.912 2.002-.838.972-1.59 2.572-1.395 4.074 1.474.112 2.988-.756 3.931-2.186z"
+                fill="#fff"
+              />
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-label">Download on the</span>
+              <span class="store-badge-store">App Store</span>
+            </div>
+          </a>
+          <!-- Google Play -->
+          <a href="#" class="store-badge" aria-label="Get it on Google Play">
+            <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.22.587l12.124 6.94L3.756 17.65.67 1.573A1.05 1.05 0 011.22.587z" fill="#4285F4" />
+              <path
+                d="M21.02 10.77l-4.516 2.586-3.648-3.44 3.67-3.46 4.494 2.573a1.172 1.172 0 010 1.741z"
+                fill="#FBBC04"
+              />
+              <path
+                d="M1.17 23.393L3.756 17.65l9.588-10.123L1.22.587A1.05 1.05 0 00.17 1.44v20.942c0 .614.465 1.08 1 1.011z"
+                fill="#34A853"
+              />
+              <path d="M16.504 13.356L13.344 9.916l3.648 3.44-3.648 3.44 3.16-3.44z" fill="#EA4335" />
+              <path d="M1.17 23.393l12.174-6.597 3.16-3.44-12.748 4.294L1.17 23.393z" fill="#EA4335" />
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-label">Get it on</span>
+              <span class="store-badge-store">Google Play</span>
+            </div>
+          </a>
+        </div>
+
+        <p class="hero-availability">Available on iOS &amp; Android</p>
+
       </div>
 
-      <p class="hero-availability">Available on iOS &amp; Android</p>
-    </div>
+      <div class="hero-scroll-hint">
+        <span>Discover</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </section>
 
-    <div class="hero-scroll-hint">
-      <span>Discover</span>
-      <div class="scroll-arrow"></div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        FEATURES
        ════════════════════════════════════════════ -->
-  <section class="features">
-    <div class="section-inner">
-      <h2 class="section-heading reveal">Why couples love Venn</h2>
-      <div class="features-grid">
+    <section class="features">
+      <div class="section-inner">
+        <h2 class="section-heading reveal">Why people love Venn</h2>
+        <div class="features-grid">
+          <div class="feature-card reveal reveal-d1">
+            <svg
+              class="feature-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              width="44"
+              height="44"
+              fill="#9b80d4"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M208,88H48a8,8,0,0,0-8,8V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V96A8,8,0,0,0,208,88Zm-80,72a20,20,0,1,1,20-20A20,20,0,0,1,128,160Z"
+                opacity="0.2"
+              />
+              <path
+                d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-80-96a28,28,0,0,0-8,54.83V184a8,8,0,0,0,16,0V166.83A28,28,0,0,0,128,112Zm0,40a12,12,0,1,1,12-12A12,12,0,0,1,128,152Z"
+              />
+            </svg>
+            <div class="feature-text">
+              <h3>Zero fear of rejection</h3>
+              <p>Your partner never sees what you declined. Only mutual yeses become visible — so you can be completely honest without holding back.</p>
+            </div>
+          </div>
 
-        <div class="feature-card reveal reveal-d1">
-          <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="#9b80d4" viewBox="0 0 256 256"><path d="M208,88H48a8,8,0,0,0-8,8V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V96A8,8,0,0,0,208,88Zm-80,72a20,20,0,1,1,20-20A20,20,0,0,1,128,160Z" opacity="0.2"/><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-80-96a28,28,0,0,0-8,54.83V184a8,8,0,0,0,16,0V166.83A28,28,0,0,0,128,112Zm0,40a12,12,0,1,1,12-12A12,12,0,0,1,128,152Z"/></svg>
-          <div class="feature-text">
-            <h3>No rejection</h3>
-            <p>Neither of you ever sees what the other said no to. Only matches surface.</p>
+          <div class="feature-card reveal reveal-d2">
+            <svg
+              class="feature-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              width="44"
+              height="44"
+              fill="#c4547a"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M210.69,158.18A88,88,0,1,1,97.82,45.31,96.08,96.08,0,0,0,192,160,96.78,96.78,0,0,0,210.69,158.18Z"
+                opacity="0.2"
+              />
+              <path
+                d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"
+              />
+            </svg>
+            <div class="feature-text">
+              <h3>Blind matching</h3>
+              <p>Each partner browses at their own pace, on their own device. A match only surfaces when both of you independently say yes to the same thing.</p>
+            </div>
+          </div>
+
+          <div class="feature-card reveal reveal-d3">
+            <svg
+              class="feature-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              width="44"
+              height="44"
+              fill="#f07a6a"
+              viewBox="0 0 256 256"
+            >
+              <path d="M136,108A52,52,0,1,1,84,56,52,52,0,0,1,136,108Z" opacity="0.2" />
+              <path
+                d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"
+              />
+            </svg>
+            <div class="feature-text">
+              <h3>Just you two</h3>
+              <p>No social features, no strangers, no data harvesting. Venn exists only for your relationship — a private space that stays between you and your partner.</p>
+            </div>
           </div>
         </div>
-
-        <div class="feature-card reveal reveal-d2">
-          <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="#c4547a" viewBox="0 0 256 256"><path d="M210.69,158.18A88,88,0,1,1,97.82,45.31,96.08,96.08,0,0,0,192,160,96.78,96.78,0,0,0,210.69,158.18Z" opacity="0.2"/><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"/></svg>
-          <div class="feature-text">
-            <h3>Blind matching</h3>
-            <p>Both swipe independently. A match only appears when you both say yes.</p>
-          </div>
-        </div>
-
-        <div class="feature-card reveal reveal-d3">
-          <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="#f07a6a" viewBox="0 0 256 256"><path d="M136,108A52,52,0,1,1,84,56,52,52,0,0,1,136,108Z" opacity="0.2"/><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>
-          <div class="feature-text">
-            <h3>Just you two</h3>
-            <p>Fully private. No ads, no strangers, no data harvesting.</p>
-          </div>
-        </div>
-
       </div>
+    </section>
+
+    <!-- Venn divider -->
+    <div class="venn-divider" aria-hidden="true">
+      <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="12" stroke="#C4547A" stroke-width="1.5" fill="none" />
+        <circle cx="26" cy="14" r="12" stroke="#9B80D4" stroke-width="1.5" fill="none" />
+      </svg>
     </div>
-  </section>
 
-  <!-- Venn divider -->
-  <div class="venn-divider" aria-hidden="true">
-    <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="14" r="12" stroke="#C4547A" stroke-width="1.5" fill="none"/>
-      <circle cx="26" cy="14" r="12" stroke="#9B80D4" stroke-width="1.5" fill="none"/>
-    </svg>
-  </div>
-
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        HOW IT WORKS — Horizontal Scroll
        ════════════════════════════════════════════ -->
-  <section class="how-it-works" id="howItWorks">
-    <h2 class="how-it-works-heading reveal">How Venn works</h2>
-    <div class="steps-track">
-
-      <!-- Panel 1: Pair -->
-      <div class="step-panel">
-        <div class="step-panel-bg-num">01</div>
-        <div class="step-panel-inner">
-          <div class="step-panel-text">
-            <div class="step-number">1</div>
-            <h3>Create your pair</h3>
-            <p>One partner creates a room code. The other joins with it. That's the only setup — no accounts, no profiles.</p>
-          </div>
-          <div class="step-panel-visual">
-            <div class="step-visual-card">
-              <div class="step-visual-label">Your code</div>
-              <div class="step-visual-code">X7K2M9</div>
-              <div class="step-visual-label">Share with your partner</div>
-            </div>
-          </div>
-        </div>
+    <section class="how-it-works" id="howItWorks">
+      <div class="hiw-dots" aria-hidden="true">
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
       </div>
-
-      <!-- Panel 2: Swipe -->
-      <div class="step-panel">
-        <div class="step-panel-bg-num">02</div>
-        <div class="step-panel-inner">
-          <div class="step-panel-text">
-            <div class="step-number">2</div>
-            <h3>Browse independently</h3>
-            <p>Each of you swipes through desires at your own pace. Your choices are completely private — no one sees what you decline.</p>
-          </div>
-          <div class="step-panel-visual">
-            <div class="step-visual-swipe-stack">
-              <div class="swipe-card-mini">
-                <span class="s-emoji">💆</span>
-                <span class="s-name">Sensual Massage</span>
-              </div>
-              <div class="swipe-card-mini">
-                <span class="s-emoji">🛁</span>
-                <span class="s-name">Bath Together</span>
-              </div>
-              <div class="swipe-card-mini">
-                <span class="s-emoji">🌹</span>
-                <span class="s-name">Blindfold Surprise</span>
+      <h2 class="how-it-works-heading reveal">How Venn works</h2>
+      <div class="steps-track">
+        <!-- Panel 1: Pair -->
+        <div class="step-panel">
+          <div class="step-panel-bg-num">01</div>
+          <div class="step-panel-inner">
+            <div class="step-panel-text">
+              <div class="step-number">1</div>
+              <h3>Create your pair</h3>
+              <p>
+                One partner generates a short code, the other enters it. You're linked in seconds — no lengthy profiles, no friend lists, no setup friction.
+              </p>
+            </div>
+            <div class="step-panel-visual">
+              <div class="step-visual-card">
+                <div class="step-visual-label">Your code</div>
+                <div class="step-visual-code">X7K2M9</div>
+                <div class="step-visual-label">Share with your partner</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Panel 3: Match -->
-      <div class="step-panel">
-        <div class="step-panel-bg-num">03</div>
-        <div class="step-panel-inner">
-          <div class="step-panel-text">
-            <div class="step-number">3</div>
-            <h3>Matches appear</h3>
-            <p>When you both say yes to the same thing, it surfaces as a match — in real time. Everything else stays hidden forever.</p>
-          </div>
-          <div class="step-panel-visual">
-            <div class="step-visual-card">
-              <div class="step-visual-label">Mutual matches</div>
-              <div class="step-visual-match-list">
-                <div class="mini-match">
-                  <div class="mini-match-icon">💆</div>
-                  <div class="mini-match-text">Sensual Massage</div>
+        <!-- Panel 2: Swipe -->
+        <div class="step-panel">
+          <div class="step-panel-bg-num">02</div>
+          <div class="step-panel-inner">
+            <div class="step-panel-text">
+              <div class="step-number">2</div>
+              <h3>Browse independently</h3>
+              <p>
+                Scroll through a curated catalog of intimate ideas — from romantic to adventurous. Say yes, no, or maybe to each one. Your responses are yours alone.
+              </p>
+            </div>
+            <div class="step-panel-visual">
+              <div class="step-visual-swipe-stack">
+                <div class="swipe-card-mini">
+                  <span class="s-emoji">💆</span>
+                  <span class="s-name">Sensual Massage</span>
                 </div>
-                <div class="mini-match">
-                  <div class="mini-match-icon">🛁</div>
-                  <div class="mini-match-text">Bath Together</div>
+                <div class="swipe-card-mini">
+                  <span class="s-emoji">🛁</span>
+                  <span class="s-name">Bath Together</span>
                 </div>
-                <div class="mini-match">
-                  <div class="mini-match-icon">🎭</div>
-                  <div class="mini-match-text">Role Play</div>
+                <div class="swipe-card-mini">
+                  <span class="s-emoji">🌹</span>
+                  <span class="s-name">Blindfold Surprise</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Panel 4: Explore -->
-      <div class="step-panel">
-        <div class="step-panel-bg-num">04</div>
-        <div class="step-panel-inner">
-          <div class="step-panel-text">
-            <div class="step-number">4</div>
-            <h3>Explore together</h3>
-            <p>Your matches become a shared wishlist. A starting point for real conversations, not an endpoint.</p>
+        <!-- Panel 3: Match -->
+        <div class="step-panel">
+          <div class="step-panel-bg-num">03</div>
+          <div class="step-panel-inner">
+            <div class="step-panel-text">
+              <div class="step-number">3</div>
+              <h3>Discover your matches</h3>
+              <p>
+                The moment you both say yes to the same idea, it lights up as a match — instantly, in real time. Anything that wasn't mutual simply disappears. No rejection, no awkwardness.
+              </p>
+            </div>
+            <div class="step-panel-visual">
+              <div class="step-visual-card">
+                <div class="step-visual-label">Mutual matches</div>
+                <div class="step-visual-match-list">
+                  <div class="mini-match">
+                    <div class="mini-match-icon">💆</div>
+                    <div class="mini-match-text">Sensual Massage</div>
+                  </div>
+                  <div class="mini-match">
+                    <div class="mini-match-icon">🛁</div>
+                    <div class="mini-match-text">Bath Together</div>
+                  </div>
+                  <div class="mini-match">
+                    <div class="mini-match-icon">🎭</div>
+                    <div class="mini-match-text">Role Play</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="step-panel-visual">
-            <div class="step-visual-card">
-              <div class="step-visual-emoji">💜</div>
-              <div class="step-visual-label" style="text-transform: none; font-size: 0.88rem; letter-spacing: 0;">Your shared wishlist grows with every swipe session</div>
+        </div>
+
+        <!-- Panel 4: Explore -->
+        <div class="step-panel">
+          <div class="step-panel-bg-num">04</div>
+          <div class="step-panel-inner">
+            <div class="step-panel-text">
+              <div class="step-number">4</div>
+              <h3>Explore together</h3>
+              <p>Your matches build into a shared wishlist that grows over time. It's not an endpoint — it's the beginning of conversations you've both been wanting to have.</p>
+            </div>
+            <div class="step-panel-visual">
+              <div class="step-visual-card">
+                <div class="step-visual-emoji">💜</div>
+                <div class="step-visual-label" style="text-transform: none; font-size: 0.88rem; letter-spacing: 0">
+                  Your shared wishlist grows with every swipe session
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <div class="hiw-progress"><div class="hiw-progress-fill" id="hiwProgressFill"></div></div>
+    </section>
 
-    </div>
-    <div class="hiw-progress"><div class="hiw-progress-fill" id="hiwProgressFill"></div></div>
-  </section>
-
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        TRUST — DARK
        ════════════════════════════════════════════ -->
-  <section class="trust">
-    <div class="trust-aurora"></div>
+    <section class="trust">
+      <div class="trust-aurora"></div>
 
-    <!-- Decorative large Venn circles -->
-    <svg class="trust-deco-circles" width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="150" cy="150" r="120" stroke="#C4547A" stroke-width="2" fill="none"/>
-      <circle cx="250" cy="150" r="120" stroke="#9B80D4" stroke-width="2" fill="none"/>
-    </svg>
+      <!-- Decorative large Venn circles -->
+      <svg
+        class="trust-deco-circles"
+        width="400"
+        height="300"
+        viewBox="0 0 400 300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <circle cx="150" cy="150" r="120" stroke="#C4547A" stroke-width="2" fill="none" />
+        <circle cx="250" cy="150" r="120" stroke="#9B80D4" stroke-width="2" fill="none" />
+      </svg>
 
-    <div class="section-inner">
-      <h2 class="section-heading reveal">Built for privacy</h2>
-      <div class="trust-grid">
+      <div class="section-inner">
+        <h2 class="section-heading reveal">Built for privacy</h2>
+        <div class="trust-grid">
+          <div class="trust-card reveal reveal-d1">
+            <!-- Shield icon -->
+            <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M128,24S48,64,48,128v32c0,50.67,33.67,64,80,72,46.33-8,80-21.33,80-72V128C208,64,128,24,128,24Z"
+                fill="rgba(196,84,122,0.2)"
+                stroke="#C4547A"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <polyline
+                points="96 136 116 156 160 112"
+                fill="none"
+                stroke="#C4547A"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <h3>End-to-end private</h3>
+            <p>Your responses are never shared — not with your partner, not with us. Only mutual matches are revealed. There are no profiles, no social feeds, and no one else involved.</p>
+          </div>
 
-        <div class="trust-card reveal reveal-d1">
-          <!-- Shield icon -->
-          <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M128,24S48,64,48,128v32c0,50.67,33.67,64,80,72,46.33-8,80-21.33,80-72V128C208,64,128,24,128,24Z" fill="rgba(196,84,122,0.2)" stroke="#C4547A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-            <polyline points="96 136 116 156 160 112" fill="none" stroke="#C4547A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <h3>End-to-end private</h3>
-          <p>Your data never leaves the pair. No profiles, no social feeds, no strangers ever involved.</p>
+          <div class="trust-card reveal reveal-d2">
+            <!-- Eye-off icon -->
+            <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="128" cy="128" r="40" fill="rgba(155,128,212,0.2)" stroke="#9B80D4" stroke-width="8" />
+              <path d="M48 40l160 176" stroke="#9B80D4" stroke-width="8" stroke-linecap="round" />
+              <path d="M154.91 161.77A72 72 0 0194.09 94.23" stroke="#9B80D4" stroke-width="8" stroke-linecap="round" />
+              <path
+                d="M218.84 167.16C230 152 236 140 236 128c0-36-48-80-108-80a120 120 0 00-19.69 1.64"
+                stroke="#9B80D4"
+                stroke-width="8"
+                stroke-linecap="round"
+              />
+              <path
+                d="M74.68 71.64C43.25 89.76 20 112 20 128c0 36 48 80 108 80a120 120 0 0037.32-5.84"
+                stroke="#9B80D4"
+                stroke-width="8"
+                stroke-linecap="round"
+              />
+            </svg>
+            <h3>Zero data harvesting</h3>
+            <p>No ads, no analytics trackers, no third-party scripts watching what you do. Your intimacy is not a product — we'll never monetize what happens between you two.</p>
+          </div>
+
+          <div class="trust-card reveal reveal-d3">
+            <!-- EU / globe icon -->
+            <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="128" cy="128" r="88" fill="rgba(240,122,106,0.15)" stroke="#F07A6A" stroke-width="8" />
+              <ellipse cx="128" cy="128" rx="40" ry="88" fill="none" stroke="#F07A6A" stroke-width="8" />
+              <line x1="40" y1="128" x2="216" y2="128" stroke="#F07A6A" stroke-width="8" stroke-linecap="round" />
+              <path d="M60 80h136" stroke="#F07A6A" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+              <path d="M60 176h136" stroke="#F07A6A" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+            </svg>
+            <h3>Built in Europe</h3>
+            <p>Fully GDPR-compliant, hosted on dedicated servers in the EU. Your data never crosses borders to third-party clouds — it stays close, safe, and entirely under your control.</p>
+          </div>
         </div>
-
-        <div class="trust-card reveal reveal-d2">
-          <!-- Eye-off icon -->
-          <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="128" cy="128" r="40" fill="rgba(155,128,212,0.2)" stroke="#9B80D4" stroke-width="8"/>
-            <path d="M48 40l160 176" stroke="#9B80D4" stroke-width="8" stroke-linecap="round"/>
-            <path d="M154.91 161.77A72 72 0 0194.09 94.23" stroke="#9B80D4" stroke-width="8" stroke-linecap="round"/>
-            <path d="M218.84 167.16C230 152 236 140 236 128c0-36-48-80-108-80a120 120 0 00-19.69 1.64" stroke="#9B80D4" stroke-width="8" stroke-linecap="round"/>
-            <path d="M74.68 71.64C43.25 89.76 20 112 20 128c0 36 48 80 108 80a120 120 0 0037.32-5.84" stroke="#9B80D4" stroke-width="8" stroke-linecap="round"/>
-          </svg>
-          <h3>Zero data harvesting</h3>
-          <p>No ads. No analytics trackers. No third-party scripts. Your intimacy is not a product.</p>
-        </div>
-
-        <div class="trust-card reveal reveal-d3">
-          <!-- EU / globe icon -->
-          <svg class="trust-card-icon" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="128" cy="128" r="88" fill="rgba(240,122,106,0.15)" stroke="#F07A6A" stroke-width="8"/>
-            <ellipse cx="128" cy="128" rx="40" ry="88" fill="none" stroke="#F07A6A" stroke-width="8"/>
-            <line x1="40" y1="128" x2="216" y2="128" stroke="#F07A6A" stroke-width="8" stroke-linecap="round"/>
-            <path d="M60 80h136" stroke="#F07A6A" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
-            <path d="M60 176h136" stroke="#F07A6A" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
-          </svg>
-          <h3>Built in Europe</h3>
-          <p>GDPR-compliant. Hosted in the EU on dedicated servers. Your data stays close, safe, and yours.</p>
-        </div>
-
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════════════
-       EXPERT QUOTES
-       ════════════════════════════════════════════ -->
-  <section class="quotes">
-    <div class="section-inner">
-      <h2 class="section-heading reveal">What relationship experts say</h2>
-    </div>
-    <div class="quotes-grid reveal">
-
-      <article class="quote-card">
-        <span class="quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="quote-text">The biggest barrier to intimacy isn't incompatibility — it's the fear of asking. Tools that remove that awkwardness can genuinely transform a relationship.</p>
-        <div>
-          <p class="quote-author">Dr. James Okafor</p>
-          <p class="quote-role">Sex Therapist, AASECT Certified<br>London Centre for Couple Therapy</p>
-        </div>
-      </article>
-
-      <article class="quote-card">
-        <span class="quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="quote-text">Mutual exploration, when approached with playfulness and consent, strengthens trust far more than grand romantic gestures ever could.</p>
-        <div>
-          <p class="quote-author">Prof. Sophie Renard</p>
-          <p class="quote-role">Professor of Relationship Psychology<br>Université Paris Cité</p>
-        </div>
-      </article>
-
-      <article class="quote-card">
-        <span class="quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="quote-text">Long-term couples often fall into routine not from lack of desire, but from lack of a safe space to express it. Creating that space is half the work.</p>
-        <div>
-          <p class="quote-author">Dr. Marcus Breil</p>
-          <p class="quote-role">Couples Counsellor &amp; Author<br>Berlin Institute for Relationship Research</p>
-        </div>
-      </article>
-
-    </div>
-  </section>
-
-  <!-- Venn divider -->
-  <div class="venn-divider" aria-hidden="true">
-    <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="14" r="12" stroke="#C4547A" stroke-width="1.5" fill="none"/>
-      <circle cx="26" cy="14" r="12" stroke="#9B80D4" stroke-width="1.5" fill="none"/>
-    </svg>
-  </div>
-
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        FINAL CTA
        ════════════════════════════════════════════ -->
-  <section class="final-cta">
-    <div class="section-inner">
-      <h2 class="section-heading reveal">Ready to find your overlap?</h2>
-      <p class="final-cta-sub reveal reveal-d1">Your desires, privately matched. No awkward conversations needed.</p>
-      <div class="final-cta-badges reveal reveal-d2">
-        <a href="#" class="store-badge" aria-label="Download on the App Store">
-          <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.128 13.784c-.029-3.223 2.639-4.791 2.761-4.864-1.511-2.203-3.853-2.504-4.676-2.528-1.967-.207-3.875 1.177-4.877 1.177-1.022 0-2.565-1.157-4.228-1.123-2.14.032-4.142 1.272-5.24 3.196-2.266 3.923-.578 9.688 1.594 12.859 1.086 1.553 2.355 3.287 4.016 3.226 1.625-.067 2.232-1.036 4.193-1.036 1.943 0 2.513 1.036 4.207.997 1.744-.028 2.842-1.56 3.89-3.127 1.255-1.78 1.759-3.533 1.779-3.623-.04-.014-3.387-1.291-3.419-5.154zM14.928 3.89C15.842 2.78 16.475 1.25 16.304 0c-1.312.056-2.962.914-3.912 2.002-.838.972-1.59 2.572-1.395 4.074 1.474.112 2.988-.756 3.931-2.186z" fill="#fff"/></svg>
-          <div class="store-badge-text">
-            <span class="store-badge-label">Download on the</span>
-            <span class="store-badge-store">App Store</span>
-          </div>
-        </a>
-        <a href="#" class="store-badge" aria-label="Get it on Google Play">
-          <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.22.587l12.124 6.94L3.756 17.65.67 1.573A1.05 1.05 0 011.22.587z" fill="#4285F4"/><path d="M21.02 10.77l-4.516 2.586-3.648-3.44 3.67-3.46 4.494 2.573a1.172 1.172 0 010 1.741z" fill="#FBBC04"/><path d="M1.17 23.393L3.756 17.65l9.588-10.123L1.22.587A1.05 1.05 0 00.17 1.44v20.942c0 .614.465 1.08 1 1.011z" fill="#34A853"/><path d="M16.504 13.356L13.344 9.916l3.648 3.44-3.648 3.44 3.16-3.44z" fill="#EA4335"/><path d="M1.17 23.393l12.174-6.597 3.16-3.44-12.748 4.294L1.17 23.393z" fill="#EA4335"/></svg>
-          <div class="store-badge-text">
-            <span class="store-badge-label">Get it on</span>
-            <span class="store-badge-store">Google Play</span>
-          </div>
-        </a>
+    <section class="final-cta">
+      <div class="section-inner">
+        <h2 class="section-heading reveal">Ready to find your overlap?</h2>
+        <p class="final-cta-sub reveal reveal-d1">Download Venn and discover what you've both been curious about — privately, playfully, together.</p>
+        <div class="final-cta-badges reveal reveal-d2">
+          <a href="#" class="store-badge" aria-label="Download on the App Store">
+            <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M18.128 13.784c-.029-3.223 2.639-4.791 2.761-4.864-1.511-2.203-3.853-2.504-4.676-2.528-1.967-.207-3.875 1.177-4.877 1.177-1.022 0-2.565-1.157-4.228-1.123-2.14.032-4.142 1.272-5.24 3.196-2.266 3.923-.578 9.688 1.594 12.859 1.086 1.553 2.355 3.287 4.016 3.226 1.625-.067 2.232-1.036 4.193-1.036 1.943 0 2.513 1.036 4.207.997 1.744-.028 2.842-1.56 3.89-3.127 1.255-1.78 1.759-3.533 1.779-3.623-.04-.014-3.387-1.291-3.419-5.154zM14.928 3.89C15.842 2.78 16.475 1.25 16.304 0c-1.312.056-2.962.914-3.912 2.002-.838.972-1.59 2.572-1.395 4.074 1.474.112 2.988-.756 3.931-2.186z"
+                fill="#fff"
+              />
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-label">Download on the</span>
+              <span class="store-badge-store">App Store</span>
+            </div>
+          </a>
+          <a href="#" class="store-badge" aria-label="Get it on Google Play">
+            <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.22.587l12.124 6.94L3.756 17.65.67 1.573A1.05 1.05 0 011.22.587z" fill="#4285F4" />
+              <path
+                d="M21.02 10.77l-4.516 2.586-3.648-3.44 3.67-3.46 4.494 2.573a1.172 1.172 0 010 1.741z"
+                fill="#FBBC04"
+              />
+              <path
+                d="M1.17 23.393L3.756 17.65l9.588-10.123L1.22.587A1.05 1.05 0 00.17 1.44v20.942c0 .614.465 1.08 1 1.011z"
+                fill="#34A853"
+              />
+              <path d="M16.504 13.356L13.344 9.916l3.648 3.44-3.648 3.44 3.16-3.44z" fill="#EA4335" />
+              <path d="M1.17 23.393l12.174-6.597 3.16-3.44-12.748 4.294L1.17 23.393z" fill="#EA4335" />
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-label">Get it on</span>
+              <span class="store-badge-store">Google Play</span>
+            </div>
+          </a>
+        </div>
       </div>
-      <p class="final-cta-note reveal reveal-d3">Free to download. No credit card needed.</p>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        FOOTER
        ════════════════════════════════════════════ -->
-  <footer class="site-footer">
-    <img src="venn_hori.png" alt="Venn" class="footer-logo" />
-    <nav class="footer-links">
-      <a href="https://www.instagram.com/kernstudio.dev/" target="_blank" rel="noopener noreferrer">Instagram</a>
-      <span class="footer-dot">&middot;</span>
-      <a href="/impressum">Impressum</a>
-      <span class="footer-dot">&middot;</span>
-      <a href="/privacy">Privacy</a>
-    </nav>
-    <p class="footer-copy">&copy; 2026 Venn. All rights reserved.</p>
-  </footer>
+    <footer class="site-footer">
+      <img src="venn_hori.png" alt="Venn" class="footer-logo" />
+      <nav class="footer-links">
+        <a href="https://www.instagram.com/kernstudio.dev/" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <span class="footer-dot">&middot;</span>
+        <a href="/impressum">Impressum</a>
+        <span class="footer-dot">&middot;</span>
+        <a href="/privacy">Privacy</a>
+        <span class="footer-dot">&middot;</span>
+        <a href="/terms">Terms</a>
+      </nav>
+      <p class="footer-copy">&copy; 2026 Kern Studio. All rights reserved.</p>
+    </footer>
 
-  <!-- ════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════
        JAVASCRIPT (minimal, no dependencies)
        ════════════════════════════════════════════ -->
-  <script>
-    gsap.registerPlugin(ScrollTrigger);
+    <script>
+      gsap.registerPlugin(ScrollTrigger);
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // ── Scroll-triggered reveals ──
-      const reveals = document.querySelectorAll('.reveal');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-      reveals.forEach(el => observer.observe(el));
-
-      // ── Scroll progress bar ──
-      const bar = document.getElementById('scrollProgress');
-      window.addEventListener('scroll', () => {
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        bar.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
-      }, { passive: true });
-
-      // ── Parallax-lite on hero orbs ──
-      const orbs = document.querySelectorAll('.orb');
-      const hero = document.querySelector('.hero');
-      window.addEventListener('scroll', () => {
-        if (window.scrollY > hero.offsetHeight) return;
-        const y = window.scrollY * 0.3;
-        orbs.forEach(orb => {
-          orb.style.transform = `translateY(${-y}px)`;
-        });
-      }, { passive: true });
-
-      // ── GSAP Horizontal Scroll: How It Works ──
-      const hiwSection = document.querySelector('.how-it-works');
-      const stepsTrack = document.querySelector('.steps-track');
-      const progressFill = document.getElementById('hiwProgressFill');
-
-      if (hiwSection && stepsTrack) {
-        const totalScroll = stepsTrack.scrollWidth - window.innerWidth;
-
-        gsap.to(stepsTrack, {
-          x: () => -totalScroll,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: hiwSection,
-            pin: true,
-            scrub: 1,
-            end: () => '+=' + stepsTrack.scrollWidth,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              if (progressFill) {
-                progressFill.style.width = (self.progress * 100) + '%';
+      document.addEventListener("DOMContentLoaded", () => {
+        // ── Scroll-triggered reveals ──
+        const reveals = document.querySelectorAll(".reveal");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target);
               }
-            },
+            });
           },
-        });
+          { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+        );
+        reveals.forEach((el) => observer.observe(el));
 
-        // Animate each panel's content as it enters
-        const panels = gsap.utils.toArray('.step-panel');
-        panels.forEach((panel) => {
-          const text = panel.querySelector('.step-panel-text');
-          const visual = panel.querySelector('.step-panel-visual');
+        // ── Scroll progress bar ──
+        const bar = document.getElementById("scrollProgress");
+        window.addEventListener(
+          "scroll",
+          () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            bar.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + "%";
+          },
+          { passive: true },
+        );
 
-          gsap.from(text, {
-            opacity: 0,
-            x: 80,
+        // ── Parallax-lite on hero orbs ──
+        const orbs = document.querySelectorAll(".orb");
+        const hero = document.querySelector(".hero");
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (window.scrollY > hero.offsetHeight) return;
+            const y = window.scrollY * 0.3;
+            orbs.forEach((orb) => {
+              orb.style.transform = `translateY(${-y}px)`;
+            });
+          },
+          { passive: true },
+        );
+
+        // ── GSAP Horizontal Scroll: How It Works ──
+        const hiwSection = document.querySelector(".how-it-works");
+        const stepsTrack = document.querySelector(".steps-track");
+        const progressFill = document.getElementById("hiwProgressFill");
+
+        if (hiwSection && stepsTrack) {
+          const totalScroll = stepsTrack.scrollWidth - window.innerWidth;
+
+          gsap.to(stepsTrack, {
+            x: () => -totalScroll,
+            ease: "none",
             scrollTrigger: {
-              trigger: panel,
-              containerAnimation: gsap.getById ? undefined : undefined,
-              start: 'left 80%',
-              end: 'left 40%',
+              trigger: hiwSection,
+              pin: true,
               scrub: 1,
+              end: () => "+=" + stepsTrack.scrollWidth,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                if (progressFill) {
+                  progressFill.style.width = self.progress * 100 + "%";
+                }
+              },
             },
           });
 
-          if (visual) {
-            gsap.from(visual, {
+          // Animate each panel's content as it enters
+          const panels = gsap.utils.toArray(".step-panel");
+          panels.forEach((panel) => {
+            const text = panel.querySelector(".step-panel-text");
+            const visual = panel.querySelector(".step-panel-visual");
+
+            gsap.from(text, {
               opacity: 0,
-              scale: 0.85,
+              x: 80,
               scrollTrigger: {
                 trigger: panel,
-                start: 'left 70%',
-                end: 'left 30%',
+                containerAnimation: gsap.getById ? undefined : undefined,
+                start: "left 80%",
+                end: "left 40%",
                 scrub: 1,
               },
             });
-          }
-        });
-      }
-    });
-  </script>
 
-</body>
+            if (visual) {
+              gsap.from(visual, {
+                opacity: 0,
+                scale: 0.85,
+                scrollTrigger: {
+                  trigger: panel,
+                  start: "left 70%",
+                  end: "left 30%",
+                  scrub: 1,
+                },
+              });
+            }
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

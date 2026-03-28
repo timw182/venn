@@ -28,10 +28,18 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon_venn.png"
+    },
+    "extra": {
+      "apiBase": "https://api.venn.lu/api",
+      "wsBase": "wss://api.venn.lu/api/ws",
+      "eas": {
+        "projectId": "8007ff9e-e39a-496f-80fd-59704ca6cba0"
+      }
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-updates"
     ]
   }
 }

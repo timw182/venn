@@ -152,7 +152,7 @@ export default function PairingScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={async () => { await enterSolo(); if (navigation.canGoBack()) navigation.goBack(); }} style={styles.skipBtn}>
+          <TouchableOpacity onPress={async () => { await enterSolo(); navigation.reset({ index: 0, routes: [{ name: 'Main' }] }); }} style={styles.skipBtn}>
             <Text style={styles.skipText}>Skip for now — explore solo</Text>
           </TouchableOpacity>
         </ScrollView>

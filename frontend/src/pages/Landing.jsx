@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/useAuth";
 import Button from "../components/shared/Button";
@@ -25,36 +24,27 @@ const features = [
 ];
 
 export default function Landing() {
-  const [mode, setMode] = useState(null); // null = hero, 'login' | 'register' = form
+  const [mode, setMode] = useState(null); // null = hero, 'login' = form
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
-  const { login, register, loading } = useAuth();
-  const navigate = useNavigate();
+  const { login, loading } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     try {
-      if (mode === "login") {
-        await login(username, password);
-        // Routing handled by LandingRedirect
-      } else {
-        await register(username, password, displayName);
-        // Routing handled by LandingRedirect
-      }
+      await login(username, password);
     } catch (err) {
       setError(err.message || "Something went wrong");
     }
   }
 
-  function openForm(m) {
-    setMode(m);
+  function openForm() {
+    setMode("login");
     setError("");
     setUsername("");
     setPassword("");
-    setDisplayName("");
   }
 
   return (
@@ -105,15 +95,9 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.4 }}
             >
-              <Button variant="primary" size="lg" fullWidth onClick={() => openForm("register")}>
-                Get started
+              <Button variant="primary" size="lg" fullWidth onClick={openForm}>
+                Sign in
               </Button>
-              <div className="landing-toggle">
-                <span className="text-muted">Already have an account?</span>
-                <button className="landing-toggle-link" onClick={() => openForm("login")}>
-                  Sign in
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         ) : (
@@ -149,33 +133,9 @@ export default function Landing() {
               back
             </button>
 
-            <p className="landing-subtitle">{mode === "login" ? "Welcome back" : "Create your account"}</p>
+            <p className="landing-subtitle">Welcome back</p>
 
-            <AnimatePresence mode="wait">
-              <motion.form
-                key={mode}
-                className="landing-form"
-                onSubmit={handleSubmit}
-                initial={{ opacity: 0, x: mode === "login" ? -16 : 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: mode === "login" ? 16 : -16 }}
-                transition={{ duration: 0.22 }}
-              >
-                {mode === "register" && (
-                  <div className="landing-field">
-                    <label className="landing-label">Your name</label>
-                    <input
-                      className="landing-input"
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="What should they call you?"
-                      required
-                      autoComplete="name"
-                    />
-                  </div>
-                )}
-
+            <form className="landing-form" onSubmit={handleSubmit}>
                 <div className="landing-field">
                   <label className="landing-label">Email</label>
                   <input
@@ -198,7 +158,7 @@ export default function Landing() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Keep it secret"
                     required
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                    autoComplete="current-password"
                   />
                 </div>
 
@@ -209,19 +169,9 @@ export default function Landing() {
                 )}
 
                 <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
-                  {mode === "login" ? "Sign in" : "Create account"}
+                  Sign in
                 </Button>
-              </motion.form>
-            </AnimatePresence>
-
-            <div className="landing-toggle">
-              <span className="text-muted">
-                {mode === "login" ? "Don't have an account?" : "Already have an account?"}
-              </span>
-              <button className="landing-toggle-link" onClick={() => openForm(mode === "login" ? "register" : "login")}>
-                {mode === "login" ? "Create one" : "Sign in"}
-              </button>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>

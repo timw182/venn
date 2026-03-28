@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-const API_BASE = 'https://api.venn.lu/api';
+const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/api';
 const TOKEN_KEY = 'kl_session_token';
 
 async function getToken() {
