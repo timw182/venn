@@ -84,7 +84,7 @@ export default function PairingScreen({ navigation }) {
         </TouchableOpacity>
       )}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="always">
           <View style={styles.header}>
             <Text style={styles.emoji}>🔗</Text>
             <Text style={styles.title}>Find your person</Text>

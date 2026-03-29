@@ -84,7 +84,7 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
     cur = await db.execute("SELECT id FROM users WHERE username = ?", (body.username,))
     existing = await cur.fetchone()
     if existing:
-        raise HTTPException(400, "Username already taken")
+        raise HTTPException(400, "An account with this email already exists")
 
     color = AVATAR_COLORS[hash(body.username) % len(AVATAR_COLORS)]
     hashed = pwd_ctx.hash(body.password)
@@ -112,7 +112,7 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
     hash_to_check = row["password_hash"] if row else _DUMMY_HASH
     password_ok = pwd_ctx.verify(body.password, hash_to_check)
     if not row or not password_ok:
-        raise HTTPException(401, "Invalid username or password")
+        raise HTTPException(401, "Invalid email or password")
 
     # New session token invalidates all other devices
     token = secrets.token_hex(32)

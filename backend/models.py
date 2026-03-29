@@ -23,9 +23,9 @@ class RegisterRequest(BaseModel):
     def username_valid(cls, v: str) -> str:
         v = v.strip().lower()
         if len(v) > 254:
-            raise ValueError("Email address too long")
+            raise ValueError("Email address is too long")
         if not _EMAIL_RE.match(v):
-            raise ValueError("Must be a valid email address")
+            raise ValueError("Please enter a valid email address")
         return v
 
     @field_validator("password")

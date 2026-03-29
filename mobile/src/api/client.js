@@ -44,7 +44,12 @@ async function request(path, options = {}) {
     const body = await res.json().catch(() => ({}));
     const detail = body.detail;
     const message = Array.isArray(detail)
-      ? detail.map((e) => e.msg).join(', ')
+      ? detail.map((e) => {
+          const field = e.loc?.[e.loc.length - 1];
+          const label = field === 'username' ? 'Email' : field === 'display_name' ? 'Name' : field;
+          const msg = (e.msg || '').replace(/^Value error, /i, '');
+          return label ? `${label}: ${msg}` : msg;
+        }).join('\n')
       : typeof detail === 'string'
       ? detail
       : `Request failed: ${res.status}`;
