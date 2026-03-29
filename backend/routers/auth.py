@@ -7,7 +7,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from database import get_db
-from models import RegisterRequest, LoginRequest, UserOut, UpdateProfileRequest
+from models import RegisterRequest, LoginRequest, UserOut, UserOutWithToken, UpdateProfileRequest
+from routers.deps import verify_session
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -50,7 +51,7 @@ async def _get_user_out(db: Connection, user_id: int, session_token: str = None)
             if partner:
                 partner_name = partner["display_name"]
 
-    return UserOut(
+    base = dict(
         id=row["id"],
         username=row["username"],
         display_name=row["display_name"],
@@ -59,8 +60,10 @@ async def _get_user_out(db: Connection, user_id: int, session_token: str = None)
         partner_name=partner_name,
         is_admin=bool(row["is_admin"]),
         is_superadmin=bool(row["is_superadmin"]),
-        session_token=session_token,
     )
+    if session_token:
+        return UserOutWithToken(**base, session_token=session_token)
+    return UserOut(**base)
 
 
 async def _session_user_id(request: Request, db: Connection = None) -> int:
@@ -78,7 +81,7 @@ async def _session_user_id(request: Request, db: Connection = None) -> int:
     raise HTTPException(401, "Not authenticated")
 
 
-@router.post("/register", response_model=UserOut)
+@router.post("/register", response_model=UserOutWithToken)
 @limiter.limit("5/minute")
 async def register(body: RegisterRequest, request: Request, db: Connection = Depends(get_db)):
     cur = await db.execute("SELECT id FROM users WHERE username = ?", (body.username,))
@@ -102,7 +105,7 @@ async def register(body: RegisterRequest, request: Request, db: Connection = Dep
     return await _get_user_out(db, cursor.lastrowid, session_token=token)
 
 
-@router.post("/login", response_model=UserOut)
+@router.post("/login", response_model=UserOutWithToken)
 @limiter.limit("5/minute")
 async def login(body: LoginRequest, request: Request, db: Connection = Depends(get_db)):
     cur = await db.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),))
@@ -125,7 +128,7 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
     return await _get_user_out(db, row["id"], session_token=token)
 
 
-@router.post("/logout", status_code=204)
+@router.post("/logout", status_code=204, dependencies=[Depends(verify_session)])
 async def logout(request: Request, db: Connection = Depends(get_db)):
     uid = request.session.get("user_id")
     if not uid:
@@ -157,7 +160,7 @@ async def me(request: Request, db: Connection = Depends(get_db)):
 
 
 
-@router.patch("/profile", response_model=UserOut)
+@router.patch("/profile", response_model=UserOut, dependencies=[Depends(verify_session)])
 @limiter.limit("10/minute")
 async def update_profile(body: UpdateProfileRequest, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
@@ -167,7 +170,7 @@ async def update_profile(body: UpdateProfileRequest, request: Request, db: Conne
 
 DISCONNECT_COOLDOWN_HOURS = 120  # 5 days
 
-@router.post("/disconnect", status_code=204)
+@router.post("/disconnect", status_code=204, dependencies=[Depends(verify_session)])
 @limiter.limit("5/minute")
 async def disconnect_partner(request: Request, db: Connection = Depends(get_db)):
     """Remove the current couple pairing. Rate-limited to once per 24 hours."""
@@ -189,6 +192,20 @@ async def disconnect_partner(request: Request, db: Connection = Depends(get_db))
             raise HTTPException(429, f"You can disconnect again in {wait_h} hour(s).")
 
     couple_id = row["couple_id"]
+
+    # Get both user IDs in the couple
+    cur = await db.execute("SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,))
+    couple = await cur.fetchone()
+    partner_ids = [couple["user_a_id"], couple["user_b_id"]] if couple else [uid]
+
+    # Purge couple-scoped data to prevent carryover to a new partner
+    for pid in partner_ids:
+        await db.execute("DELETE FROM user_responses WHERE user_id = ?", (pid,))
+        await db.execute("DELETE FROM match_seen WHERE user_id = ?", (pid,))
+        await db.execute("DELETE FROM user_mood WHERE user_id = ?", (pid,))
+    await db.execute("DELETE FROM reset_requests WHERE couple_id = ?", (couple_id,))
+    await db.execute("DELETE FROM swipe_pattern_alerts WHERE couple_id = ?", (couple_id,))
+    await db.execute("DELETE FROM custom_catalog_items WHERE couple_id = ?", (couple_id,))
 
     # Unpair both users
     await db.execute(

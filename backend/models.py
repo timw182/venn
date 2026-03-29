@@ -71,6 +71,10 @@ class UserOut(BaseModel):
     partner_name: Optional[str] = None
     is_admin: bool = False
     is_superadmin: bool = False
+
+
+class UserOutWithToken(UserOut):
+    """Extended response that includes session_token — only for mobile clients."""
     session_token: Optional[str] = None
 
 

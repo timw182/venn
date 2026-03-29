@@ -39,7 +39,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-updates"
+      "expo-updates",
+      "expo-secure-store"
     ]
   }
 }

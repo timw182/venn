@@ -9,7 +9,7 @@ export default defineConfig({
     allowedHosts: ["venn.lu"],
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://localhost:7713",
         changeOrigin: true,
       },
     },

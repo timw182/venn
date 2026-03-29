@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import aiosqlite
 import os
 
-DB_PATH = os.environ.get("DB_PATH", "kinklink.db")
+DB_PATH = os.environ.get("DB_PATH", "venn.db")
 
 
 async def get_db() -> aiosqlite.Connection:

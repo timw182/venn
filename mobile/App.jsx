@@ -28,7 +28,7 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('ErrorBoundary caught:', error, info.componentStack);
+    if (__DEV__) console.error('ErrorBoundary caught:', error, info.componentStack);
   }
 
   handleRestart = async () => {
@@ -46,7 +46,7 @@ class ErrorBoundary extends Component {
         <View style={ebStyles.container}>
           <Text style={ebStyles.title}>Something went wrong</Text>
           <Text style={ebStyles.message}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
+            An unexpected error occurred. Please restart the app.
           </Text>
           <TouchableOpacity style={ebStyles.button} onPress={this.handleRestart}>
             <Text style={ebStyles.buttonText}>Restart app</Text>

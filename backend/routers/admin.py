@@ -134,13 +134,20 @@ async def list_users(db: Connection = Depends(get_db), admin=Depends(_require_ad
 
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: int, db: Connection = Depends(get_db), admin=Depends(_require_admin)):
-    cur = await db.execute("SELECT is_superadmin FROM users WHERE id=?", (user_id,))
+    if user_id == admin["uid"]:
+        raise HTTPException(400, "Cannot delete yourself")
+    cur = await db.execute("SELECT is_superadmin, couple_id FROM users WHERE id=?", (user_id,))
     row = await cur.fetchone()
     if not row:
         raise HTTPException(404, "User not found")
     if row["is_superadmin"] and not admin["is_superadmin"]:
         raise HTTPException(403, "Cannot delete a superadmin")
+    # Unpair partner if user is in a couple
+    if row["couple_id"]:
+        await db.execute("UPDATE users SET couple_id=NULL WHERE couple_id=? AND id!=?", (row["couple_id"], user_id))
+        await db.execute("DELETE FROM couples WHERE id=?", (row["couple_id"],))
     await db.execute("DELETE FROM user_responses WHERE user_id=?", (user_id,))
+    await db.execute("DELETE FROM match_seen WHERE user_id=?", (user_id,))
     await db.execute("DELETE FROM tickets WHERE user_id=?", (user_id,))
     await db.execute("UPDATE users SET couple_id=NULL WHERE id=?", (user_id,))
     await db.execute("DELETE FROM users WHERE id=?", (user_id,))

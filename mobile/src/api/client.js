@@ -1,21 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/api';
 const TOKEN_KEY = 'kl_session_token';
 
 async function getToken() {
-  return AsyncStorage.getItem(TOKEN_KEY).catch(() => null);
+  return SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);
 }
 
 export async function storeToken(token) {
   if (token) {
-    await AsyncStorage.setItem(TOKEN_KEY, token).catch(() => {});
+    await SecureStore.setItemAsync(TOKEN_KEY, token).catch(() => {});
   }
 }
 
 export async function clearSession() {
-  await AsyncStorage.removeItem(TOKEN_KEY).catch(() => {});
+  await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
 }
 
 async function request(path, options = {}) {

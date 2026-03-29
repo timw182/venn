@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
         }}>
           <p style={{ fontSize: '1.25rem', color: '#2D1F3D' }}>Something went wrong.</p>
           <p style={{ color: '#5C4A72', fontSize: '0.875rem' }}>
-            {this.state.error.message}
+            An unexpected error occurred. Please reload the page.
           </p>
           <button
             onClick={() => window.location.reload()}

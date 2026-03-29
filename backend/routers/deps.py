@@ -20,8 +20,10 @@ async def verify_session(request: Request, db: Connection = Depends(get_db)):
             return  # Token matches DB — valid
     if not uid and not token:
         raise HTTPException(401, "Not authenticated")
-    if not uid or not token:
-        return  # Legacy cookie session without stored token — skip DB check
+    if uid and not token:
+        # Legacy cookie session without stored token — force re-auth
+        request.session.clear()
+        raise HTTPException(401, "Session expired — please log in again")
     cur = await db.execute("SELECT session_token FROM users WHERE id = ?", (uid,))
     row = await cur.fetchone()
     if row and row["session_token"] and row["session_token"] != token:
