@@ -275,8 +275,11 @@ export default function LandingScreen({ navigation }) {
 
           <View style={styles.formBrand}>
             <LogoMark size="md" />
+            <Text style={styles.formHeading}>
+              {mode === 'login' ? 'Log in to Venn' : 'Create your account'}
+            </Text>
             <Text style={styles.subtitle}>
-              {mode === 'login' ? 'Welcome back' : 'Create your account'}
+              {mode === 'login' ? 'Welcome back' : 'Get started in seconds'}
             </Text>
           </View>
 
@@ -344,6 +347,13 @@ export default function LandingScreen({ navigation }) {
               <Text style={styles.toggleLink}>{mode === 'login' ? 'Create one' : 'Sign in'}</Text>
             </Text>
           </TouchableOpacity>
+
+          <Text style={styles.termsText}>
+            By signing in, you agree to our{' '}
+            <Text style={styles.termsLink} onPress={() => navigation.navigate(SCREENS.TERMS)}>Terms</Text>
+            {' '}and{' '}
+            <Text style={styles.termsLink} onPress={() => navigation.navigate(SCREENS.PRIVACY)}>Privacy Policy</Text>.
+          </Text>
             </ScrollView>
           </KeyboardAvoidingView>
         </Reanimated.View>
@@ -422,6 +432,14 @@ const styles = StyleSheet.create({
   backText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
 
   formBrand: { alignItems: 'center', gap: space[2] },
+  formHeading: {
+    fontFamily: fonts.serif,
+    fontSize: 26,
+    color: colors.text,
+    letterSpacing: -0.3,
+    textAlign: 'center',
+    marginTop: space[2],
+  },
   subtitle: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.3 },
 
   form: { gap: space[5] },
@@ -451,4 +469,17 @@ const styles = StyleSheet.create({
     padding: space[3],
   },
   errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no, textAlign: 'center' },
+
+  termsText: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: space[4],
+  },
+  termsLink: {
+    color: colors.textMuted,
+    textDecorationLine: 'underline',
+  },
 });

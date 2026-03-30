@@ -103,7 +103,7 @@ export default function Landing() {
         ) : (
           <motion.div
             key="form"
-            className="landing-below-brand"
+            className="landing-below-brand landing-form-view"
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={{ left: 0, right: 0.5 }}
@@ -133,6 +133,7 @@ export default function Landing() {
               back
             </button>
 
+            <h1 className="landing-heading">Log in to Venn</h1>
             <p className="landing-subtitle">Welcome back</p>
 
             <form className="landing-form" onSubmit={handleSubmit}>
@@ -172,6 +173,12 @@ export default function Landing() {
                   Sign in
                 </Button>
             </form>
+
+            <p className="landing-terms">
+              By signing in, you agree to our{" "}
+              <a href="/terms">Terms</a> and{" "}
+              <a href="/privacy">Privacy Policy</a>.
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -181,10 +188,6 @@ export default function Landing() {
           <span>© 2026 Kern Studio</span>
           <span className="landing-footer-dot">·</span>
           <a href="/impressum" className="landing-footer-link">Impressum</a>
-          <span className="landing-footer-dot">·</span>
-          <a href="/privacy" className="landing-footer-link">Privacy</a>
-          <span className="landing-footer-dot">·</span>
-          <a href="/terms" className="landing-footer-link">Terms</a>
         </div>
         <div className="landing-footer-social">
           <a

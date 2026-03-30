@@ -225,7 +225,9 @@
 .landing-footer-links {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-3);
+  width: 100%;
 }
 
 .landing-footer-dot {
@@ -263,7 +265,9 @@
 /* .landing-form-wrap merged into .landing-below-brand */
 
 .landing-back {
-  align-self: flex-start;
+  position: fixed;
+  top: var(--space-5);
+  left: var(--space-5);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -272,10 +276,21 @@
   letter-spacing: var(--tracking-wide);
   padding: var(--space-1) 0;
   transition: color var(--duration-fast);
+  z-index: var(--z-nav);
 }
 
 .landing-back:hover {
   color: var(--color-accent);
+}
+
+.landing-heading {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .landing-subtitle {
@@ -283,6 +298,8 @@
   color: var(--color-text-muted);
   letter-spacing: var(--tracking-wide);
   font-weight: var(--weight-light);
+  text-align: center;
+  align-self: center;
 }
 
 /* ---- Form fields ---- */
@@ -304,13 +321,12 @@
   font-weight: var(--weight-medium);
   color: var(--color-text-muted);
   letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
 }
 
 .landing-input {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  background: rgba(255, 255, 255, 0.6);
+  padding: 12px var(--space-4);
+  background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
@@ -325,7 +341,7 @@
 .landing-input:-webkit-autofill,
 .landing-input:-webkit-autofill:hover,
 .landing-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.6) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
   -webkit-text-fill-color: var(--color-text);
   caret-color: var(--color-text);
 }
@@ -334,7 +350,6 @@
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-glow);
   outline: none;
-  background: rgba(255, 255, 255, 0.8);
 }
 
 .landing-error {
@@ -438,8 +453,8 @@
   }
 }
 
-/* Soft pastel primary buttons on landing */
-.landing .btn-primary {
+/* Soft pastel primary button — hero CTA only */
+.landing-cta .btn-primary {
   background: rgba(196, 84, 122, 0.15);
   color: var(--color-rose);
   box-shadow: inset 0 0 0 1.5px rgba(196, 84, 122, 0.3);
@@ -447,7 +462,7 @@
   overflow: hidden;
 }
 
-.landing .btn-primary::after {
+.landing-cta .btn-primary::after {
   content: '';
   position: absolute;
   top: 0;
@@ -465,11 +480,92 @@
   pointer-events: none;
 }
 
-.landing .btn-primary:hover:not(:disabled)::after {
+.landing-cta .btn-primary:hover:not(:disabled)::after {
   left: 160%;
 }
 
-.landing .btn-primary:hover:not(:disabled) {
+.landing-cta .btn-primary:hover:not(:disabled) {
   background: rgba(196, 84, 122, 0.22);
   box-shadow: inset 0 0 0 1.5px rgba(196, 84, 122, 0.45);
+}
+
+/* Same pastel button on login form */
+.landing-form .btn-primary {
+  background: rgba(196, 84, 122, 0.15);
+  color: var(--color-rose);
+  box-shadow: inset 0 0 0 1.5px rgba(196, 84, 122, 0.3);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.landing-form .btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.55s var(--ease-out);
+  pointer-events: none;
+}
+
+.landing-form .btn-primary:hover:not(:disabled)::after {
+  left: 160%;
+}
+
+.landing-form .btn-primary:hover:not(:disabled) {
+  background: rgba(196, 84, 122, 0.22);
+  box-shadow: inset 0 0 0 1.5px rgba(196, 84, 122, 0.45);
+}
+
+/* ================================================================
+   Form view — Resend-style clean login (all breakpoints)
+   ================================================================ */
+
+
+
+/* Form container */
+.landing-form-view {
+  max-width: 380px;
+  gap: var(--space-3);
+}
+
+.landing-form-view .landing-form {
+  margin-top: var(--space-4);
+}
+
+/* Terms/privacy agreement text */
+.landing-terms {
+  font-size: var(--text-xs);
+  color: var(--color-text-light);
+  text-align: center;
+  line-height: var(--leading-relaxed);
+  margin-top: var(--space-2);
+}
+
+.landing-terms a {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--duration-fast);
+}
+
+.landing-terms a:hover {
+  color: var(--color-accent);
+}
+
+/* Desktop: center the form view */
+@media (--bp-md) {
+  .landing:has(.landing-form-view) {
+    justify-content: center;
+    padding: var(--space-10);
+  }
 }
