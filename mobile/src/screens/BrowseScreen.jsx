@@ -1,13 +1,16 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
 import CardStack from '../components/CardStack';
+import CardPile from '../components/CardPile';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space } from '../theme/tokens';
 import { useMatches } from '../context/MatchContext';
 import client from '../api/client';
 import SlideView from '../components/SlideView';
+
+const IS_TABLET = Dimensions.get('window').width >= 768;
 
 export default function BrowseScreen() {
   const [activeCategory, setActiveCategory] = useState('foreplay');
@@ -51,6 +54,15 @@ export default function BrowseScreen() {
 
   const categoryItems = useMemo(() => {
     return catalog.filter((item) => item.category === activeCategory && !responses[String(item.id)]);
+  }, [catalog, activeCategory, responses]);
+
+  // Items swiped yes/no in the active category (for side piles)
+  const yesItems = useMemo(() => {
+    return catalog.filter((i) => i.category === activeCategory && responses[String(i.id)] === 'yes');
+  }, [catalog, activeCategory, responses]);
+
+  const noItems = useMemo(() => {
+    return catalog.filter((i) => i.category === activeCategory && responses[String(i.id)] === 'no');
   }, [catalog, activeCategory, responses]);
 
   const progress = useMemo(() => {
@@ -107,13 +119,27 @@ export default function BrowseScreen() {
       </View>
       <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
       <View style={styles.stackArea} onLayout={(e) => setStackHeight(e.nativeEvent.layout.height)}>
-        <CardStack
-          items={categoryItems}
-          onRespond={handleRespond}
-          matchItem={matchItem}
-          onUndo={lastResponse ? handleUndo : null}
-          availableHeight={stackHeight}
-        />
+        {IS_TABLET ? (
+          <View style={styles.tabletRow}>
+            <CardPile items={noItems.slice(-5)} side="no" totalCount={noItems.length} />
+            <CardStack
+              items={categoryItems}
+              onRespond={handleRespond}
+              matchItem={matchItem}
+              onUndo={lastResponse ? handleUndo : null}
+              availableHeight={stackHeight}
+            />
+            <CardPile items={yesItems.slice(-5)} side="yes" totalCount={yesItems.length} />
+          </View>
+        ) : (
+          <CardStack
+            items={categoryItems}
+            onRespond={handleRespond}
+            matchItem={matchItem}
+            onUndo={lastResponse ? handleUndo : null}
+            availableHeight={stackHeight}
+          />
+        )}
       </View>
     </SafeAreaView>
     </SlideView>
@@ -121,7 +147,7 @@ export default function BrowseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: space[5],
     paddingTop: space[4],
@@ -138,5 +164,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
-  stackArea: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: space[4], paddingBottom: space[4] },
+  stackArea: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: space[6] },
+  tabletRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
 });

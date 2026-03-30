@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MOODS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
@@ -7,6 +7,8 @@ import { useAuth } from '../context/useAuth';
 import { useMatches } from '../context/MatchContext';
 import client from '../api/client';
 import SlideView from '../components/SlideView';
+
+const IS_TABLET = Dimensions.get('window').width >= 768;
 
 export default function MoodScreen() {
   const { user } = useAuth();
@@ -68,80 +70,90 @@ export default function MoodScreen() {
   return (
     <SlideView>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.inner}>
 
-          <View style={styles.header}>
-            <Text style={styles.title}>Mood</Text>
-            <Text style={styles.subtitle}>Let your partner know how you're feeling.</Text>
-          </View>
+            <View style={styles.header}>
+              <Text style={styles.title}>Mood</Text>
+              <Text style={styles.subtitle}>Let your partner know how you're feeling.</Text>
+            </View>
 
-          {/* Your mood */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Your mood</Text>
+            {/* Two-column layout on tablet: your mood + partner mood side by side */}
+            <View style={IS_TABLET ? styles.tabletRow : styles.phoneCol}>
 
-            {myMood && !picking ? (
-              <View style={styles.currentRow}>
-                <View style={styles.currentBadge}>
-                  <Text style={styles.currentEmoji}>{myMoodObj?.emoji}</Text>
-                  <Text style={styles.currentLabel}>{myMoodObj?.label}</Text>
-                </View>
-                <TouchableOpacity onPress={() => setPicking(myMood)} style={styles.changeBtn}>
-                  <Text style={styles.changeBtnText}>Change</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <>
-                <View style={styles.moodGrid}>
-                  {MOODS.map((m) => (
-                    <TouchableOpacity
-                      key={m.key}
-                      style={[styles.moodBtn, picking === m.key && styles.moodBtnActive]}
-                      onPress={() => setPicking(m.key)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.moodEmoji}>{m.emoji}</Text>
-                      <Text style={[styles.moodLabel, picking === m.key && styles.moodLabelActive]}>
-                        {m.label}
-                      </Text>
+              {/* Your mood */}
+              <View style={[styles.section, IS_TABLET && styles.sectionTablet]}>
+                <Text style={styles.sectionLabel}>Your mood</Text>
+
+                {myMood && !picking ? (
+                  <View style={styles.currentRow}>
+                    <View style={styles.currentBadge}>
+                      <Text style={styles.currentEmoji}>{myMoodObj?.emoji}</Text>
+                      <Text style={styles.currentLabel}>{myMoodObj?.label}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setPicking(myMood)} style={styles.changeBtn}>
+                      <Text style={styles.changeBtnText}>Change</Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.moodGrid}>
+                      {MOODS.map((m) => (
+                        <TouchableOpacity
+                          key={m.key}
+                          style={[styles.moodBtn, picking === m.key && styles.moodBtnActive]}
+                          onPress={() => setPicking(m.key)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.moodEmoji}>{m.emoji}</Text>
+                          <Text style={[styles.moodLabel, picking === m.key && styles.moodLabelActive]}>
+                            {m.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
 
-                {picking && (
-                  <View style={styles.confirmRow}>
-                    <TouchableOpacity
-                      style={[styles.setBtn, loading && styles.setBtnDisabled]}
-                      onPress={handleSet}
-                      disabled={loading}
-                    >
-                      <Text style={styles.setBtnText}>{loading ? 'Sending…' : 'Send to partner'}</Text>
-                    </TouchableOpacity>
-                    {myMood && (
-                      <TouchableOpacity onPress={() => setPicking(null)}>
-                        <Text style={styles.cancelText}>Cancel</Text>
-                      </TouchableOpacity>
+                    {picking && (
+                      <View style={styles.confirmRow}>
+                        <TouchableOpacity
+                          style={[styles.setBtn, loading && styles.setBtnDisabled]}
+                          onPress={handleSet}
+                          disabled={loading}
+                        >
+                          <Text style={styles.setBtnText}>{loading ? 'Sending…' : 'Send to partner'}</Text>
+                        </TouchableOpacity>
+                        {myMood && (
+                          <TouchableOpacity onPress={() => setPicking(null)}>
+                            <Text style={styles.cancelText}>Cancel</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                     )}
+
+                    {error && <Text style={styles.errorText}>{error}</Text>}
+                  </>
+                )}
+              </View>
+
+              {/* Partner mood */}
+              <View style={[styles.section, IS_TABLET && styles.sectionTablet]}>
+                <Text style={styles.sectionLabel}>{partnerName}'s mood</Text>
+                {partnerMoodObj ? (
+                  <View style={styles.partnerDisplay}>
+                    <Text style={styles.partnerEmoji}>{partnerMoodObj.emoji}</Text>
+                    <Text style={styles.partnerLabel}>{partnerMoodObj.label}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyIcon}>💭</Text>
+                    <Text style={styles.emptyText}>Nothing set yet</Text>
                   </View>
                 )}
-
-                {error && <Text style={styles.errorText}>{error}</Text>}
-              </>
-            )}
-          </View>
-
-          {/* Partner mood */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{partnerName}'s mood</Text>
-            {partnerMoodObj ? (
-              <View style={styles.currentBadge}>
-                <Text style={styles.currentEmoji}>{partnerMoodObj.emoji}</Text>
-                <Text style={styles.currentLabel}>{partnerMoodObj.label}</Text>
               </View>
-            ) : (
-              <Text style={styles.emptyText}>Nothing set yet</Text>
-            )}
-          </View>
 
+            </View>
+
+          </View>
         </ScrollView>
       </SafeAreaView>
     </SlideView>
@@ -149,12 +161,22 @@ export default function MoodScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: space[5], gap: space[5] },
+  container: { flex: 1, backgroundColor: 'transparent' },
+  scroll: { flexGrow: 1 },
+  inner: {
+    width: '100%',
+    maxWidth: IS_TABLET ? 640 : undefined,
+    alignSelf: 'center',
+    padding: space[5],
+    gap: space[5],
+  },
 
   header: { gap: space[1] },
   title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text },
   subtitle: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted },
+
+  phoneCol: { gap: space[4] },
+  tabletRow: { flexDirection: 'row', gap: space[4] },
 
   section: {
     backgroundColor: colors.surface,
@@ -164,6 +186,7 @@ const styles = StyleSheet.create({
     padding: space[5],
     gap: space[4],
   },
+  sectionTablet: { flex: 1 },
   sectionLabel: {
     fontFamily: fonts.sansMedium,
     fontSize: 11,
@@ -228,6 +251,25 @@ const styles = StyleSheet.create({
   },
   changeBtnText: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },
 
+  partnerDisplay: {
+    alignItems: 'center',
+    gap: space[2],
+    paddingVertical: space[4],
+  },
+  partnerEmoji: { fontSize: 48 },
+  partnerLabel: {
+    fontFamily: fonts.serifBold,
+    fontSize: 20,
+    color: colors.text,
+  },
+
+  emptyState: {
+    alignItems: 'center',
+    gap: space[2],
+    paddingVertical: space[4],
+  },
+  emptyIcon: { fontSize: 32 },
   emptyText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, fontStyle: 'italic' },
+
   errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no },
 });

@@ -107,7 +107,7 @@ export default function CardStack({ items = [], onRespond, onUndo, locked = fals
   }, [hintX, hintY]);
 
   const triggerResponse = useCallback((response) => {
-    if (responding.current || localItems.length === 0) return;
+    if (locked || responding.current || localItems.length === 0) return;
     responding.current = true;
     setIsAnimating(true);
     setHintClass("");
@@ -152,7 +152,7 @@ export default function CardStack({ items = [], onRespond, onUndo, locked = fals
         setIsAnimating(false);
       }, 380);
     }, 30);
-  }, [localItems, hintX, hintY, onRespond]);
+  }, [locked, localItems, hintX, hintY, onRespond]);
 
   // ── Keyboard shortcuts (desktop) ───────────────────────────────────────────
   useEffect(() => {
@@ -240,13 +240,13 @@ export default function CardStack({ items = [], onRespond, onUndo, locked = fals
         <motion.button className="response-btn response-undo"  whileTap={{ scale: 0.88 }} onClick={() => { haptic.double(); onUndo?.(); }} disabled={!onUndo} aria-label="Undo">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
         </motion.button>
-        <motion.button className="response-btn response-no"   whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("no")}    disabled={isAnimating} aria-label="No">
+        <motion.button className="response-btn response-no"   whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("no")}    disabled={isAnimating || locked} aria-label="No">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </motion.button>
-        <motion.button className="response-btn response-yes"  whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("yes")}   disabled={isAnimating} aria-label="Yes">
+        <motion.button className="response-btn response-yes"  whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("yes")}   disabled={isAnimating || locked} aria-label="Yes">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
         </motion.button>
-        <motion.button className="response-btn response-maybe" whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("maybe")} disabled={isAnimating} aria-label="Maybe">
+        <motion.button className="response-btn response-maybe" whileTap={{ scale: 0.88 }} onClick={() => triggerResponse("maybe")} disabled={isAnimating || locked} aria-label="Maybe">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </motion.button>
       </div>

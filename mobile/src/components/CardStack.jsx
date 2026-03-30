@@ -141,31 +141,35 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
         </View>
       )}
 
-      {/* Card stack */}
+      {/* Card stack — behind cards rendered first (bottom), top card last */}
       <View style={[styles.stack, { width: CARD_WIDTH, height: cardH }]}>
-        {localItems.slice(0, VISIBLE).map((item, i) => {
-          if (i === 0) {
-            return (
-              <GestureDetector key={item.id} gesture={panGesture}>
-                <Animated.View style={[styles.cardPos, { zIndex: VISIBLE - i }, topCardStyle]}>
-                  <ItemCard item={item}
-                    hintLabel={hint === 'yes' ? 'YES' : hint === 'no' ? 'NOPE' : hint === 'maybe' ? 'MAYBE' : null}
-                    hintColor={hint === 'yes' ? colors.yes : hint === 'no' ? colors.no : colors.maybe}
-                    cardHeight={availableHeight}
-                  />
-                </Animated.View>
-              </GestureDetector>
-            );
-          }
+        {localItems.slice(1, VISIBLE).map((item, i) => {
+          const idx = i + 1;
+          const offset = idx * 8;
+          const narrower = CARD_WIDTH - idx * 16;
           return (
-            <Animated.View key={item.id} style={[styles.cardPos, {
-              zIndex: VISIBLE - i,
-              transform: [{ scale: 1 - i * 0.04 }, { translateY: i * 10 }],
-            }]}>
-              <ItemCard item={item} cardHeight={availableHeight} />
-            </Animated.View>
+            <View key={item.id} style={[styles.behindCard, {
+              zIndex: VISIBLE - idx,
+              width: narrower,
+              left: (CARD_WIDTH - narrower) / 2,
+              bottom: -offset,
+              height: 24,
+              borderBottomLeftRadius: 14,
+              borderBottomRightRadius: 14,
+            }]} />
           );
         })}
+        {localItems.length > 0 && (
+          <GestureDetector key={localItems[0].id} gesture={panGesture}>
+            <Animated.View style={[styles.cardPos, { zIndex: VISIBLE }, topCardStyle]}>
+              <ItemCard item={localItems[0]}
+                hintLabel={hint === 'yes' ? 'YES' : hint === 'no' ? 'NOPE' : hint === 'maybe' ? 'MAYBE' : null}
+                hintColor={hint === 'yes' ? colors.yes : hint === 'no' ? colors.no : colors.maybe}
+                cardHeight={availableHeight}
+              />
+            </Animated.View>
+          </GestureDetector>
+        )}
       </View>
 
       {/* Buttons — flex-end pushes them toward tab bar */}
@@ -192,10 +196,17 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingVertical: space[3] },
+  wrapper: { alignItems: 'center', justifyContent: 'center', gap: space[4] },
 
   stack: { position: 'relative' },
   cardPos: { position: 'absolute', top: 0, left: 0 },
+  behindCard: {
+    position: 'absolute',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: colors.border,
+  },
 
   swipeTag: {
     position: 'absolute',

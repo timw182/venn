@@ -130,7 +130,9 @@ function MatchCard({ match, onSeen, onRemove, cardWidth }) {
 export default function MatchesScreen() {
   const [filter, setFilter] = useState('all');
   const { width } = useWindowDimensions();
-  const cardWidth = Math.floor((width - space[4] * 2 - space[3]) / 2);
+  const columns = width >= 768 ? 4 : 2;
+  const totalGaps = (columns - 1) * space[3];
+  const cardWidth = Math.floor((width - space[4] * 2 - totalGaps) / columns);
   const { user } = useAuth();
   const { matches: allMatches, setMatches } = useMatches();
 
@@ -181,7 +183,7 @@ export default function MatchesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { padding: space[5], paddingBottom: space[3] },
   title: { fontFamily: fonts.serif, fontSize: 26, color: colors.text },
   subtitle: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, marginTop: 2 },

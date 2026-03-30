@@ -21,8 +21,8 @@ function Particle({ left, size, delay, duration, drift, color }) {
           Animated.timing(y, { toValue: -120, duration, useNativeDriver: true }),
           Animated.timing(x, { toValue: drift, duration, useNativeDriver: true }),
           Animated.sequence([
-            Animated.timing(opacity, { toValue: 0.08, duration: duration * 0.1, useNativeDriver: true }),
-            Animated.timing(opacity, { toValue: 0.08, duration: duration * 0.75, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.12, duration: duration * 0.1, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.12, duration: duration * 0.75, useNativeDriver: true }),
             Animated.timing(opacity, { toValue: 0,    duration: duration * 0.15, useNativeDriver: true }),
           ]),
         ]),

@@ -7,6 +7,7 @@ from slowapi.util import get_remote_address
 from database import get_db
 from models import CatalogItem, RespondRequest
 from routers.auth import _session_user_id
+from routers.deps import require_couple
 from ws import manager
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
@@ -36,6 +37,7 @@ async def get_my_responses(request: Request, db: Connection = Depends(get_db)):
 @router.delete("/respond/{item_id}", status_code=204)
 async def undo_response(item_id: int, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
+    await require_couple(db, uid)
     await db.execute(
         "DELETE FROM user_responses WHERE user_id = ? AND item_id = ?",
         (uid, item_id),
@@ -52,6 +54,7 @@ SPAM_COOLDOWN_H = 24   # hours between repeated alerts
 @limiter.limit("120/minute")
 async def respond(body: RespondRequest, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
+    await require_couple(db, uid)
 
     cur = await db.execute("SELECT id FROM catalog_items WHERE id = ?", (body.item_id,))
     item = await cur.fetchone()

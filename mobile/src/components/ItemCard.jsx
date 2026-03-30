@@ -1,18 +1,20 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { colors, fonts, radii } from '../theme/tokens';
 
-const { width } = Dimensions.get('window');
-export const CARD_WIDTH = Math.min(width - 48, 360);
+const { width, height: screenH } = Dimensions.get('window');
+const IS_TABLET = width >= 768;
+export const CARD_WIDTH = IS_TABLET ? Math.min(width * 0.35, 280) : Math.min(width - 48, 360);
 export const CARD_HEIGHT = CARD_WIDTH * 1.32;
 
 const HINTS_H = 20;
 const BUTTONS_H = 64;
 const GAPS_H = 40;   // two gaps of space[5] between stack/hints/buttons
 const PADDING_H = 16; // stackArea paddingBottom
+const MAX_CARD_H = Math.min(screenH * 0.55, 520);
 
 export function getCardHeight(availableHeight) {
-  if (!availableHeight) return CARD_HEIGHT;
-  return Math.max(200, availableHeight - HINTS_H - BUTTONS_H - GAPS_H - PADDING_H);
+  if (!availableHeight) return Math.min(CARD_HEIGHT, MAX_CARD_H);
+  return Math.min(Math.max(200, availableHeight - HINTS_H - BUTTONS_H - GAPS_H - PADDING_H), MAX_CARD_H);
 }
 
 export default function ItemCard({ item, hintLabel, hintColor, cardHeight }) {
@@ -47,10 +49,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   hero: {
     flex: 1,

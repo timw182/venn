@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const IS_TABLET = Dimensions.get('window').width >= 768;
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/useAuth';
@@ -11,7 +13,7 @@ import { useMatches } from '../context/MatchContext';
 import { TabDirectionProvider, useTabDirection } from '../context/TabDirectionContext';
 import { SCREENS } from '../lib/constants';
 import FloatingParticles from '../components/FloatingParticles';
-import { colors, fonts } from '../theme/tokens';
+import { colors, fonts, radii } from '../theme/tokens';
 
 import LandingScreen from '../screens/LandingScreen';
 import PairingScreen from '../screens/PairingScreen';
@@ -85,7 +87,7 @@ function MoodToast({ mood, partnerName }) {
 function CustomTabBar({ state, descriptors, navigation, matchCount }) {
   const directionRef = useTabDirection();
   return (
-    <View style={styles.tabBar}>
+    <View style={[styles.tabBar, IS_TABLET && styles.tabBarTablet]}>
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const tab = TABS.find((t) => t.name === route.name);
@@ -95,7 +97,7 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
         return (
           <TouchableOpacity
             key={route.key}
-            style={styles.tabItem}
+            style={[styles.tabItem, IS_TABLET && styles.tabItemTablet, IS_TABLET && focused && styles.tabItemTabletActive]}
             onPress={() => {
               Haptics.selectionAsync();
               if (!focused) {
@@ -106,15 +108,15 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
             activeOpacity={0.7}
           >
             <View style={styles.iconWrap}>
-              <Feather name={tab.icon} size={22} color={iconColor} />
+              <Feather name={tab.icon} size={IS_TABLET ? 24 : 22} color={iconColor} />
               {badge > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
                 </View>
               )}
             </View>
-            <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{tab.label}</Text>
-            {focused && <View style={styles.activeDot} />}
+            <Text style={[styles.tabLabel, IS_TABLET && styles.tabLabelTablet, focused && styles.tabLabelActive]}>{tab.label}</Text>
+            {focused && !IS_TABLET && <View style={styles.activeDot} />}
           </TouchableOpacity>
         );
       })}
@@ -128,10 +130,9 @@ function MainTabs() {
 
   return (
     <TabDirectionProvider>
-    <View style={{ flex: 1 }}>
-      <FloatingParticles />
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Tab.Navigator
-        screenOptions={{ headerShown: false }}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: 'transparent' } }}
         tabBar={(props) => <CustomTabBar {...props} matchCount={newMatchCount} />}
       >
         <Tab.Screen name={SCREENS.BROWSE}   component={BrowseScreen}   />
@@ -139,6 +140,7 @@ function MainTabs() {
         <Tab.Screen name={SCREENS.MOOD}     component={MoodScreen}     />
         <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
       </Tab.Navigator>
+      <FloatingParticles />
       {partnerMood && (
         <MoodToast mood={partnerMood} partnerName={user?.partnerName || 'Your partner'} />
       )}
@@ -186,11 +188,18 @@ export default function AppNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.85)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     height: 72,
     paddingBottom: 8,
+  },
+  tabBarTablet: {
+    height: 80,
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 40,
+    paddingBottom: 12,
   },
   tabItem: {
     flex: 1,
@@ -199,12 +208,27 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingTop: 8,
   },
+  tabItemTablet: {
+    flex: 0,
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: radii.full,
+  },
+  tabItemTabletActive: {
+    backgroundColor: colors.accentSoft,
+  },
   iconWrap: { position: 'relative' },
   tabLabel: {
     fontFamily: fonts.sans,
     fontSize: 11,
     color: colors.textLight,
     letterSpacing: 0.3,
+  },
+  tabLabelTablet: {
+    fontSize: 14,
+    fontFamily: fonts.sansMedium,
   },
   tabLabelActive: { color: colors.accent },
   activeDot: {
