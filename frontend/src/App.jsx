@@ -20,11 +20,11 @@ import Terms from './pages/Terms';
 
 // ── Route guards ──────────────────────────────────────────────────────────────
 
-/** Root "/" — sends unauthenticated users to marketing page; logged-in users to the app */
+/** Root "/" — nginx serves download.html for fresh loads; this handles client-side nav */
 function RootRedirect() {
   const { user, isSolo, loading } = useAuth();
   if (loading) return null;
-  if (!user) { window.location.replace('/download.html'); return null; }
+  if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
   if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
   return <Navigate to={ROUTES.PAIR} replace />;
 }
