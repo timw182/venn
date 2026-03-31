@@ -24,10 +24,7 @@ import Terms from './pages/Terms';
 function RootRedirect() {
   const { user, isSolo, loading } = useAuth();
   if (loading) return null;
-  if (!user) {
-    window.location.replace('/download.html');
-    return null;
-  }
+  if (!user) { window.location.replace('/download.html'); return null; }
   if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
   return <Navigate to={ROUTES.PAIR} replace />;
 }
