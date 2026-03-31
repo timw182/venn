@@ -21,6 +21,7 @@ function toUser(raw) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isSolo, setIsSolo] = useState(false);
+  const [isPendingPair, setIsPendingPair] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -90,6 +91,10 @@ export function AuthProvider({ children }) {
     return data.code;
   }, []);
 
+  const enterPendingPair = useCallback(() => {
+    setIsPendingPair(true);
+  }, []);
+
 
   const updateProfile = useCallback(async (displayName) => {
     const raw = await client.patch('/auth/profile', { display_name: displayName });
@@ -97,7 +102,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isSolo, loading, login, register, logout, pair, createPairingCode, enterSolo, setUser, updateProfile }}>
+    <AuthContext.Provider value={{ user, isSolo, isPendingPair, loading, login, register, logout, pair, createPairingCode, enterSolo, enterPendingPair, setUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -461,6 +461,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     fontSize: 16,
     color: colors.text,
+    letterSpacing: 0,
   },
 
   errorBox: {

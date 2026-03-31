@@ -27,6 +27,7 @@ export const MOODS = [
 export const SCREENS = {
   LANDING: 'Landing',
   PAIRING: 'Pairing',
+  CODE_REVEAL: 'CodeReveal',
   CONNECTED: 'Connected',
   BROWSE: 'Browse',
   MATCHES: 'Matches',

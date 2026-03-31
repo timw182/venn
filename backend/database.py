@@ -123,6 +123,7 @@ async def init_db():
             ("users",     "is_superadmin",  "INTEGER NOT NULL DEFAULT 0"),
             ("users",     "session_token",  "TEXT"),
             ("users",     "email",          "TEXT"),
+            ("users",     "is_paid",        "INTEGER NOT NULL DEFAULT 0"),
             ("user_mood", "custom_message", "TEXT"),
             ("tickets",   "admin_note",     "TEXT"),
             ("tickets",   "resolved_at",    "TEXT"),

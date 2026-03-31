@@ -11,7 +11,12 @@ function loadEnv(filePath) {
       if (trimmed && !trimmed.startsWith('#')) {
         const idx = trimmed.indexOf('=');
         if (idx > 0) {
-          env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
+          let val = trimmed.slice(idx + 1);
+          // Strip surrounding quotes (single or double)
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          env[trimmed.slice(0, idx)] = val;
         }
       }
     }
@@ -24,7 +29,7 @@ module.exports = {
     {
       name: 'venn-api',
       script: 'python3',
-      args: '-m uvicorn main:app --host 127.0.0.1 --port 8000',
+      args: '-m uvicorn main:app --host 127.0.0.1 --port 7713',
       cwd: '/root/venn/backend',
       env: loadEnv('/root/venn/backend/.env'),
     },

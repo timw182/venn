@@ -227,6 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space[3],
     alignItems: 'center',
+    paddingTop: space[4],
     paddingBottom: space[2],
   },
   btn: {

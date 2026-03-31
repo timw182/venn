@@ -11,6 +11,7 @@ import {
   Animated,
   Pressable,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Rect, G, Line } from "react-native-svg";
@@ -22,6 +23,7 @@ import Button from "../components/Button";
 import client from "../api/client";
 import SlideView from "../components/SlideView";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const TILE_SIZE = (SW - space[5] * 2 - space[3]) / 2;
@@ -90,6 +92,15 @@ function SupportIcon({ size = 32 }) {
   );
 }
 
+function PairingIcon({ size = 32 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 256 256" fill="none">
+      <Circle cx="88" cy="128" r="44" stroke={colors.rose} strokeWidth="14" fill="none" opacity={0.7} />
+      <Circle cx="168" cy="128" r="44" stroke={colors.violet} strokeWidth="14" fill="none" opacity={0.7} />
+    </Svg>
+  );
+}
+
 function AboutIcon({ size = 32 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 256 256" fill="none">
@@ -101,8 +112,9 @@ function AboutIcon({ size = 32 }) {
   );
 }
 
-const TILES = [
+const ALL_TILES = [
   { id: "profile", label: "Profile", Icon: ProfileIcon },
+  { id: "pairing", label: "Pairing", Icon: PairingIcon, unpairedOnly: true },
   { id: "data", label: "Data", Icon: DataIcon },
   { id: "support", label: "Support", Icon: SupportIcon },
   { id: "about", label: "About", Icon: AboutIcon },
@@ -196,10 +208,56 @@ const sheetStyles = StyleSheet.create({
 
 /* ── Main component ──────────────────────────────────────────────────── */
 export default function SettingsScreen({ navigation }) {
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, updateProfile, setUser } = useAuth();
   const { resetState, setResetState } = useMatches();
+  const TILES = ALL_TILES.filter((t) => !t.unpairedOnly || !user?.coupleId);
 
   const [activeSheet, setActiveSheet] = useState(null);
+
+  // Pairing
+  const [pairingCode, setPairingCode] = useState(null);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  useEffect(() => {
+    if (activeSheet === "pairing" && !user?.coupleId) {
+      client.get("/pairing/status").then((r) => {
+        if (r.pairing_code) setPairingCode(r.pairing_code);
+      }).catch(() => {});
+    }
+  }, [activeSheet]);
+
+  async function handleCopyCode() {
+    if (!pairingCode) return;
+    await Clipboard.setStringAsync(pairingCode);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2500);
+  }
+
+  async function handleJoinCode() {
+    if (joinCode.length < 6) return;
+    setJoinError("");
+    setJoining(true);
+    try {
+      const result = await client.post("/pairing/join", { code: joinCode.trim().toUpperCase() });
+      setUser({
+        id: result.id,
+        username: result.username,
+        displayName: result.display_name,
+        avatarColor: result.avatar_color,
+        coupleId: result.couple_id ?? null,
+        partnerName: result.partner_name ?? null,
+      });
+      closeSheet();
+    } catch (err) {
+      setJoinError(err.message || "Invalid code");
+    } finally {
+      setJoining(false);
+    }
+  }
 
   // Profile
   const [displayName, setDisplayName] = useState(user?.displayName || "");
@@ -399,19 +457,74 @@ export default function SettingsScreen({ navigation }) {
             </View>
           ) : (
             <View style={styles.field}>
-              <Text style={styles.muted}>You're exploring solo. Connect with a partner to see your matches.</Text>
-              <Button
-                variant="primary"
-                size="sm"
-                onPress={() => {
-                  closeSheet();
-                  navigation.navigate("Pairing");
-                }}
-              >
-                Create or enter a code
-              </Button>
+              <Text style={styles.muted}>You're browsing solo. Use the Pairing tile to connect with your partner.</Text>
             </View>
           )}
+        </Sheet>
+
+        {/* ── Pairing sheet ── */}
+        <Sheet open={activeSheet === "pairing"} onClose={closeSheet} title="Pairing">
+          <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+            <View style={{ gap: space[5], paddingBottom: space[2] }}>
+              {user?.coupleId ? (
+                <View style={styles.field}>
+                  <Text style={styles.label}>Connected to</Text>
+                  <View style={[styles.input, styles.inputReadonly]}>
+                    <Text style={styles.inputReadonlyText}>{user.partnerName}</Text>
+                  </View>
+                  <Button variant="danger" size="sm" onPress={handleDisconnect} disabled={disconnecting} loading={disconnecting}>
+                    Disconnect
+                  </Button>
+                </View>
+              ) : (
+                <>
+                  {!!pairingCode && (
+                    <View style={styles.field}>
+                      <Text style={styles.label}>Your active invite code</Text>
+                      <View style={styles.codeChipsRow}>
+                        {pairingCode.split("").map((char, i) => (
+                          <View key={i} style={styles.codeChip}>
+                            <Text style={styles.codeChipText}>{char}</Text>
+                          </View>
+                        ))}
+                      </View>
+                      <Button variant="secondary" size="sm" onPress={handleCopyCode}>
+                        {codeCopied ? "Copied!" : "Copy code"}
+                      </Button>
+                      <Text style={styles.muted}>Waiting for your partner to enter this code…</Text>
+                    </View>
+                  )}
+
+                  {!!pairingCode && <View style={styles.sectionDivider} />}
+
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Enter a partner's code</Text>
+                    <Text style={styles.muted}>Enter the 8-character code your partner shared with you.</Text>
+                    <TextInput
+                      style={styles.codeInputField}
+                      value={joinCode}
+                      onChangeText={(t) => setJoinCode(t.toUpperCase())}
+                      placeholder="········"
+                      placeholderTextColor={colors.textLight}
+                      maxLength={8}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                    />
+                    {!!joinError && <Text style={styles.errorText}>{joinError}</Text>}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onPress={handleJoinCode}
+                      loading={joining}
+                      disabled={joinCode.length < 6}
+                    >
+                      Connect
+                    </Button>
+                  </View>
+                </>
+              )}
+            </View>
+          </ScrollView>
         </Sheet>
 
         {/* ── Data sheet ── */}
@@ -655,4 +768,34 @@ const styles = StyleSheet.create({
 
   sheetActions: { flexDirection: "row", gap: space[3], alignItems: "center", flexWrap: "wrap" },
   aboutLinks: { flexDirection: "row", gap: space[3], flexWrap: "wrap", marginTop: space[2] },
+
+  codeChipsRow: { flexDirection: "row", gap: 5, justifyContent: "center" },
+  codeChip: {
+    width: 32, height: 40,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  codeChipText: { fontFamily: fonts.serifBold, fontSize: 16, color: colors.violet },
+
+  codeInputField: {
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingVertical: 14,
+    paddingHorizontal: space[4],
+    fontFamily: fonts.serifBold,
+    fontSize: 22,
+    letterSpacing: 7,
+    color: colors.violet,
+    textAlign: "center",
+  },
+
+  sectionDivider: { height: 1, backgroundColor: colors.border },
+
+  successText: { fontFamily: fonts.sans, fontSize: 13, color: "#4caf88" },
 });

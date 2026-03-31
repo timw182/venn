@@ -17,6 +17,7 @@ import { colors, fonts, radii } from '../theme/tokens';
 
 import LandingScreen from '../screens/LandingScreen';
 import PairingScreen from '../screens/PairingScreen';
+import CodeRevealScreen from '../screens/CodeRevealScreen';
 import ConnectedScreen from '../screens/ConnectedScreen';
 import BrowseScreen from '../screens/BrowseScreen';
 import MatchesScreen from '../screens/MatchesScreen';
@@ -150,7 +151,7 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
-  const { user, isSolo, loading } = useAuth();
+  const { user, isSolo, isPendingPair, loading } = useAuth();
 
   if (loading) return null;
 
@@ -164,16 +165,18 @@ export default function AppNavigator() {
             <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
             <Stack.Screen name={SCREENS.TERMS}     component={TermsScreen}     />
           </>
-        ) : !user.coupleId && !isSolo ? (
+        ) : !user.coupleId && !isSolo && !isPendingPair ? (
           <>
-            <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
-            <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
+            <Stack.Screen name={SCREENS.PAIRING}      component={PairingScreen}     />
+            <Stack.Screen name={SCREENS.CODE_REVEAL}  component={CodeRevealScreen}  />
+            <Stack.Screen name={SCREENS.CONNECTED}    component={ConnectedScreen}   />
           </>
         ) : (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen name={SCREENS.PAIRING}   component={PairingScreen}   />
-            <Stack.Screen name={SCREENS.CONNECTED} component={ConnectedScreen} />
+            <Stack.Screen name={SCREENS.PAIRING}     component={PairingScreen}    />
+            <Stack.Screen name={SCREENS.CODE_REVEAL} component={CodeRevealScreen} />
+            <Stack.Screen name={SCREENS.CONNECTED}   component={ConnectedScreen}  />
             <Stack.Screen name={SCREENS.PRIVACY}   component={PrivacyScreen}   />
             <Stack.Screen name={SCREENS.IMPRESSUM} component={ImpressumScreen} />
             <Stack.Screen name={SCREENS.TERMS}     component={TermsScreen}     />

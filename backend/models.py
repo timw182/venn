@@ -94,7 +94,7 @@ class JoinRequest(BaseModel):
     @classmethod
     def code_valid(cls, v: str) -> str:
         v = v.strip().upper()
-        if len(v) != 6 or not all(c in _CODE_CHARS for c in v):
+        if len(v) not in (6, 8) or not all(c in _CODE_CHARS for c in v):
             raise ValueError("Invalid pairing code")
         return v
 
