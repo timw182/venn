@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
 import CardStack from '../components/CardStack';
@@ -18,6 +18,7 @@ export default function BrowseScreen() {
   const [responses, setResponses] = useState({});
   const [matchItem, setMatchItem] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [stackHeight, setStackHeight] = useState(0);
   const matchTimerRef = useRef(null);
   const matchDelayRef = useRef(null);
@@ -26,12 +27,13 @@ export default function BrowseScreen() {
   const { latestNewMatch, dismissLatest, refetch } = useMatches();
 
   useEffect(() => {
+    setLoadError(false);
     Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
       .then(([items, resps]) => {
         setCatalog(items);
         setResponses(resps);
       })
-      .catch(() => {});
+      .catch(() => setLoadError(true));
   }, []);
 
   // React to match from WS (triggered_by check is in MatchContext)
@@ -107,7 +109,14 @@ export default function BrowseScreen() {
           }, 300);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Roll back optimistic state so user can retry
+        setResponses((prev) => {
+          const next = { ...prev };
+          delete next[String(itemId)];
+          return next;
+        });
+      });
   }, [catalog, refetch, dismissLatest]);
 
   return (
@@ -115,11 +124,23 @@ export default function BrowseScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Browse</Text>
-        <Text style={styles.headerSub}>Over 200 kinks in 6 categories</Text>
+        <Text style={styles.headerSub}>200+ activities across 6 categories</Text>
       </View>
       <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />
       <View style={styles.stackArea} onLayout={(e) => setStackHeight(e.nativeEvent.layout.height)}>
-        {IS_TABLET ? (
+        {loadError && catalog.length === 0 ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>Couldn't load activities</Text>
+            <Pressable onPress={() => {
+              setLoadError(false);
+              Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
+                .then(([items, resps]) => { setCatalog(items); setResponses(resps); })
+                .catch(() => setLoadError(true));
+            }}>
+              <Text style={styles.retryText}>Tap to retry</Text>
+            </Pressable>
+          </View>
+        ) : IS_TABLET ? (
           <View style={styles.tabletRow}>
             <CardPile items={noItems.slice(-5)} side="no" totalCount={noItems.length} />
             <CardStack
@@ -165,6 +186,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   stackArea: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: space[6] },
+  errorBox: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  errorText: { fontFamily: fonts.sans, fontSize: 15, color: colors.textMuted, marginBottom: 8 },
+  retryText: { fontFamily: fonts.sans, fontSize: 15, color: colors.accent, fontWeight: '600' },
   tabletRow: {
     flexDirection: 'row',
     alignItems: 'center',

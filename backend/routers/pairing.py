@@ -24,6 +24,9 @@ PAYMENT_REQUIRED = os.environ.get("PAYMENT_REQUIRED", "false").lower() == "true"
 
 router = APIRouter(prefix="/pairing", tags=["pairing"])
 
+# Set Resend API key once at import time (not per-request)
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+
 _CODE_CHARS = string.ascii_uppercase.replace("I", "").replace("O", "") + "23456789"
 
 
@@ -32,13 +35,11 @@ def _gen_code(length: int = CODE_LENGTH) -> str:
 
 
 async def _send_code_email(to_email: str, code: str) -> None:
-    api_key = os.environ.get("RESEND_API_KEY")
     from_email = os.environ.get("FROM_EMAIL", "Venn <noreply@venn.lu>")
-    if not api_key:
+    if not resend.api_key:
         log.warning("RESEND_API_KEY not set — skipping email for %s", to_email)
         return
     try:
-        resend.api_key = api_key
         resend.Emails.send({
             "from": from_email,
             "to": [to_email],
@@ -172,20 +173,33 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
 async def join_with_code(body: JoinRequest, request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
 
-    cur = await db.execute("SELECT * FROM users WHERE id = ?", (uid,))
-    me = await cur.fetchone()
-    if me and me["couple_id"]:
-        raise HTTPException(400, "Already paired")
+    # Acquire write lock before any reads to prevent TOCTOU races
+    await db.execute("BEGIN IMMEDIATE")
 
-    code = body.code.strip().upper()
-    cur = await db.execute("SELECT * FROM users WHERE pairing_code = ?", (code,))
-    other = await cur.fetchone()
-    if not other:
-        raise HTTPException(404, "Invalid or expired code")
-    if other["id"] == uid:
-        raise HTTPException(400, "Cannot pair with yourself")
-    if other["couple_id"]:
-        raise HTTPException(404, "Invalid or expired code")
+    try:
+        cur = await db.execute("SELECT * FROM users WHERE id = ?", (uid,))
+        me = await cur.fetchone()
+        if me and me["couple_id"]:
+            await db.execute("ROLLBACK")
+            raise HTTPException(400, "Already paired")
+
+        code = body.code.strip().upper()
+        cur = await db.execute("SELECT * FROM users WHERE pairing_code = ?", (code,))
+        other = await cur.fetchone()
+        if not other:
+            await db.execute("ROLLBACK")
+            raise HTTPException(404, "Invalid or expired code")
+        if other["id"] == uid:
+            await db.execute("ROLLBACK")
+            raise HTTPException(400, "Cannot pair with yourself")
+        if other["couple_id"]:
+            await db.execute("ROLLBACK")
+            raise HTTPException(404, "Invalid or expired code")
+    except HTTPException:
+        raise
+    except Exception:
+        await db.execute("ROLLBACK")
+        raise
 
     # Atomically claim the code + check expiry
     cur = await db.execute(
@@ -197,6 +211,7 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
     if cur.rowcount == 0:
         cur2 = await db.execute("SELECT pairing_code FROM users WHERE id = ?", (other["id"],))
         row2 = await cur2.fetchone()
+        await db.execute("ROLLBACK")
         if row2 and row2["pairing_code"] == code:
             raise HTTPException(410, "Pairing code has expired")
         raise HTTPException(409, "Code was just used by someone else")
@@ -214,12 +229,7 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
         (couple_id, other["id"], uid),
     )
     if cur.rowcount < 2:
-        await db.execute("DELETE FROM couples WHERE id = ?", (couple_id,))
-        await db.execute(
-            "UPDATE users SET couple_id = NULL WHERE id IN (?,?) AND couple_id = ?",
-            (other["id"], uid, couple_id),
-        )
-        await db.commit()
+        await db.execute("ROLLBACK")
         raise HTTPException(409, "Pairing conflict — please try again")
 
     # Mark both users as paid (partner inherits paid status)

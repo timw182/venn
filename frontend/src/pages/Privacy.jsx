@@ -55,7 +55,7 @@ export default function Privacy() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
           <h2 className="legal-card-title">Cookies</h2>
-          <p>We use a single session cookie (<code>kl_session</code>) strictly to keep you logged in. This cookie contains no tracking data, is never shared with third parties, and expires after 7 days of inactivity.</p>
+          <p>We use a single session cookie (<code>vn_session</code>) strictly to keep you logged in. This cookie contains no tracking data, is never shared with third parties, and expires after 7 days of inactivity.</p>
           <p>No advertising cookies, analytics cookies, or third-party cookies are used.</p>
         </section>
 

@@ -2,7 +2,11 @@ import { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Keyboard,
+  Dimensions,
 } from 'react-native';
+
+const IS_TABLET = Dimensions.get('window').width >= 768;
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { SCREENS } from '../lib/constants';
@@ -56,7 +60,7 @@ export default function PairingScreen({ navigation, route }) {
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="always">
-
+        <View style={IS_TABLET ? styles.tabletInner : null}>
             <TouchableOpacity onPress={() => { Keyboard.dismiss(); setMode(null); setError(''); }} style={styles.backBtn}>
               <Feather name="arrow-left" size={20} color={colors.textMuted} />
               <Text style={styles.backText}>back</Text>
@@ -99,7 +103,7 @@ export default function PairingScreen({ navigation, route }) {
             <TouchableOpacity onPress={handleSolo} style={styles.skipBtn}>
               <Text style={styles.skipText}>Connect later →</Text>
             </TouchableOpacity>
-
+        </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -110,7 +114,7 @@ export default function PairingScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="always">
-
+        <View style={IS_TABLET ? styles.tabletInner : null}>
         <View style={styles.brand}>
           <View style={styles.logoMark}>
             <Feather name="circle" size={14} color={colors.rose} style={{ marginRight: -4 }} />
@@ -142,9 +146,7 @@ export default function PairingScreen({ navigation, route }) {
             <View style={styles.cardBody}>
               <Text style={[styles.cardTitle, { color: colors.rose }]}>Create an invite</Text>
               <Text style={styles.cardDesc}>Generate a code and share it with your partner</Text>
-            </View>
-            <View style={styles.priceBadge}>
-              <Text style={styles.priceBadgeText}>€9.99</Text>
+              <Text style={styles.cardPrice}><Text style={styles.cardPriceValue}>€9.99</Text>  ·  one-time</Text>
             </View>
           </TouchableOpacity>
 
@@ -176,7 +178,7 @@ export default function PairingScreen({ navigation, route }) {
         <TouchableOpacity onPress={handleSolo} style={styles.soloBtn}>
           <Text style={styles.soloText}>Explore solo for now →</Text>
         </TouchableOpacity>
-
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -186,9 +188,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: space[6],
+    paddingHorizontal: IS_TABLET ? space[8] : space[6],
     paddingTop: space[8],
     paddingBottom: space[10],
+    alignItems: IS_TABLET ? 'center' : undefined,
+  },
+  tabletInner: {
+    width: '100%',
+    maxWidth: 460,
   },
 
   // Brand
@@ -246,16 +253,16 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 17,
   },
-  priceBadge: {
-    backgroundColor: 'rgba(196,84,122,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(196,84,122,0.25)',
-    borderRadius: radii.full,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    flexShrink: 0,
+  cardPrice: {
+    fontFamily: fonts.sansLight,
+    fontSize: 11,
+    color: colors.textLight,
+    marginTop: 2,
   },
-  priceBadgeText: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.rose },
+  cardPriceValue: {
+    fontFamily: fonts.sansMedium,
+    color: colors.rose,
+  },
 
   // Or divider
   orRow: { flexDirection: 'row', alignItems: 'center', gap: space[3], marginVertical: 2 },

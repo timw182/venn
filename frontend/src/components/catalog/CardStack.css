@@ -119,14 +119,14 @@
   width: 52px;
   height: 52px;
   background: var(--color-surface);
-  border: 1.5px solid var(--color-yes, #4caf80);
-  color: var(--color-yes, #4caf80);
+  border: 1.5px solid var(--color-yes);
+  color: var(--color-yes);
 }
 
 .response-yes:hover {
-  background: var(--color-yes, #4caf80);
+  background: var(--color-yes);
   color: #fff;
-  border-color: var(--color-yes, #4caf80);
+  border-color: var(--color-yes);
 }
 
 .response-maybe {
@@ -134,12 +134,12 @@
   height: 44px;
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
-  color: #D4870A;
+  color: var(--color-maybe);
 }
 
 .response-maybe:hover {
-  background: #FFF8EE;
-  border-color: #D4870A;
+  background: var(--color-maybe-soft);
+  border-color: var(--color-maybe);
 }
 
 .response-undo {
@@ -166,11 +166,6 @@
 }
 
 /* Item card content scales down on small phones */
-.item-card-hero {
-  width: 72px;
-  height: 72px;
-}
-
 .item-card-emoji {
   font-size: 36px;
 }
@@ -182,11 +177,6 @@
 .item-card-desc {
   font-size: var(--text-sm);
   max-width: 220px;
-}
-
-.item-card-inner {
-  padding: var(--space-5) var(--space-6);
-  gap: var(--space-3);
 }
 
 /* ── Tablet (768px+): fill shell, constrain card size ───────── */
@@ -253,11 +243,6 @@
   .card-stack-buttons { gap: 24px; }
 
   /* Item-card content — sized to fit the 260px card */
-  .item-card-hero {
-    width: 88px;
-    height: 88px;
-  }
-
   .item-card-emoji {
     font-size: 44px;
   }
@@ -269,11 +254,6 @@
   .item-card-desc {
     font-size: var(--text-sm);
     max-width: 240px;
-  }
-
-  .item-card-inner {
-    padding: var(--space-6) var(--space-6);
-    gap: var(--space-4);
   }
 }
 
@@ -289,11 +269,9 @@
   .response-undo               { width: 40px; height: 40px; }
   .card-stack-buttons          { gap: 28px; }
 
-  .item-card-hero  { width: 104px; height: 104px; }
   .item-card-emoji { font-size: 50px; }
   .item-card-title { font-size: var(--text-2xl); }
   .item-card-desc  { font-size: var(--text-base); max-width: 280px; }
-  .item-card-inner { padding: var(--space-8) var(--space-7); gap: var(--space-5); }
 }
 
 /* Match overlay */

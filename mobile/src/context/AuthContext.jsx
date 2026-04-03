@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import client, { clearSession, storeToken } from '../api/client';
 
-const SOLO_KEY = 'kl_solo';
+const SOLO_KEY = 'vn_solo';
 
 export const AuthContext = createContext(null);
 

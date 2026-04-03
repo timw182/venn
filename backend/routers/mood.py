@@ -6,7 +6,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from database import get_db
-from models import MoodRequest, MoodOut
+from models import MoodRequest, MoodOut, CustomMessageRequest
 from routers.auth import _session_user_id
 from routers.deps import require_couple, get_partner_id
 
@@ -114,22 +114,9 @@ async def clear_mood(request: Request, db: Connection = Depends(get_db)):
 
 @router.put("/message")
 @limiter.limit("10/minute")
-async def set_custom_message(request: Request, db: Connection = Depends(get_db)):
+async def set_custom_message(body: CustomMessageRequest, request: Request, db: Connection = Depends(get_db)):
     """Set a free-text message visible to partner (separate from mood emoji)."""
-    from fastapi import Body
-    import json
-    body_bytes = await request.body()
-    try:
-        body = json.loads(body_bytes)
-        message = body.get("message", "").strip()
-    except Exception:
-        raise HTTPException(400, "Invalid body")
-
-    if not message:
-        raise HTTPException(400, "Message required")
-    if len(message) > 120:
-        raise HTTPException(400, "Max 120 characters")
-
+    message = body.message
     uid = await _session_user_id(request, db)
     couple_id = await require_couple(db, uid)
 

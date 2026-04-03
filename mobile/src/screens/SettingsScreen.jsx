@@ -26,7 +26,10 @@ import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 
 const { width: SW, height: SH } = Dimensions.get("window");
-const TILE_SIZE = (SW - space[5] * 2 - space[3]) / 2;
+const IS_TABLET = SW >= 768;
+const COLS = IS_TABLET ? 3 : 2;
+const GRID_W = IS_TABLET ? Math.min(SW - 80, 520) : SW - space[5] * 2;
+const TILE_SIZE = (GRID_W - space[3] * (COLS - 1)) / COLS;
 
 /* ── Tile icons ───────────────────────────────────────────────────────── */
 function ProfileIcon({ size = 32 }) {
@@ -119,6 +122,14 @@ const ALL_TILES = [
   { id: "support", label: "Support", Icon: SupportIcon },
   { id: "about", label: "About", Icon: AboutIcon },
 ];
+
+const TILE_TINTS = {
+  profile:  'rgba(155,128,212,0.12)',
+  pairing:  'rgba(196,84,122,0.10)',
+  data:     'rgba(240,122,106,0.10)',
+  support:  'rgba(196,84,122,0.10)',
+  about:    'rgba(155,128,212,0.12)',
+};
 
 /* ── Bottom sheet ─────────────────────────────────────────────────────── */
 function Sheet({ open, onClose, title, children }) {
@@ -387,7 +398,7 @@ export default function SettingsScreen({ navigation }) {
                 variant="secondary"
                 size="sm"
                 onPress={handleLogout}
-                style={{ borderColor: "#f5c2c2", backgroundColor: "#fff5f5" }}
+                style={{ borderColor: 'rgba(240,122,106,0.35)', backgroundColor: 'rgba(240,122,106,0.06)', color: colors.no }}
               >
                 Sign out
               </Button>
@@ -406,8 +417,10 @@ export default function SettingsScreen({ navigation }) {
                   transform: [{ translateY: tileAnims[i].interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }],
                 }}
               >
-                <TouchableOpacity style={styles.tile} activeOpacity={0.7} onPress={() => openSheet(tile.id)}>
-                  <tile.Icon size={36} />
+                <TouchableOpacity style={styles.tile} activeOpacity={0.72} onPress={() => openSheet(tile.id)}>
+                  <View style={[styles.tileIconWell, TILE_TINTS[tile.id] && { backgroundColor: TILE_TINTS[tile.id] }]}>
+                    <tile.Icon size={30} />
+                  </View>
                   <Text style={styles.tileLabel}>{tile.label}</Text>
                 </TouchableOpacity>
               </Animated.View>
@@ -434,6 +447,13 @@ export default function SettingsScreen({ navigation }) {
               </Button>
             </View>
             {!!saveError && <Text style={styles.errorText}>{saveError}</Text>}
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Email</Text>
+            <View style={[styles.input, styles.inputReadonly]}>
+              <Text style={styles.inputReadonlyText}>{user?.username}</Text>
+            </View>
           </View>
 
           {user?.coupleId ? (
@@ -701,7 +721,7 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: "row", gap: space[2] },
   title: { fontFamily: fonts.serifBold, fontSize: 26, color: colors.text, fontStyle: "italic" },
 
-  /* ── 2×2 tile grid ── */
+  /* ── tile grid ── */
   grid: {
     flex: 1,
     flexDirection: "row",
@@ -709,22 +729,38 @@ const styles = StyleSheet.create({
     gap: space[3],
     alignContent: "center",
     justifyContent: "center",
+    maxWidth: IS_TABLET ? GRID_W : undefined,
+    alignSelf: "center",
+    width: IS_TABLET ? GRID_W : undefined,
   },
   tile: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: space[2],
-    backgroundColor: "rgba(255,255,255,0.6)",
+    gap: space[3],
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.xl,
+    shadowColor: '#2D1F3D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  tileIconWell: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tileLabel: {
     fontFamily: fonts.sansMedium,
     fontSize: 13,
     color: colors.text,
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
 
   version: {

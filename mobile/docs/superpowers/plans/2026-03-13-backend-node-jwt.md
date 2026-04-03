@@ -54,7 +54,7 @@ mkdir -p backend/src/db backend/src/middleware backend/src/routers backend/src/m
 
 ```json
 {
-  "name": "kinklink-api",
+  "name": "venn-api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -111,7 +111,7 @@ mkdir -p backend/src/db backend/src/middleware backend/src/routers backend/src/m
 
 ```
 PORT=8000
-DB_PATH=./kinklink.db
+DB_PATH=./venn.db
 ACCESS_TOKEN_SECRET=change_me_32_plus_bytes_hex
 REFRESH_TOKEN_SECRET=change_me_32_plus_bytes_hex_different
 NODE_ENV=production
@@ -169,7 +169,7 @@ let _db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (!_db) {
     // Read DB_PATH here (not at module load time) so dotenv has already run
-    const dbPath = process.env.DB_PATH ?? './kinklink.db';
+    const dbPath = process.env.DB_PATH ?? './venn.db';
     _db = new Database(path.resolve(dbPath));
     _db.pragma('journal_mode = WAL');
     _db.pragma('foreign_keys = ON');
@@ -1112,7 +1112,7 @@ const PORT = parseInt(process.env.PORT ?? '8000', 10);
 const app = createApp();
 
 app.listen(PORT, () => {
-  console.log(`KinkLink API running on port ${PORT}`);
+  console.log(`Venn API running on port ${PORT}`);
 });
 ```
 
@@ -1136,7 +1136,7 @@ Expected: `dist/` directory created, no errors.
 cd backend && npm run dev
 ```
 
-Expected output: `KinkLink API running on port 8000` and `Seeded N catalog items`
+Expected output: `Venn API running on port 8000` and `Seeded N catalog items`
 
 - [ ] **Step 5: Smoke test the health endpoint**
 
@@ -1196,9 +1196,9 @@ git commit -m "feat: add Express app factory and server entry point"
 ```javascript
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://apikinklink.amoreapp.net/api';
-const ACCESS_KEY = 'kl_access_token';
-const REFRESH_KEY = 'kl_refresh_token';
+const API_BASE = 'https://apivenn.amoreapp.net/api';
+const ACCESS_KEY = 'vn_access_token';
+const REFRESH_KEY = 'vn_refresh_token';
 
 export async function storeTokens(accessToken, refreshToken) {
   await AsyncStorage.multiSet([[ACCESS_KEY, accessToken], [REFRESH_KEY, refreshToken]]);
@@ -1369,7 +1369,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     // Read refresh token directly from AsyncStorage (not via client.js) so no
     // token-refresh attempt runs before we delete the session.
-    const refreshToken = await AsyncStorage.getItem('kl_refresh_token').catch(() => null);
+    const refreshToken = await AsyncStorage.getItem('vn_refresh_token').catch(() => null);
     await client.post('/auth/logout', { refreshToken }).catch(() => {});
     await clearTokens();
     setUser(null);
@@ -1398,7 +1398,7 @@ export function AuthProvider({ children }) {
 }
 ```
 
-**Note on `logout`:** The logout implementation reads the refresh token directly from AsyncStorage (rather than going through `client.js`) because we don't want a token-refresh to run right before deleting the session. Simplify if preferred: import `AsyncStorage` at the top of the file and call `AsyncStorage.getItem('kl_refresh_token')` directly.
+**Note on `logout`:** The logout implementation reads the refresh token directly from AsyncStorage (rather than going through `client.js`) because we don't want a token-refresh to run right before deleting the session. Simplify if preferred: import `AsyncStorage` at the top of the file and call `AsyncStorage.getItem('vn_refresh_token')` directly.
 
 - [ ] **Step 2: Commit**
 
@@ -1441,10 +1441,10 @@ Expected: app continues working silently after access token expires.
 
 - [ ] **Step 4: Update the systemd service for production**
 
-Edit `/etc/systemd/system/kinklink-api.service`:
+Edit `/etc/systemd/system/venn-api.service`:
 ```ini
 [Unit]
-Description=KinkLink API (Node.js)
+Description=Venn API (Node.js)
 After=network.target
 
 [Service]
@@ -1462,8 +1462,8 @@ Then:
 ```bash
 cd backend && npm run build
 sudo systemctl daemon-reload
-sudo systemctl restart kinklink-api
-sudo systemctl status kinklink-api
+sudo systemctl restart venn-api
+sudo systemctl status venn-api
 ```
 
 - [ ] **Step 5: Final commit**

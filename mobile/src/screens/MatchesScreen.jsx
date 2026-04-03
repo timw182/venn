@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable, useWindowDimensions,
 } from 'react-native';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORIES } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
@@ -9,6 +10,31 @@ import client from '../api/client';
 import { useMatches } from '../context/MatchContext';
 import { useAuth } from '../context/useAuth';
 import SlideView from '../components/SlideView';
+
+// Per-category tint for match cards — aligned with desktop ItemCard.css
+const CATEGORY_TINTS = {
+  foreplay:    { bg: '#F8EEF3', border: '#F0C8D8' },
+  positions:   { bg: '#EEE9F6', border: '#D8C8F0' },
+  settings:    { bg: '#EAEff6', border: '#C8D4F0' },
+  roleplay:    { bg: '#F6F0E8', border: '#F0DCC8' },
+  'toys-gear': { bg: '#EAF4EE', border: '#C8E8D0' },
+  adventurous: { bg: '#F6EDEA', border: '#F0D4C8' },
+};
+
+function CardGradient({ category }) {
+  const tint = CATEGORY_TINTS[category] || { bg: colors.surfaceAlt };
+  return (
+    <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+      <Defs>
+        <RadialGradient id={`cg_${category}`} cx="50%" cy="30%" rx="80%" ry="80%">
+          <Stop offset="0%" stopColor={tint.bg} stopOpacity="1" />
+          <Stop offset="100%" stopColor={colors.surface} stopOpacity="1" />
+        </RadialGradient>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#cg_${category})`} />
+    </Svg>
+  );
+}
 
 function FilterPicker({ filter, onChange, matches }) {
   const activeCategories = [
@@ -84,41 +110,53 @@ function MatchCard({ match, onSeen, onRemove, cardWidth }) {
     if (!match.seen) onSeen(match.id);
   }
 
+  const tint = CATEGORY_TINTS[match.category] || {};
+
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, { width: cardWidth }, !match.seen && styles.cardNew]}
+        style={[styles.card, { width: cardWidth }, { borderColor: tint.border || colors.border }]}
         onPress={handleOpen}
-        activeOpacity={0.75}
+        activeOpacity={0.78}
       >
-        {!match.seen && <View style={styles.newDot} />}
+        <CardGradient category={match.category} />
+        {!match.seen && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NEW</Text>
+          </View>
+        )}
         <Text style={styles.cardEmoji}>{match.emoji}</Text>
         <Text style={styles.cardTitle} numberOfLines={2}>{match.title}</Text>
-        <Text style={styles.cardCat}>{cat?.label}</Text>
+        <Text style={styles.cardCat}>{cat?.emoji}  {cat?.label}</Text>
       </TouchableOpacity>
 
       <Modal visible={expanded} transparent animationType="fade" onRequestClose={() => setExpanded(false)}>
         <Pressable style={styles.overlay} onPress={() => setExpanded(false)}>
           <Pressable style={styles.detail} onPress={() => {}}>
-            <Text style={styles.detailEmoji}>{match.emoji}</Text>
-            <Text style={styles.detailTitle}>{match.title}</Text>
-            <Text style={styles.detailDesc}>{match.description}</Text>
-            <View style={styles.detailMeta}>
-              <Text style={styles.detailCat}>{cat?.emoji} {cat?.label}</Text>
-              <Text style={styles.detailDate}>
-                Matched {new Date(match.matched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </Text>
+            <View style={styles.detailHero}>
+              <CardGradient category={match.category} />
+              <Text style={styles.detailEmoji}>{match.emoji}</Text>
             </View>
-            <View style={styles.detailActions}>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setExpanded(false)}>
-                <Text style={styles.closeBtnText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.removeBtn}
-                onPress={() => { setExpanded(false); onRemove(match.id); }}
-              >
-                <Text style={styles.removeBtnText}>Remove match</Text>
-              </TouchableOpacity>
+            <View style={styles.detailBody}>
+              <Text style={styles.detailTitle}>{match.title}</Text>
+              <Text style={styles.detailDesc}>{match.description}</Text>
+              <View style={styles.detailMeta}>
+                <Text style={styles.detailCat}>{cat?.emoji}  {cat?.label}</Text>
+                <Text style={styles.detailDate}>
+                  Matched {new Date(match.matched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </Text>
+              </View>
+              <View style={styles.detailActions}>
+                <TouchableOpacity style={styles.closeBtn} onPress={() => setExpanded(false)}>
+                  <Text style={styles.closeBtnText}>Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeBtn}
+                  onPress={() => { setExpanded(false); onRemove(match.id); }}
+                >
+                  <Text style={styles.removeBtnText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </Pressable>
         </Pressable>
@@ -134,7 +172,7 @@ export default function MatchesScreen() {
   const totalGaps = (columns - 1) * space[3];
   const cardWidth = Math.floor((width - space[4] * 2 - totalGaps) / columns);
   const { user } = useAuth();
-  const { matches: allMatches, setMatches } = useMatches();
+  const { matches: allMatches, setMatches, refetch } = useMatches();
 
   function handleSeen(id) {
     client.post(`/matches/${id}/seen`).catch(() => {});
@@ -143,7 +181,7 @@ export default function MatchesScreen() {
 
   function handleRemove(id) {
     setMatches((prev) => prev.filter((m) => m.id !== id));
-    client.delete(`/matches/${id}`).catch(() => {});
+    client.delete(`/matches/${id}`).catch(() => refetch());
   }
 
   const filtered = filter === 'all' ? allMatches : allMatches.filter((m) => m.category === filter);
@@ -206,27 +244,40 @@ const styles = StyleSheet.create({
     padding: space[4], gap: space[3],
   },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    borderRadius: radii.xl,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    padding: space[4],
-    gap: 6,
+    paddingVertical: space[5],
+    paddingHorizontal: space[3],
+    gap: 8,
     position: 'relative',
     alignItems: 'center',
+    overflow: 'hidden',
+    shadowColor: '#2D1F3D',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  cardNew: { borderColor: colors.accent, backgroundColor: colors.accentBg },
-  newDot: {
-    position: 'absolute', top: 10, right: 10,
-    width: 8, height: 8, borderRadius: 4,
+  newBadge: {
+    position: 'absolute', top: 9, right: 9,
     backgroundColor: colors.accent,
+    borderRadius: radii.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
-  cardEmoji: { fontSize: 28 },
-  cardTitle: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text, lineHeight: 19 },
-  cardCat: { fontFamily: fonts.sans, fontSize: 11, color: colors.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
+  newBadgeText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 9,
+    color: '#fff',
+    letterSpacing: 0.8,
+  },
+  cardEmoji: { fontSize: 38 },
+  cardTitle: { fontFamily: fonts.serifBold, fontSize: 13, color: colors.text, lineHeight: 18, textAlign: 'center' },
+  cardCat: { fontFamily: fonts.sans, fontSize: 11, color: colors.textLight, letterSpacing: 0.3, textAlign: 'center' },
 
   overlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
+    flex: 1, backgroundColor: 'rgba(45,31,61,0.7)',
     alignItems: 'center', justifyContent: 'center', padding: space[6],
   },
   detail: {
@@ -234,13 +285,27 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: space[6],
     width: '100%',
-    alignItems: 'center',
-    gap: space[4],
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
   },
-  detailEmoji: { fontSize: 52 },
-  detailTitle: { fontFamily: fonts.serif, fontSize: 22, color: colors.text, textAlign: 'center' },
+  detailHero: {
+    height: 110,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  detailEmoji: { fontSize: 56 },
+  detailBody: {
+    padding: space[5],
+    gap: space[4],
+    alignItems: 'center',
+  },
+  detailTitle: { fontFamily: fonts.serifBold, fontSize: 22, color: colors.text, textAlign: 'center' },
   detailDesc: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 21 },
   detailMeta: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   detailCat: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },

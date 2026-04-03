@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
   runOnJS,
   interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import ItemCard, { CARD_WIDTH, getCardHeight } from './ItemCard';
 import MatchEffect from './MatchEffect';
@@ -21,9 +22,8 @@ const VISIBLE = 3;
 
 export default function CardStack({ items = [], onRespond, matchItem, onUndo, availableHeight = 0 }) {
   const [localItems, setLocalItems] = useState(items);
-  const [hint, setHint] = useState(null);
   const [exiting, setExiting] = useState(false);
-  const [lastTag, setLastTag] = useState(null); // { label, color }
+  const [lastTag, setLastTag] = useState(null);
   const tagTimer = useRef(null);
   const itemsRef = useRef(items);
   const respondingRef = useRef(false);
@@ -41,14 +41,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     const label = response === 'yes' ? '✓  Yes' : response === 'no' ? '✕  No' : '~  Maybe';
     const color = response === 'yes' ? colors.yes : response === 'no' ? colors.no : colors.maybe;
     setLastTag({ label, color });
-    tagTimer.current = setTimeout(() => setLastTag(null), 1400);
-  }
-
-  function updateHint(x, y) {
-    if (y < -SWIPE_Y && Math.abs(y) > Math.abs(x)) setHint('maybe');
-    else if (x > SWIPE_X * 0.6) setHint('yes');
-    else if (x < -SWIPE_X * 0.6) setHint('no');
-    else setHint(null);
+    tagTimer.current = setTimeout(() => setLastTag(null), 1200);
   }
 
   function doRespond(response) {
@@ -56,7 +49,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     respondingRef.current = true;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setExiting(true);
-    setHint(null);
     onRespond?.(localItems[0]?.id, response);
     showTag(response);
 
@@ -72,7 +64,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
   const exitTimer = useRef(null);
 
   function finishExit() {
-    // Update items first to avoid blink (old card jumping back to center)
     setLocalItems([...itemsRef.current]);
     clearTimeout(exitTimer.current);
     exitTimer.current = setTimeout(() => {
@@ -83,7 +74,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     }, 16);
   }
 
-  // Safety: if respondingRef stays stuck for >2s, force-unlock
   useEffect(() => {
     const id = setInterval(() => {
       if (respondingRef.current && !exiting) respondingRef.current = false;
@@ -95,7 +85,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     .onUpdate((e) => {
       tx.value = e.translationX;
       ty.value = e.translationY;
-      runOnJS(updateHint)(e.translationX, e.translationY);
     })
     .onEnd((e) => {
       const { translationX: x, translationY: y, velocityX } = e;
@@ -106,7 +95,6 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
       else {
         tx.value = withSpring(0);
         ty.value = withSpring(0);
-        runOnJS(setHint)(null);
       }
     });
 
@@ -118,11 +106,26 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     ],
   }));
 
+  // Hint overlays driven entirely by shared values — no JS re-renders
+  const yesOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(tx.value, [0, SWIPE_X * 0.5, SWIPE_X], [0, 0, 0.88], Extrapolation.CLAMP),
+  }));
+  const noOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(tx.value, [-SWIPE_X, -SWIPE_X * 0.5, 0], [0.88, 0, 0], Extrapolation.CLAMP),
+  }));
+  const maybeOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(ty.value, [-SWIPE_Y * 1.5, -SWIPE_Y * 0.6, 0], [0.88, 0, 0], Extrapolation.CLAMP),
+  }));
+
   if (localItems.length === 0 && !exiting) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyIcon}>✓</Text>
-        <Text style={styles.emptyTitle}>You've seen everything</Text>
+        <View style={styles.emptyIconRow}>
+          <Text style={styles.emptyIconSmall}>🎉</Text>
+          <Text style={styles.emptyIconLarge}>✓</Text>
+          <Text style={styles.emptyIconSmall}>🎉</Text>
+        </View>
+        <Text style={styles.emptyTitle}>All caught up</Text>
         <Text style={styles.emptySub}>Try another category or check your matches</Text>
       </View>
     );
@@ -134,14 +137,14 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     <View style={styles.wrapper}>
       {matchItem && <MatchEffect item={matchItem} />}
 
-      {/* Swipe tag */}
+      {/* Swipe confirmation tag */}
       {lastTag && (
         <View style={[styles.swipeTag, { backgroundColor: lastTag.color }]}>
           <Text style={styles.swipeTagText}>{lastTag.label}</Text>
         </View>
       )}
 
-      {/* Card stack — behind cards rendered first (bottom), top card last */}
+      {/* Card stack */}
       <View style={[styles.stack, { width: CARD_WIDTH, height: cardH }]}>
         {localItems.slice(1, VISIBLE).map((item, i) => {
           const idx = i + 1;
@@ -162,33 +165,50 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
         {localItems.length > 0 && (
           <GestureDetector key={localItems[0].id} gesture={panGesture}>
             <Animated.View style={[styles.cardPos, { zIndex: VISIBLE }, topCardStyle]}>
-              <ItemCard item={localItems[0]}
-                hintLabel={hint === 'yes' ? 'YES' : hint === 'no' ? 'NOPE' : hint === 'maybe' ? 'MAYBE' : null}
-                hintColor={hint === 'yes' ? colors.yes : hint === 'no' ? colors.no : colors.maybe}
-                cardHeight={availableHeight}
-              />
+              <ItemCard item={localItems[0]} cardHeight={availableHeight} />
+              <Animated.View style={[styles.hintOverlay, styles.hintYes, yesOverlayStyle]}>
+                <Text style={styles.hintText}>YES</Text>
+              </Animated.View>
+              <Animated.View style={[styles.hintOverlay, styles.hintNo, noOverlayStyle]}>
+                <Text style={styles.hintText}>NOPE</Text>
+              </Animated.View>
+              <Animated.View style={[styles.hintOverlay, styles.hintMaybe, maybeOverlayStyle]}>
+                <Text style={styles.hintText}>MAYBE</Text>
+              </Animated.View>
             </Animated.View>
           </GestureDetector>
         )}
       </View>
 
-      {/* Buttons — flex-end pushes them toward tab bar */}
+      {/* Action buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.btn, styles.btnUndo, !onUndo && styles.btnDisabled]}
           onPress={onUndo}
           disabled={!onUndo}
         >
-          <Text style={styles.btnIcon}>↩</Text>
+          <Text style={styles.btnUndo_icon}>↩</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnNo]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('no'); }}>
-          <Text style={[styles.btnIcon, { color: colors.no, fontSize: 22 }]}>✕</Text>
+
+        <TouchableOpacity
+          style={[styles.btn, styles.btnNo]}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('no'); }}
+        >
+          <Text style={styles.btnNo_icon}>✕</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnMaybe]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); doRespond('maybe'); }}>
-          <Text style={[styles.btnIcon, { color: colors.maybe, fontSize: 18 }]}>~</Text>
+
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMaybe]}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); doRespond('maybe'); }}
+        >
+          <Text style={styles.btnMaybe_icon}>~</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnYes]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('yes'); }}>
-          <Text style={[styles.btnIcon, { color: colors.yes, fontSize: 22 }]}>✓</Text>
+
+        <TouchableOpacity
+          style={[styles.btn, styles.btnYes]}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); doRespond('yes'); }}
+        >
+          <Text style={styles.btnYes_icon}>✓</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -208,19 +228,42 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
+  hintOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.xl,
+    overflow: 'hidden',
+  },
+  hintYes:   { backgroundColor: 'rgba(155,128,212,0.88)' },
+  hintNo:    { backgroundColor: 'rgba(240,122,106,0.88)' },
+  hintMaybe: { backgroundColor: 'rgba(232,168,192,0.88)' },
+  hintText: {
+    fontFamily: fonts.serifBold,
+    fontSize: 48,
+    color: '#fff',
+    letterSpacing: 4,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+
   swipeTag: {
-    position: 'absolute',
-    top: -8,
-    paddingHorizontal: 20,
-    paddingVertical: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 9,
     borderRadius: radii.full,
     zIndex: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   swipeTagText: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 13,
+    fontFamily: fonts.serifBold,
+    fontSize: 16,
     color: '#fff',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
 
   buttons: {
@@ -230,29 +273,74 @@ const styles = StyleSheet.create({
     paddingTop: space[4],
     paddingBottom: space[2],
   },
+
   btn: {
     borderRadius: radii.full,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  btnUndo:  { width: 44, height: 44 },
-  btnNo:    { width: 56, height: 56 },
-  btnMaybe: { width: 52, height: 52 },
-  btnYes:   { width: 64, height: 64 },
+  btnUndo: {
+    width: 44,
+    height: 44,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+  },
+  btnUndo_icon: {
+    fontSize: 18,
+    color: colors.textLight,
+  },
+  btnNo: {
+    width: 58,
+    height: 58,
+    backgroundColor: colors.no,
+  },
+  btnNo_icon: {
+    fontSize: 22,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  btnMaybe: {
+    width: 52,
+    height: 52,
+    backgroundColor: colors.maybeSoft,
+    borderWidth: 2,
+    borderColor: colors.maybe,
+  },
+  btnMaybe_icon: {
+    fontSize: 22,
+    color: colors.maybe,
+    fontWeight: '800',
+  },
+  btnYes: {
+    width: 66,
+    height: 66,
+    backgroundColor: colors.yes,
+  },
+  btnYes_icon: {
+    fontSize: 26,
+    color: '#fff',
+    fontWeight: '700',
+  },
   btnDisabled: { opacity: 0.3 },
-  btnIcon: { fontSize: 20, color: colors.textMuted },
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3] },
-  emptyIcon: { fontSize: 40, color: colors.accent },
-  emptyTitle: { fontFamily: fonts.serif, fontSize: 20, color: colors.text },
-  emptySub: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
-
+  emptyIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+  },
+  emptyIconLarge: {
+    fontSize: 44,
+    color: colors.yes,
+    fontFamily: fonts.serifBold,
+  },
+  emptyIconSmall: { fontSize: 28 },
+  emptyTitle: { fontFamily: fonts.serifBold, fontSize: 20, color: colors.text },
+  emptySub: { fontFamily: fonts.sansLight, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 });

@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/api';
-const TOKEN_KEY = 'kl_session_token';
+const TOKEN_KEY = 'vn_session_token';
 
 async function getToken() {
   return SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);

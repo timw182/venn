@@ -196,7 +196,7 @@ export default function Admin() {
                     <XAxis dataKey="day" tick={{fontSize:10}} tickFormatter={d => d.slice(5)} />
                     <YAxis tick={{fontSize:10}} allowDecimals={false} />
                     <Tooltip formatter={(v) => [v, "Swipes"]} />
-                    <Bar dataKey="count" fill="#9B80D4" radius={[3,3,0,0]} />
+                    <Bar dataKey="count" fill="var(--color-yes)" radius={[3,3,0,0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -208,7 +208,7 @@ export default function Admin() {
                   <PieChart>
                     <Pie data={stats.response_dist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({name,percent}) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false}>
                       {(stats.response_dist || []).map((entry) => (
-                        <Cell key={entry.name} fill={entry.name==="yes"?"#4caf88":entry.name==="no"?"#e05c6e":"#f0a55a"} />
+                        <Cell key={entry.name} fill={entry.name==="yes"?"#9B80D4":entry.name==="no"?"#F07A6A":"#E8A8C0"} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(v,n) => [v, n]} />
@@ -397,9 +397,9 @@ export default function Admin() {
               <table className="admin-table">
                 <thead><tr>
                   <th></th><th>Title</th><th>Category</th>
-                  <th style={{color:"#4caf88"}}>Yes</th>
-                  <th style={{color:"#e05c6e"}}>No</th>
-                  <th style={{color:"#f0a55a"}}>Maybe</th>
+                  <th className="stat-th-yes">Yes</th>
+                  <th className="stat-th-no">No</th>
+                  <th className="stat-th-maybe">Maybe</th>
                   <th>Matches</th>
                   <th>Match %</th>
                   <th>Yes %</th>
@@ -412,13 +412,13 @@ export default function Admin() {
                       <td>{s.emoji}</td>
                       <td>{s.title}</td>
                       <td><span className="cat-pill">{s.category}</span></td>
-                      <td style={{color:"#4caf88", fontWeight:600}}>{s.yes}</td>
-                      <td style={{color:"#e05c6e"}}>{s.no}</td>
-                      <td style={{color:"#f0a55a"}}>{s.maybe}</td>
+                      <td className="stat-td-yes">{s.yes}</td>
+                      <td className="stat-td-no">{s.no}</td>
+                      <td className="stat-td-maybe">{s.maybe}</td>
                       <td style={{fontWeight:600}}>{s.matches}</td>
                       <td>
                         <div className="stat-bar-wrap">
-                          <div className="stat-bar" style={{width: `${s.match_rate}%`, background:"#4caf88"}} />
+                          <div className="stat-bar stat-bar-match" style={{width: `${s.match_rate}%`}} />
                           <span>{s.match_rate}%</span>
                         </div>
                       </td>

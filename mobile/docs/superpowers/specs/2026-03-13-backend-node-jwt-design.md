@@ -1,4 +1,4 @@
-# KinkLink Backend Rewrite: Node.js + Express + JWT
+# Venn Backend Rewrite: Node.js + Express + JWT
 
 **Date:** 2026-03-13
 **Status:** Approved
@@ -120,8 +120,8 @@ Zod validation errors are formatted to match: `"fieldName: message"` joined with
 The API base URL and all endpoint paths stay the same.
 
 **AsyncStorage keys:**
-- `kl_access_token` — replaces `kl_session`
-- `kl_refresh_token`
+- `vn_access_token` — replaces `vn_session`
+- `vn_refresh_token`
 
 **Security note:** AsyncStorage is unencrypted on Android. This is an acceptable trade-off for a self-hosted personal app. `expo-secure-store` would be stronger but has a 2KB size limit that JWT strings may approach on some devices.
 
@@ -154,7 +154,7 @@ setUser(toUser(raw));
 
 // After (JWT):
 const { user: raw, accessToken, refreshToken } = await client.post('/auth/login', { username, password });
-await AsyncStorage.multiSet([['kl_access_token', accessToken], ['kl_refresh_token', refreshToken]]);
+await AsyncStorage.multiSet([['vn_access_token', accessToken], ['vn_refresh_token', refreshToken]]);
 setUser(toUser(raw));
 ```
 
@@ -166,7 +166,7 @@ No structural changes to the context shape — all screens unaffected.
 
 ```
 PORT=8000
-DB_PATH=./kinklink.db
+DB_PATH=./venn.db
 ACCESS_TOKEN_SECRET=<random 32+ byte hex>
 REFRESH_TOKEN_SECRET=<random 32+ byte hex>
 NODE_ENV=production
@@ -174,7 +174,7 @@ NODE_ENV=production
 
 ## Deployment
 
-The Node backend is a drop-in replacement for the Python one. Deploy to the same host, update the systemd service (`kinklink-api.service`) to run `node dist/index.js`. The mobile app's `API_BASE` URL does not change.
+The Node backend is a drop-in replacement for the Python one. Deploy to the same host, update the systemd service (`venn-api.service`) to run `node dist/index.js`. The mobile app's `API_BASE` URL does not change.
 
 ## Out of Scope
 

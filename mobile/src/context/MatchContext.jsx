@@ -27,12 +27,16 @@ export function MatchProvider({ children }) {
   // Keep userRef in sync so stable callbacks see latest user
   useEffect(() => { userRef.current = user; });
 
-  // Debounced fetchMatches — collapses rapid calls into one
+  // Debounced fetchMatches — collapses rapid calls, defers rather than drops
   const fetchTimer = useRef(null);
+  const pendingRef = useRef(false);
   const fetchMatches = useCallback(async () => {
     if (!userRef.current?.coupleId) return [];
-    if (fetchTimer.current) return [];
-    fetchTimer.current = setTimeout(() => { fetchTimer.current = null; }, 500);
+    if (fetchTimer.current) { pendingRef.current = true; return []; }
+    fetchTimer.current = setTimeout(() => {
+      fetchTimer.current = null;
+      if (pendingRef.current) { pendingRef.current = false; fetchMatches(); }
+    }, 500);
     try {
       const data = await client.get("/matches");
       setMatches(data);
@@ -131,7 +135,7 @@ export function MatchProvider({ children }) {
           setResetState("none");
         } else if (msg.type === "reset_done") {
           setResetState("none");
-          AsyncStorage.multiRemove(["kl_responses"]).catch(() => {});
+          AsyncStorage.multiRemove(["vn_responses"]).catch(() => {});
         }
       } catch {}
     };

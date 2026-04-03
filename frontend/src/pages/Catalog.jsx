@@ -34,6 +34,7 @@ export default function Catalog() {
   const [matchItem, setMatchItem]           = useState(null);
   const [lastResponse, setLastResponse]     = useState(null);
   const [confetti, setConfetti]             = useState([]);
+  const [loadError, setLoadError]           = useState(false);
 
   // Per-category piles
   const [recentYes, setRecentYes] = useState([]);
@@ -59,18 +60,23 @@ export default function Catalog() {
   }, [allMatches]);
 
   // ── Data loading ────────────────────────────────────────────────────────────
-  useEffect(() => {
+  const loadCatalog = useCallback(() => {
+    setLoadError(false);
     Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
       .then(([items, resps]) => {
         setCatalog(items);
-        setResponses((local) => {
-          const merged = { ...local, ...resps };
-          saveLocalResponses(merged);
-          applyPiles(items, merged, activeCategory);
-          return merged;
+        setResponses(() => {
+          saveLocalResponses(resps);
+          applyPiles(items, resps, activeCategory);
+          return resps;
         });
       })
-      .catch(() => {});
+      .catch(() => setLoadError(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadCatalog();
   // activeCategory is stable at mount — intentional omission
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -189,7 +195,19 @@ export default function Catalog() {
           }, 200);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Roll back optimistic local state so user can retry this card
+        if (item) {
+          if (response === 'yes') setRecentYes((prev) => prev.filter((i) => i.id !== itemId));
+          if (response === 'no')  setRecentNo((prev)  => prev.filter((i) => i.id !== itemId));
+        }
+        setResponses((prev) => {
+          const next = { ...prev };
+          delete next[String(itemId)];
+          saveLocalResponses(next);
+          return next;
+        });
+      });
   }, [catalog, refetch, burstConfetti, dismissLatest]);
 
   const handleMatchDismiss = useCallback(() => {
@@ -296,16 +314,25 @@ export default function Catalog() {
         </div>
 
         <div className="catalog-desktop-layout">
-          {showPiles && <CardPile items={recentNo}  side="no"  totalCount={pileCount.no} />}
+          {loadError && catalog.length === 0 ? (
+            <div className="catalog-error">
+              <p className="text-muted">Couldn't load activities</p>
+              <button className="btn btn-secondary" onClick={loadCatalog}>Retry</button>
+            </div>
+          ) : (
+            <>
+              {showPiles && <CardPile items={recentNo}  side="no"  totalCount={pileCount.no} />}
 
-          <CardStack
-            locked={isLocked}
-            items={categoryItems}
-            onRespond={handleRespond}
-            onUndo={lastResponse ? handleUndo : null}
-          />
+              <CardStack
+                locked={isLocked}
+                items={categoryItems}
+                onRespond={handleRespond}
+                onUndo={lastResponse ? handleUndo : null}
+              />
 
-          {showPiles && <CardPile items={recentYes} side="yes" totalCount={pileCount.yes} />}
+              {showPiles && <CardPile items={recentYes} side="yes" totalCount={pileCount.yes} />}
+            </>
+          )}
         </div>
       </div>
     </motion.div>

@@ -123,7 +123,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
-    session_cookie="kl_session",
+    session_cookie="vn_session",
     max_age=60 * 60 * 24 * 7,  # 7 days
     https_only=True,
     same_site="strict",

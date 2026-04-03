@@ -83,7 +83,7 @@
 }
 
 .mood-btn:hover {
-  background: #e2dbd2;
+  background: var(--color-surface-hover);
 }
 
 .mood-btn.active {
@@ -187,7 +187,7 @@
 }
 
 .mood-change-btn:hover {
-  background: #e2dbd2;
+  background: var(--color-surface-hover);
   color: var(--color-text);
 }
 

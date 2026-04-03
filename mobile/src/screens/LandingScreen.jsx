@@ -7,6 +7,7 @@ import {
 import Svg, { Rect, Circle, Path } from 'react-native-svg';
 
 const { width: SW, height: SH } = Dimensions.get('window');
+const IS_TABLET = SW >= 768;
 
 const HEART_COLORS = ['#F07A6A', '#9B80D4', '#C4547A', '#9B80D4', '#F07A6A', '#C4547A', '#9B80D4', '#F07A6A'];
 
@@ -121,6 +122,7 @@ export default function LandingScreen({ navigation }) {
   const [mode, setMode] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -174,6 +176,10 @@ export default function LandingScreen({ navigation }) {
 
   async function handleSubmit() {
     setError('');
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     setSubmitting(true);
     try {
       if (mode === 'login') {
@@ -193,6 +199,7 @@ export default function LandingScreen({ navigation }) {
     setError('');
     setUsername('');
     setPassword('');
+    setConfirmPassword('');
     setDisplayName('');
   }
 
@@ -201,30 +208,33 @@ export default function LandingScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <FloatingHearts />
         <ScrollView contentContainerStyle={styles.heroScroll} keyboardShouldPersistTaps="handled">
+        <View style={IS_TABLET ? styles.tabletInner : null}>
           <View style={styles.brand}>
-            <VennAnimatedLogo width={SW} height={140} />
+            <VennAnimatedLogo width={IS_TABLET ? Math.min(SW * 0.55, 420) : SW} height={140} />
             <Text style={styles.tagline}>Find your overlap.</Text>
           </View>
 
-          <View style={styles.features}>
-            {features.map((f) => (
-              <View key={f.title} style={styles.featureCard}>
-                <GlitterIcon Icon={FEATURE_ICONS[features.indexOf(f)]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.featureTitle}>{f.title}</Text>
-                  <Text style={styles.featureBody}>{f.body}</Text>
+          <View style={styles.featuresAndCta}>
+            <View style={styles.features}>
+              {features.map((f) => (
+                <View key={f.title} style={styles.featureCard}>
+                  <GlitterIcon Icon={FEATURE_ICONS[features.indexOf(f)]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.featureTitle}>{f.title}</Text>
+                    <Text style={styles.featureBody}>{f.body}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
 
-          <View style={styles.cta}>
-            <Button variant="primary" size="lg" fullWidth onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); openForm('register'); }}>
-              Get started
-            </Button>
-            <TouchableOpacity onPress={() => openForm('login')} style={styles.toggleBtn}>
-              <Text style={styles.toggleText}>Already have an account? <Text style={styles.toggleLink}>Sign in</Text></Text>
-            </TouchableOpacity>
+            <View style={styles.cta}>
+              <Button variant="primary" size="lg" fullWidth onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); openForm('register'); }}>
+                Get started
+              </Button>
+              <TouchableOpacity onPress={() => openForm('login')} style={styles.toggleBtn}>
+                <Text style={styles.toggleText}>Already have an account? <Text style={styles.toggleLink}>Sign in</Text></Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.footer}>
@@ -255,6 +265,7 @@ export default function LandingScreen({ navigation }) {
             </View>
           </View>
 
+        </View>
         </ScrollView>
       </SafeAreaView>
     );
@@ -269,6 +280,7 @@ export default function LandingScreen({ navigation }) {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <ScrollView contentContainerStyle={styles.formScroll} keyboardShouldPersistTaps="handled">
+              <View style={IS_TABLET ? styles.tabletInner : null}>
               <TouchableOpacity onPress={goBack} style={styles.backBtn}>
                 <Text style={styles.backText}>← back</Text>
               </TouchableOpacity>
@@ -327,6 +339,21 @@ export default function LandingScreen({ navigation }) {
               />
             </View>
 
+            {mode === 'register' && (
+              <View style={styles.field}>
+                <Text style={styles.label}>Confirm Password</Text>
+                <TextInput
+                  style={styles.input}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Type it again"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry
+                  textContentType="newPassword"
+                />
+              </View>
+            )}
+
             {!!error && (
               <View style={styles.errorBox}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -354,6 +381,7 @@ export default function LandingScreen({ navigation }) {
             {' '}and{' '}
             <Text style={styles.termsLink} onPress={() => navigation.navigate(SCREENS.PRIVACY)}>Privacy Policy</Text>.
           </Text>
+              </View>
             </ScrollView>
           </KeyboardAvoidingView>
         </Reanimated.View>
@@ -367,16 +395,23 @@ const styles = StyleSheet.create({
 
   heroScroll: {
     flexGrow: 1,
-    paddingHorizontal: space[6],
+    paddingHorizontal: IS_TABLET ? space[8] : space[6],
     paddingTop: space[4],
     paddingBottom: space[6],
     gap: space[8],
+    alignItems: IS_TABLET ? 'center' : undefined,
+  },
+  tabletInner: {
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
 
   brand: { alignItems: 'center', gap: space[3], marginHorizontal: -space[6] },
   tagline: { fontFamily: fonts.sansLight, fontSize: 18, color: colors.textMuted, letterSpacing: 0.3 },
   taglineEm: { fontFamily: fonts.serif, color: colors.accent },
 
+  featuresAndCta: { gap: space[3] },
   features: { gap: space[3] },
   featureCard: {
     flexDirection: 'row',
@@ -400,7 +435,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     gap: space[3],
-    marginTop: 'auto',
+    marginTop: space[8],
     paddingTop: space[4],
   },
   footerLinks: {

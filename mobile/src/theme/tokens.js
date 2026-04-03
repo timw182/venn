@@ -11,7 +11,7 @@ export const colors = {
   textInverse: '#FAF7FC',
 
   accent: '#C4547A',
-  accentHover: '#AD3F65',
+  accentHover: '#B04B6E',
   accentSoft: 'rgba(196,84,122,0.15)',
   accentBg: 'rgba(196,84,122,0.06)',
 

@@ -17,6 +17,8 @@ async def verify_session(request: Request, db: Connection = Depends(get_db)):
             row = await cur.fetchone()
             if not row:
                 raise HTTPException(401, "Logged in on another device")
+            # Store resolved uid so downstream code doesn't need to re-query
+            request.state.user_id = row["id"]
             return  # Token matches DB — valid
     if not uid and not token:
         raise HTTPException(401, "Not authenticated")

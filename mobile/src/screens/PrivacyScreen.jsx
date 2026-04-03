@@ -41,7 +41,7 @@ const SECTIONS = [
     key: 'cookies',
     title: 'Cookies',
     icon: (c) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none"><Rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke={c} strokeWidth={1.8} /><Path d="M7 11V7a5 5 0 0 1 10 0v4" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /></Svg>,
-    body: 'We use a single session cookie (kl_session) strictly to keep you logged in. It contains no tracking data, is never shared, and expires after 7 days. No advertising, analytics, or third-party cookies are used.',
+    body: 'We use a single session cookie (vn_session) strictly to keep you logged in. It contains no tracking data, is never shared, and expires after 7 days. No advertising, analytics, or third-party cookies are used.',
   },
   {
     key: 'visibility',

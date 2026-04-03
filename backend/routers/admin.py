@@ -136,12 +136,12 @@ async def list_users(db: Connection = Depends(get_db), admin=Depends(_require_ad
 async def delete_user(user_id: int, db: Connection = Depends(get_db), admin=Depends(_require_admin)):
     if user_id == admin["uid"]:
         raise HTTPException(400, "Cannot delete yourself")
-    cur = await db.execute("SELECT is_superadmin, couple_id FROM users WHERE id=?", (user_id,))
+    cur = await db.execute("SELECT is_admin, is_superadmin, couple_id FROM users WHERE id=?", (user_id,))
     row = await cur.fetchone()
     if not row:
         raise HTTPException(404, "User not found")
-    if row["is_superadmin"] and not admin["is_superadmin"]:
-        raise HTTPException(403, "Cannot delete a superadmin")
+    if (row["is_superadmin"] or row["is_admin"]) and not admin["is_superadmin"]:
+        raise HTTPException(403, "Only superadmins can delete admin users")
     # Unpair partner if user is in a couple
     if row["couple_id"]:
         await db.execute("UPDATE users SET couple_id=NULL WHERE couple_id=? AND id!=?", (row["couple_id"], user_id))

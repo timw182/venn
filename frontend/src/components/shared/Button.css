@@ -63,7 +63,7 @@
 .btn-secondary:hover:not(:disabled) {
   background-image:
     linear-gradient(var(--color-surface-alt), var(--color-surface-alt)),
-    linear-gradient(135deg, #9b80d4 0%, #f07a6a 100%);
+    linear-gradient(135deg, var(--color-violet) 0%, var(--color-coral) 100%);
 }
 
 .btn-ghost {

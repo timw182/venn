@@ -13,7 +13,7 @@ from routers.deps import verify_session
 limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=10)
 
 # Pre-computed dummy hash — ensures bcrypt always runs on login, preventing
 # timing-based username enumeration (unknown user vs wrong password).
@@ -71,6 +71,9 @@ async def _session_user_id(request: Request, db: Connection = None) -> int:
     uid = request.session.get("user_id")
     if uid:
         return uid
+    # Use uid resolved by verify_session middleware (avoids double-query for mobile)
+    if hasattr(request.state, "user_id"):
+        return request.state.user_id
     # Fallback: token-based auth for mobile clients
     token = request.headers.get("X-Session-Token")
     if token and db:

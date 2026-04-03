@@ -20,7 +20,7 @@ function toUser(raw) {
 
 function clearLocalUserData() {
   Object.keys(localStorage)
-    .filter((k) => k.startsWith('kl_'))
+    .filter((k) => k.startsWith('vn_'))
     .forEach((k) => localStorage.removeItem(k));
 }
 

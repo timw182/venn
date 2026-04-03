@@ -10,9 +10,9 @@ const MAX_ROTATION = 12;
 const VISIBLE_CARDS = 3;
 
 const POPUP_CONFIG = {
-  yes:   { label: "Yes ✓",   color: "#4caf88", bg: "rgba(76,175,136,0.15)" },
-  no:    { label: "Nope ✕",  color: "#e05c6e", bg: "rgba(224,92,110,0.15)" },
-  maybe: { label: "Maybe ~", color: "#f0a55a", bg: "rgba(240,165,90,0.15)" },
+  yes:   { label: "Yes ✓",   color: "var(--color-yes)",   bg: "var(--color-yes-soft)" },
+  no:    { label: "Nope ✕",  color: "var(--color-no)",    bg: "var(--color-no-soft)" },
+  maybe: { label: "Maybe ~", color: "var(--color-maybe)", bg: "var(--color-maybe-soft)" },
 };
 
 // ── TopCard ───────────────────────────────────────────────────────────────────
@@ -100,10 +100,15 @@ export default function CardStack({ items = [], onRespond, onUndo, locked = fals
     hintX.set(ox);
     hintY.set(oy);
     const yUp = -oy;
-    if (yUp > SWIPE_UP_THRESHOLD * 0.6 && yUp > Math.abs(ox)) setHintClass("hint-maybe");
-    else if (ox > SWIPE_THRESHOLD * 0.6) setHintClass("hint-yes");
-    else if (ox < -SWIPE_THRESHOLD * 0.6) setHintClass("hint-no");
-    else setHintClass("");
+    // Use hysteresis: show at 60% of threshold, clear only below 35% — prevents boundary bounce
+    setHintClass(prev => {
+      if (yUp > SWIPE_UP_THRESHOLD * 0.6 && yUp > Math.abs(ox)) return "hint-maybe";
+      if (ox > SWIPE_THRESHOLD * 0.6) return "hint-yes";
+      if (ox < -SWIPE_THRESHOLD * 0.6) return "hint-no";
+      // Only clear if well inside the dead zone
+      if (Math.abs(ox) < SWIPE_THRESHOLD * 0.35 && yUp < SWIPE_UP_THRESHOLD * 0.35) return "";
+      return prev;
+    });
   }, [hintX, hintY]);
 
   const triggerResponse = useCallback((response) => {

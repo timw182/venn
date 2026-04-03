@@ -156,6 +156,20 @@ class MoodRequest(BaseModel):
         return v
 
 
+class CustomMessageRequest(BaseModel):
+    message: str
+
+    @field_validator("message")
+    @classmethod
+    def message_valid(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Message required")
+        if len(v) > 120:
+            raise ValueError("Max 120 characters")
+        return v
+
+
 class MoodOut(BaseModel):
     mine: Optional[str]
     partner: Optional[str]   # only set when both have active moods

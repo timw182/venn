@@ -28,13 +28,16 @@ export function MatchProvider({ children }) {
   useEffect(() => { userRef.current = user; });
 
   // fetchMatches is stable (no user dep) — reads userRef at call time
-  // Debounced: collapses multiple rapid calls into one
+  // Debounced: collapses multiple rapid calls, defers rather than drops
   const fetchTimer = useRef(null);
+  const pendingRef = useRef(false);
   const fetchMatches = useCallback(async () => {
     if (!userRef.current?.coupleId) return;
-    // If a fetch is already scheduled, skip
-    if (fetchTimer.current) return;
-    fetchTimer.current = setTimeout(() => { fetchTimer.current = null; }, 500);
+    if (fetchTimer.current) { pendingRef.current = true; return; }
+    fetchTimer.current = setTimeout(() => {
+      fetchTimer.current = null;
+      if (pendingRef.current) { pendingRef.current = false; fetchMatches(); }
+    }, 500);
     try {
       const data = await client.get("/matches");
       setMatches(data);

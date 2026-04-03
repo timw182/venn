@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Venn is a couples intimacy app (rebranded from KinkLink). Partners pair via short codes, independently swipe through a catalog of intimate activities, and discover mutual matches in real time via WebSocket.
+Venn is a couples intimacy app. Partners pair via short codes, independently swipe through a catalog of intimate activities, and discover mutual matches in real time via WebSocket.
 
 Three independent apps share this repo (not a monorepo — no shared workspace):
 - **backend/** — Python FastAPI + SQLite (raw SQL via aiosqlite, no ORM)
@@ -49,7 +49,7 @@ npm run ios
 - **ws.py** — WebSocket connection manager for real-time match notifications
 - **seed.py** — catalog seed data (~200 items across 6 categories)
 
-Session auth via secure httponly cookies (`kl_session`, 7-day TTL, domain `venn.lu`). No JWT.
+Session auth via secure httponly cookies (`vn_session`, 7-day TTL, domain `venn.lu`). No JWT.
 
 Frontend: `https://venn.lu` — API: `https://api.venn.lu`
 
@@ -67,7 +67,7 @@ Frontend: `https://venn.lu` — API: `https://api.venn.lu`
 
 ### Key Patterns
 - Pairing uses 6-char alphanumeric codes (no I/O/0) with 30-min TTL
-- "Solo mode" lets users browse without a partner (localStorage flag `kl_solo`)
+- "Solo mode" lets users browse without a partner (localStorage flag `vn_solo`)
 - Match detection: both partners respond "yes" to the same catalog item
 - WebSocket at `/api/ws` pushes match notifications in real time
 - Rate limiting via slowapi decorators on sensitive endpoints
@@ -77,7 +77,7 @@ Frontend: `https://venn.lu` — API: `https://api.venn.lu`
 - `FRONTEND_ORIGIN` — CORS origin (default `https://venn.lu`)
 - `EXTRA_ORIGINS` — additional CORS origins, comma-separated
 - `DEBUG` — enables `/api/docs` and `/api/redoc`
-- `DB_PATH` — SQLite path (default `kinklink.db`)
+- `DB_PATH` — SQLite path (default `venn.db`)
 - `COOKIE_DOMAIN` — session cookie domain
 
 ## Design System

@@ -5,6 +5,16 @@ import { colors, fonts, radii, space } from '../theme/tokens';
 const { width } = Dimensions.get('window');
 const IS_TABLET = width >= 768;
 
+// Per-category accent tints for the phone picker pill
+const CATEGORY_TINT = {
+  foreplay:    { bg: 'rgba(242,184,204,0.22)', border: 'rgba(242,184,204,0.7)' },
+  positions:   { bg: 'rgba(196,176,232,0.22)', border: 'rgba(196,176,232,0.7)' },
+  settings:    { bg: 'rgba(176,196,232,0.22)', border: 'rgba(176,196,232,0.7)' },
+  roleplay:    { bg: 'rgba(232,200,160,0.22)', border: 'rgba(232,200,160,0.7)' },
+  'toys-gear': { bg: 'rgba(176,212,192,0.22)', border: 'rgba(176,212,192,0.7)' },
+  adventurous: { bg: 'rgba(240,192,160,0.22)', border: 'rgba(240,192,160,0.7)' },
+};
+
 export default function CategoryPicker({ active, onChange, progress = {} }) {
   if (IS_TABLET) return <TabletPicker active={active} onChange={onChange} progress={progress} />;
   return <PhonePicker active={active} onChange={onChange} progress={progress} />;
@@ -64,109 +74,144 @@ const tabletStyles = StyleSheet.create({
     borderColor: colors.accent,
   },
   emoji: { fontSize: 16 },
-  label: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  labelActive: {
-    color: colors.accent,
-  },
+  label: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.textMuted },
+  labelActive: { color: colors.accent },
   count: {
-    fontFamily: fonts.sans,
-    fontSize: 11,
-    color: colors.textLight,
-    backgroundColor: colors.surfaceAlt,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: radii.full,
-    overflow: 'hidden',
+    fontFamily: fonts.sans, fontSize: 11, color: colors.textLight,
+    backgroundColor: colors.surfaceAlt, paddingHorizontal: 6, paddingVertical: 1,
+    borderRadius: radii.full, overflow: 'hidden',
   },
-  countActive: {
-    backgroundColor: 'rgba(196,84,122,0.1)',
-    color: colors.accent,
-  },
+  countActive: { backgroundColor: 'rgba(196,84,122,0.1)', color: colors.accent },
 });
 
-/* ── Phone: arrow carousel (original) ────────────────────────── */
+/* ── Phone: styled carousel with progress + dots ─────────────── */
 function PhonePicker({ active, onChange, progress }) {
   const activeIdx = CATEGORIES.findIndex((c) => c.key === active);
   const cat = CATEGORIES[activeIdx] || CATEGORIES[0];
   const prog = progress[cat.key] || {};
+  const tint = CATEGORY_TINT[cat.key] || { bg: colors.surfaceAlt, border: colors.border };
+  const progressPct = prog.total > 0 ? prog.done / prog.total : 0;
 
   function prev() {
-    const idx = (activeIdx - 1 + CATEGORIES.length) % CATEGORIES.length;
-    onChange(CATEGORIES[idx].key);
+    onChange(CATEGORIES[(activeIdx - 1 + CATEGORIES.length) % CATEGORIES.length].key);
   }
   function next() {
-    const idx = (activeIdx + 1) % CATEGORIES.length;
-    onChange(CATEGORIES[idx].key);
+    onChange(CATEGORIES[(activeIdx + 1) % CATEGORIES.length].key);
   }
 
   return (
-    <View style={phoneStyles.row}>
-      <TouchableOpacity onPress={prev} style={phoneStyles.arrow} activeOpacity={0.6}>
-        <Text style={phoneStyles.arrowText}>‹</Text>
-      </TouchableOpacity>
+    <View style={phoneStyles.wrapper}>
+      <View style={phoneStyles.row}>
+        <TouchableOpacity onPress={prev} style={phoneStyles.arrow} activeOpacity={0.6}>
+          <Text style={phoneStyles.arrowText}>‹</Text>
+        </TouchableOpacity>
 
-      <View style={phoneStyles.center}>
-        <Text style={phoneStyles.emoji}>{cat.emoji}</Text>
-        <Text style={phoneStyles.label}>{cat.label}</Text>
-        {prog.total > 0 && (
-          <Text style={phoneStyles.count}>{prog.done}/{prog.total}</Text>
-        )}
+        <View style={[phoneStyles.center, { backgroundColor: tint.bg, borderColor: tint.border }]}>
+          <Text style={phoneStyles.emoji}>{cat.emoji}</Text>
+          <View style={phoneStyles.labelCol}>
+            <Text style={phoneStyles.label}>{cat.label}</Text>
+            {prog.total > 0 && (
+              <View style={phoneStyles.progressTrack}>
+                <View style={[phoneStyles.progressFill, { width: `${Math.round(progressPct * 100)}%` }]} />
+              </View>
+            )}
+          </View>
+          {prog.total > 0 && (
+            <Text style={phoneStyles.count}>{prog.done}/{prog.total}</Text>
+          )}
+        </View>
+
+        <TouchableOpacity onPress={next} style={phoneStyles.arrow} activeOpacity={0.6}>
+          <Text style={phoneStyles.arrowText}>›</Text>
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={next} style={phoneStyles.arrow} activeOpacity={0.6}>
-        <Text style={phoneStyles.arrowText}>›</Text>
-      </TouchableOpacity>
+      {/* Category position dots */}
+      <View style={phoneStyles.dots}>
+        {CATEGORIES.map((c, i) => (
+          <TouchableOpacity
+            key={c.key}
+            onPress={() => onChange(c.key)}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+          >
+            <View style={[phoneStyles.dot, i === activeIdx && phoneStyles.dotActive]} />
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
 
 const phoneStyles = StyleSheet.create({
+  wrapper: { paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[1], gap: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: space[4],
-    paddingVertical: space[3],
+    gap: space[2],
   },
   arrow: {
-    width: 44,
-    height: 44,
+    width: 40, height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.full,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  arrowText: {
-    fontSize: 22,
-    color: colors.textMuted,
-    lineHeight: 26,
-  },
+  arrowText: { fontSize: 22, color: colors.textMuted, lineHeight: 26 },
+
   center: {
     flex: 1,
-    alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radii.xl,
+    borderWidth: 1.5,
   },
-  emoji: { fontSize: 18 },
+  emoji: { fontSize: 20 },
+  labelCol: { flex: 1, gap: 4 },
   label: {
     fontFamily: fonts.serifBold,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.text,
+  },
+  progressTrack: {
+    height: 3,
+    backgroundColor: 'rgba(45,31,61,0.08)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 3,
+    backgroundColor: colors.accent,
+    borderRadius: 2,
   },
   count: {
     fontFamily: fonts.sans,
-    fontSize: 12,
-    color: colors.textLight,
-    backgroundColor: colors.surfaceAlt,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radii.full,
+    fontSize: 11,
+    color: colors.textMuted,
+  },
+
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.border,
+  },
+  dotActive: {
+    backgroundColor: colors.accent,
+    width: 14,
   },
 });

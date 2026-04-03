@@ -35,6 +35,11 @@ export default function CategoryPicker({ active, onChange, progress = {} }) {
             {prog && (
               <span className="carousel-count">{prog.done}/{prog.total}</span>
             )}
+            {prog && prog.total > 0 && (
+              <div className="carousel-progress-track">
+                <div className="carousel-progress-fill" style={{ width: `${(prog.done / prog.total) * 100}%` }} />
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

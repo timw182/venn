@@ -38,8 +38,8 @@ export const ROUTES = {
 
 // localStorage key constants — single source of truth
 export const STORAGE_KEYS = {
-  RESPONSES: 'kl_responses',
-  SOLO:      'kl_solo',
+  RESPONSES: 'vn_responses',
+  SOLO:      'vn_solo',
   /** Returns the pile cache key for a given category */
-  piles:     (category) => `kl_piles_${category}`,
+  piles:     (category) => `vn_piles_${category}`,
 };

@@ -34,9 +34,9 @@
   font-size: var(--text-sm);
   padding: 6px 14px;
   border-radius: var(--radius-lg);
-  border: 1.5px solid #f5c2c2;
-  background: #fff5f5;
-  color: #c0392b;
+  border: 1.5px solid rgba(240, 122, 106, 0.35);
+  background: rgba(240, 122, 106, 0.06);
+  color: var(--color-no);
   cursor: pointer;
   font-family: var(--font-sans);
   transition: background var(--duration-fast) var(--ease-out),
@@ -44,8 +44,8 @@
 }
 
 .settings-signout-btn:hover {
-  background: #ffe0e0;
-  border-color: #e08080;
+  background: var(--color-no-soft);
+  border-color: var(--color-no);
 }
 
 /* ── 2×2 tile grid ────────────────────────────────────────────────── */
