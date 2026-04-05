@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+
 import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPicker from '../components/CategoryPicker';
@@ -24,9 +25,19 @@ export default function BrowseScreen() {
   const matchDelayRef = useRef(null);
   const handledMatchRef = useRef(null);
 
-  const { latestNewMatch, dismissLatest, refetch } = useMatches();
+  const { latestNewMatch, dismissLatest, refetch, resetState } = useMatches();
 
+  // Load catalog + responses on mount, and reload after a reset
+  const prevResetState = useRef(resetState);
   useEffect(() => {
+    const wasReset = prevResetState.current !== 'none' && resetState === 'none';
+    prevResetState.current = resetState;
+
+    if (wasReset) {
+      // Reset just completed — clear local responses
+      setResponses({});
+    }
+
     setLoadError(false);
     Promise.all([client.get('/catalog'), client.get('/catalog/responses')])
       .then(([items, resps]) => {
@@ -34,7 +45,7 @@ export default function BrowseScreen() {
         setResponses(resps);
       })
       .catch(() => setLoadError(true));
-  }, []);
+  }, [resetState]);
 
   // React to match from WS (triggered_by check is in MatchContext)
   useEffect(() => {

@@ -126,7 +126,7 @@ export default function LandingScreen({ navigation }) {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { login, register } = useAuth();
+  const { login, register, logoutReason } = useAuth();
 
   // ── Swipe-back gesture for form view ────────────────────────────────────────
   const formX = useSharedValue(SW * 0.35);
@@ -213,6 +213,14 @@ export default function LandingScreen({ navigation }) {
             <VennAnimatedLogo width={IS_TABLET ? Math.min(SW * 0.55, 420) : SW} height={140} />
             <Text style={styles.tagline}>Find your overlap.</Text>
           </View>
+
+          {logoutReason === 'another_device' && (
+            <View style={styles.kickedBanner}>
+              <Text style={styles.kickedText}>
+                You were logged out because your account was signed in on another device.
+              </Text>
+            </View>
+          )}
 
           <View style={styles.featuresAndCta}>
             <View style={styles.features}>
@@ -392,6 +400,22 @@ export default function LandingScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  kickedBanner: {
+    marginHorizontal: space[4],
+    marginBottom: space[3],
+    padding: space[3],
+    backgroundColor: 'rgba(240, 122, 106, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(240, 122, 106, 0.3)',
+    borderRadius: 12,
+  },
+  kickedText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
 
   heroScroll: {
     flexGrow: 1,

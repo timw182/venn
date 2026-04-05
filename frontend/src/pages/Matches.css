@@ -31,10 +31,19 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   flex-wrap: wrap;
   margin-bottom: var(--space-6);
+  border-radius: var(--radius-lg);
+  transition: background var(--duration-normal) var(--ease-out);
 }
+
+.matches-carousel[data-category="foreplay"]    { background: radial-gradient(ellipse 80% 80% at 50% 50%, #F2B8CC40 0%, #F8EEF320 100%); }
+.matches-carousel[data-category="positions"]   { background: radial-gradient(ellipse 80% 80% at 50% 50%, #C4B0E840 0%, #EEE9F620 100%); }
+.matches-carousel[data-category="settings"]    { background: radial-gradient(ellipse 80% 80% at 50% 50%, #B0C4E840 0%, #EAEff620 100%); }
+.matches-carousel[data-category="roleplay"]    { background: radial-gradient(ellipse 80% 80% at 50% 50%, #E8C8A040 0%, #F6F0E820 100%); }
+.matches-carousel[data-category="toys-gear"]   { background: radial-gradient(ellipse 80% 80% at 50% 50%, #B0D4C040 0%, #EAF4EE20 100%); }
+.matches-carousel[data-category="adventurous"] { background: radial-gradient(ellipse 80% 80% at 50% 50%, #F0C0A040 0%, #F6EDEA20 100%); }
 
 /* Grid — centered, expands outward as cards are added */
 .matches-grid {
@@ -64,6 +73,14 @@
   transition: all var(--duration-normal) var(--ease-out);
   width: calc(50% - var(--space-2));
 }
+
+/* Per-category radial gradient backgrounds — matching browse cards */
+.match-card[data-category="foreplay"]    { background: radial-gradient(ellipse 80% 80% at 50% 40%, #F2B8CC 0%, #F8EEF3 100%); border-color: #F0C8D8; }
+.match-card[data-category="positions"]   { background: radial-gradient(ellipse 80% 80% at 50% 40%, #C4B0E8 0%, #EEE9F6 100%); border-color: #D8C8F0; }
+.match-card[data-category="settings"]    { background: radial-gradient(ellipse 80% 80% at 50% 40%, #B0C4E8 0%, #EAEff6 100%); border-color: #C8D4F0; }
+.match-card[data-category="roleplay"]    { background: radial-gradient(ellipse 80% 80% at 50% 40%, #E8C8A0 0%, #F6F0E8 100%); border-color: #F0DCC8; }
+.match-card[data-category="toys-gear"]   { background: radial-gradient(ellipse 80% 80% at 50% 40%, #B0D4C0 0%, #EAF4EE 100%); border-color: #C8E8D0; }
+.match-card[data-category="adventurous"] { background: radial-gradient(ellipse 80% 80% at 50% 40%, #F0C0A0 0%, #F6EDEA 100%); border-color: #F0D4C8; }
 
 .match-card:hover {
   box-shadow: var(--shadow-card-hover);
@@ -136,7 +153,20 @@
 
 .match-detail-emoji {
   font-size: 56px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
 }
+
+.match-detail[data-category="foreplay"]    .match-detail-emoji { background: radial-gradient(circle, #F2B8CC 0%, #F8EEF3 100%); }
+.match-detail[data-category="positions"]   .match-detail-emoji { background: radial-gradient(circle, #C4B0E8 0%, #EEE9F6 100%); }
+.match-detail[data-category="settings"]    .match-detail-emoji { background: radial-gradient(circle, #B0C4E8 0%, #EAEff6 100%); }
+.match-detail[data-category="roleplay"]    .match-detail-emoji { background: radial-gradient(circle, #E8C8A0 0%, #F6F0E8 100%); }
+.match-detail[data-category="toys-gear"]   .match-detail-emoji { background: radial-gradient(circle, #B0D4C0 0%, #EAF4EE 100%); }
+.match-detail[data-category="adventurous"] .match-detail-emoji { background: radial-gradient(circle, #F0C0A0 0%, #F6EDEA 100%); }
 
 .match-detail-title {
   font-size: var(--text-xl);

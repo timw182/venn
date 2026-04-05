@@ -122,19 +122,21 @@ export function MatchProvider({ children }) {
           });
           // Triggerer sees the effect via HTTP response; no WS animation needed
         } else if (msg.type === "mood_update" || msg.type === "mood_cleared") {
-          if (msg.from_user_id !== userRef.current?.id) {
-            setPartnerMood(msg.mood || null);
-          }
+          const isSelf = msg.from_user_id === userRef.current?.id;
+          setPartnerMood({ mood: msg.mood || null, isSelf });
         } else if (msg.type === "swipe_pattern_alert") {
           if (msg.about_user_id !== userRef.current?.id) {
             setSwipeAlert(msg);
           }
         } else if (msg.type === "reset_requested") {
-          setResetState("pending_partner");
+          setResetState(msg.by === userRef.current?.id ? "pending_mine" : "pending_partner");
         } else if (msg.type === "reset_cancelled" || msg.type === "reset_declined") {
           setResetState("none");
         } else if (msg.type === "reset_done") {
           setResetState("none");
+          setMatches([]);
+          setLatestNewMatch(null);
+          knownIds.current.clear();
           AsyncStorage.multiRemove(["vn_responses"]).catch(() => {});
         }
       } catch {}

@@ -64,73 +64,82 @@
   color: var(--color-text-light);
 }
 
-/* ── Compact pill buttons ─────────────────────────────── */
-.mood-buttons {
-  display: flex;
-  flex-wrap: wrap;
+/* ── 4-column tile grid ──────────────────────────────── */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-2);
 }
 
-.mood-btn {
+.mood-tile {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--color-surface-alt);
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.mood-btn:hover {
-  background: var(--color-surface-hover);
-}
-
-.mood-btn.active {
-  background: var(--color-accent-bg);
-  border-color: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.mood-btn-emoji {
-  font-size: 16px;
-  line-height: 1;
-}
-
-.mood-btn-label {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-
-.mood-btn.active .mood-btn-label {
-  color: var(--color-accent);
-}
-
-/* ── Confirm row ──────────────────────────────────────── */
-.mood-confirm-row {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  background: var(--color-surface-alt);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.mood-tile:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.mood-tile.active {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-soft);
+  transform: scale(1.06);
+}
+
+.mood-tile-emoji {
+  font-size: 26px;
+  line-height: 1;
+  transition: font-size var(--duration-fast);
+}
+
+.mood-tile.active .mood-tile-emoji {
+  font-size: 30px;
+}
+
+.mood-tile-label {
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.mood-tile.active .mood-tile-label {
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+}
+
+/* ── Confirm column ──────────────────────────────────── */
+.mood-confirm-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--space-3);
 }
 
 .mood-set-btn {
+  width: 100%;
   padding: var(--space-3) var(--space-8);
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
+  background: rgba(196, 84, 122, 0.15);
+  color: var(--color-accent);
+  border: 1.5px solid rgba(196, 84, 122, 0.3);
   border-radius: var(--radius-full);
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.02em;
   transition: all var(--duration-fast) var(--ease-out);
-  box-shadow: var(--shadow-sm);
 }
 
 .mood-set-btn:hover {
-  opacity: 0.88;
-  box-shadow: var(--shadow-md);
+  background: rgba(196, 84, 122, 0.22);
 }
 
 .mood-set-btn:disabled {
@@ -148,47 +157,44 @@
   color: var(--color-text);
 }
 
-/* ── Current mood badge ───────────────────────────────── */
-.mood-current {
+/* ── Current mood card (tap to change) ───────────────── */
+.mood-current-card {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.mood-current-badge {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-surface-alt);
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity var(--duration-fast);
 }
 
-.mood-current-emoji {
-  font-size: 22px;
+.mood-current-card:hover {
+  opacity: 0.8;
+}
+
+.mood-current-card-emoji {
+  font-size: 56px;
   line-height: 1;
 }
 
-.mood-current-label {
-  font-size: var(--text-base);
-  font-weight: var(--weight-medium);
+.mood-current-card-label {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
   color: var(--color-text);
+  font-family: var(--font-serif);
 }
 
-.mood-change-btn {
+.mood-tap-hint {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  padding: 6px 14px;
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-alt);
-  transition: all var(--duration-fast);
-}
-
-.mood-change-btn:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent);
+  background: rgba(196, 84, 122, 0.1);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  margin-top: var(--space-1);
 }
 
 /* ── Partner section ──────────────────────────────────── */

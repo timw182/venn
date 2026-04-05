@@ -106,60 +106,135 @@ nav {
   }
 }
 
-/* ── Reset banner ─────────────────────────────────────────── */
-.reset-banner {
-  position: relative;
-  z-index: 10;
-  background: var(--color-no-soft, #fdeaea);
-  border-bottom: 1px solid var(--color-no, #e05c5c);
-  padding: var(--space-3) var(--space-5);
+/* ── Shared floating popup ────────────────────────────────── */
+.shell-popup {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast, 9999);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  max-width: 480px;
+  width: calc(100% - var(--space-8));
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
-.reset-banner-waiting {
-  background: var(--color-surface-alt, #f5f0ea);
-  border-bottom-color: var(--color-border);
+.shell-popup--col {
+  flex-direction: column;
+  padding: var(--space-4) var(--space-5);
 }
 
-.reset-banner-text {
+.shell-popup-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.shell-popup-text {
+  flex: 1;
   font-size: var(--text-sm);
   color: var(--color-text);
-  flex: 1;
+  line-height: 1.45;
 }
 
-.reset-banner-actions {
+.shell-popup-text strong {
+  font-weight: var(--weight-semibold);
+}
+
+.shell-popup-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background 150ms;
+}
+
+.shell-popup-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.shell-popup-actions {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-.reset-banner-btn {
+.shell-popup-btn {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  padding: var(--space-1) var(--space-4);
+  padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-full);
   border: 1.5px solid transparent;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
 }
 
-.reset-banner-confirm {
-  background: var(--color-no, #e05c5c);
-  color: #fff;
+.shell-popup-btn:hover {
+  opacity: 0.85;
 }
 
-.reset-banner-decline {
+/* ── Variant: warning (coral) — reset, swipe alert ───────── */
+.shell-popup--warning {
+  border-color: rgba(240, 122, 106, 0.3);
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0cc 100%);
+}
+
+.shell-popup--warning .shell-popup-text {
+  color: #5a3e1b;
+}
+
+.shell-popup--warning .shell-popup-dismiss {
+  color: #a07040;
+}
+
+.shell-popup--warning .shell-popup-dismiss:hover {
+  background: rgba(160, 112, 64, 0.12);
+}
+
+/* ── Variant: danger (reset confirm) ─────────────────────── */
+.shell-popup--danger {
+  border-color: rgba(240, 122, 106, 0.3);
+}
+
+.shell-popup--danger .shell-popup-text {
+  text-align: center;
+}
+
+.shell-popup-btn--confirm {
+  background: rgba(240, 122, 106, 0.12);
+  border-color: rgba(240, 122, 106, 0.3);
+  color: var(--color-no);
+}
+
+.shell-popup-btn--confirm:hover {
+  background: rgba(240, 122, 106, 0.2);
+}
+
+.shell-popup-btn--cancel {
   background: transparent;
   border-color: var(--color-border);
   color: var(--color-text-muted);
 }
 
-.reset-banner-btn:hover {
-  opacity: 0.8;
+.shell-popup-btn--cancel:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
 }
+
+/* ── Variant: neutral (waiting) ──────────────────────────── */
+.shell-popup--neutral .shell-popup-text {
+  text-align: center;
+}
+
 
 
 /* ── Hide logo on smallest phones to reclaim vertical space ── */

@@ -30,10 +30,10 @@ export default function MoodScreen() {
       .catch(() => {});
   }, []);
 
-  // WS push from partner
+  // WS push — update partner mood display (ignore self updates here)
   useEffect(() => {
     if (!wsMood) return;
-    setPartnerMoodLocal(wsMood);
+    if (!wsMood.isSelf) setPartnerMoodLocal(wsMood.mood);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setPartnerMood(null), 4000);
     return () => clearTimeout(toastTimer.current);
@@ -86,35 +86,34 @@ export default function MoodScreen() {
                 <Text style={styles.sectionLabel}>Your mood</Text>
 
                 {myMood && !picking ? (
-                  <View style={styles.currentRow}>
-                    <View style={styles.currentBadge}>
-                      <Text style={styles.currentEmoji}>{myMoodObj?.emoji}</Text>
-                      <Text style={styles.currentLabel}>{myMoodObj?.label}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setPicking(myMood)} style={styles.changeBtn}>
-                      <Text style={styles.changeBtnText}>Change</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity style={styles.currentCard} onPress={() => setPicking(myMood)} activeOpacity={0.8}>
+                    <Text style={styles.currentEmoji}>{myMoodObj?.emoji}</Text>
+                    <Text style={styles.currentLabel}>{myMoodObj?.label}</Text>
+                    <Text style={styles.tapHint}>Tap to change</Text>
+                  </TouchableOpacity>
                 ) : (
                   <>
                     <View style={styles.moodGrid}>
-                      {MOODS.map((m) => (
-                        <TouchableOpacity
-                          key={m.key}
-                          style={[styles.moodBtn, picking === m.key && styles.moodBtnActive]}
-                          onPress={() => setPicking(m.key)}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.moodEmoji}>{m.emoji}</Text>
-                          <Text style={[styles.moodLabel, picking === m.key && styles.moodLabelActive]}>
-                            {m.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                      {MOODS.map((m) => {
+                        const active = picking === m.key;
+                        return (
+                          <TouchableOpacity
+                            key={m.key}
+                            style={[styles.moodTile, active && styles.moodTileActive]}
+                            onPress={() => setPicking(m.key)}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={[styles.moodEmoji, active && styles.moodEmojiActive]}>{m.emoji}</Text>
+                            <Text style={[styles.moodLabel, active && styles.moodLabelActive]} numberOfLines={1}>
+                              {m.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
 
                     {picking && (
-                      <View style={styles.confirmRow}>
+                      <View style={styles.confirmCol}>
                         <TouchableOpacity
                           style={[styles.setBtn, loading && styles.setBtnDisabled]}
                           onPress={handleSet}
@@ -123,7 +122,7 @@ export default function MoodScreen() {
                           <Text style={styles.setBtnText}>{loading ? 'Sending…' : 'Send to partner'}</Text>
                         </TouchableOpacity>
                         {myMood && (
-                          <TouchableOpacity onPress={() => setPicking(null)}>
+                          <TouchableOpacity onPress={() => setPicking(null)} style={styles.cancelBtn}>
                             <Text style={styles.cancelText}>Cancel</Text>
                           </TouchableOpacity>
                         )}
@@ -195,68 +194,61 @@ const styles = StyleSheet.create({
     color: colors.textLight,
   },
 
-  moodGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
-  moodBtn: {
-    flexDirection: 'row',
+  moodGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: space[2],
+  },
+  moodTile: {
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: radii.full,
+    justifyContent: 'center',
+    gap: 4,
+    width: '23%',
+    aspectRatio: 1,
+    borderRadius: radii.lg,
     borderWidth: 1.5,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
-    shadowColor: '#2D1F3D',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    backgroundColor: colors.surfaceAlt,
   },
-  moodBtnActive: {
+  moodTileActive: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
-    shadowOpacity: 0,
-    elevation: 0,
+    transform: [{ scale: 1.08 }],
   },
-  moodEmoji: { fontSize: 20 },
-  moodLabel: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
-  moodLabelActive: { color: colors.accent },
+  moodEmoji: { fontSize: 26 },
+  moodEmojiActive: { fontSize: 30 },
+  moodLabel: { fontFamily: fonts.sans, fontSize: 10, color: colors.textMuted },
+  moodLabelActive: { fontFamily: fonts.sansMedium, color: colors.accent },
 
-  confirmRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  confirmCol: { alignItems: 'center', gap: space[3] },
   setBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: 'rgba(196, 84, 122, 0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(196, 84, 122, 0.3)',
     borderRadius: radii.full,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    alignSelf: 'stretch',
+    alignItems: 'center',
   },
   setBtnDisabled: { opacity: 0.5 },
-  setBtnText: { fontFamily: fonts.sansMedium, fontSize: 14, color: '#fff' },
+  setBtnText: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.accent, letterSpacing: 0.3 },
+  cancelBtn: { paddingVertical: space[2] },
   cancelText: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },
 
-  currentRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
-  currentBadge: {
-    flexDirection: 'row',
+  currentCard: {
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radii.full,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+    gap: space[2],
+    paddingVertical: space[5],
   },
-  currentEmoji: { fontSize: 20 },
-  currentLabel: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
-
-  changeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+  currentEmoji: { fontSize: 56 },
+  currentLabel: { fontFamily: fonts.serifBold, fontSize: 22, color: colors.text },
+  tapHint: {
+    fontFamily: fonts.sansMedium, fontSize: 13, color: colors.accent,
+    marginTop: space[2],
+    backgroundColor: 'rgba(196, 84, 122, 0.1)',
+    paddingVertical: 6, paddingHorizontal: 14,
     borderRadius: radii.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
   },
-  changeBtnText: { fontFamily: fonts.sans, fontSize: 13, color: colors.textMuted },
 
   partnerDisplay: {
     alignItems: 'center',

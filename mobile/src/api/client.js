@@ -4,6 +4,10 @@ import Constants from 'expo-constants';
 const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/api';
 const TOKEN_KEY = 'vn_session_token';
 
+// Global 401 listener — AuthContext hooks into this to force logout
+let _onUnauthorized = null;
+export function setOnUnauthorized(fn) { _onUnauthorized = fn; }
+
 async function getToken() {
   return SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);
 }
@@ -35,6 +39,7 @@ async function request(path, options = {}) {
     const isAuthPath = path.startsWith('/auth/');
     if (!isAuthPath) {
       await clearSession();
+      _onUnauthorized?.();
     }
     const body = await res.json().catch(() => ({}));
     throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');

@@ -22,6 +22,8 @@ export const MOODS = [
   { key: 'nervous',    label: 'Nervous',    emoji: '🫣' },
   { key: 'cuddly',     label: 'Cuddly',     emoji: '🧸' },
   { key: 'flirty',     label: 'Flirty',     emoji: '😘' },
+  { key: 'dreamy',     label: 'Dreamy',     emoji: '🌙' },
+  { key: 'cheeky',     label: 'Cheeky',     emoji: '😈' },
 ];
 
 export const ROUTES = {

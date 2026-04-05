@@ -1,7 +1,7 @@
 import { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import client, { clearSession, storeToken } from '../api/client';
+import client, { clearSession, storeToken, setOnUnauthorized } from '../api/client';
 
 const SOLO_KEY = 'vn_solo';
 
@@ -23,12 +23,20 @@ export function AuthProvider({ children }) {
   const [isSolo, setIsSolo] = useState(false);
   const [isPendingPair, setIsPendingPair] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [logoutReason, setLogoutReason] = useState(null);
 
   useEffect(() => {
     Promise.all([
       client.get('/auth/me').then((raw) => setUser(toUser(raw))).catch(() => {}),
       AsyncStorage.getItem(SOLO_KEY).then((v) => { if (v) setIsSolo(true); }).catch(() => {}),
     ]).finally(() => setLoading(false));
+
+    // Force logout on any 401 from API calls
+    setOnUnauthorized(() => {
+      setUser(null);
+      setIsSolo(false);
+      setLogoutReason('another_device');
+    });
   }, []);
 
   // Revalidate session when app comes to foreground
@@ -46,6 +54,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (username, password) => {
+    setLogoutReason(null);
     const raw = await client.post('/auth/login', { username, password });
     if (raw.session_token) await storeToken(raw.session_token);
     const u = toUser(raw);
@@ -102,7 +111,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isSolo, isPendingPair, loading, login, register, logout, pair, createPairingCode, enterSolo, enterPendingPair, setUser, updateProfile }}>
+    <AuthContext.Provider value={{ user, isSolo, isPendingPair, loading, logoutReason, login, register, logout, pair, createPairingCode, enterSolo, enterPendingPair, setUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

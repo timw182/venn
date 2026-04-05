@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/useAuth";
@@ -59,7 +59,14 @@ function Sheet({ open, onClose, title, children }) {
 /* ── Main component ──────────────────────────────────────────────────── */
 export default function Settings() {
   const { user, isSolo, logout, updateProfile } = useAuth();
-  const { resetState, setResetState } = useMatches();
+  const { resetState, setResetState, matches: allMatches } = useMatches();
+  const [hasResponses, setHasResponses] = useState(true);
+  useEffect(() => {
+    client.get('/catalog/responses').then((resps) => {
+      setHasResponses(Object.keys(resps || {}).length > 0);
+    }).catch(() => {});
+  }, []);
+  const nothingToReset = !hasResponses && allMatches.length === 0;
   const navigate = useNavigate();
 
   const [activeSheet, setActiveSheet] = useState(null);
@@ -251,8 +258,8 @@ export default function Settings() {
               <p className="sheet-muted">Clears all swipes and matches for both of you. Both partners must confirm.</p>
 
               {resetState === "none" && !resetConfirm && (
-                <Button variant="secondary" size="sm" onClick={() => setResetConfirm(true)}>
-                  Request reset
+                <Button variant="secondary" size="sm" onClick={() => setResetConfirm(true)} disabled={nothingToReset}>
+                  {nothingToReset ? 'Nothing to reset' : 'Request reset'}
                 </Button>
               )}
 

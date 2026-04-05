@@ -255,7 +255,7 @@ export default function BottomNav({ matchCount = 0 }) {
               <span className="bottom-nav-icon">
                 {tab.icon}
                 {tab.badge && matchCount > 0 && (
-                  <span className="bottom-nav-badge">{matchCount > 9 ? '9+' : matchCount}</span>
+                  <span className="bottom-nav-badge">{matchCount}</span>
                 )}
               </span>
               <span className="bottom-nav-label">{tab.label}</span>

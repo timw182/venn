@@ -1,3 +1,23 @@
+.landing-kicked-banner {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 420px;
+  width: calc(100% - 32px);
+  z-index: 100;
+  text-align: center;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: rgba(240, 122, 106, 0.12);
+  border: 1.5px solid rgba(240, 122, 106, 0.3);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  backdrop-filter: blur(8px);
+}
+
 /* ---- Shell ---- */
 .landing {
   min-height: 100dvh;

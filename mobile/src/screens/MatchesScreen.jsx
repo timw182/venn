@@ -21,20 +21,31 @@ const CATEGORY_TINTS = {
   adventurous: { bg: '#F6EDEA', border: '#F0D4C8' },
 };
 
-function CardGradient({ category }) {
-  const tint = CATEGORY_TINTS[category] || { bg: colors.surfaceAlt };
+function CardGradient({ category, width, height }) {
+  const [inner, outer] = CATEGORY_GRADIENTS[category] || ['#D4C0F0', '#F4EFF8'];
+  if (!width || !height) return null;
   return (
-    <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+    <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
       <Defs>
-        <RadialGradient id={`cg_${category}`} cx="50%" cy="30%" rx="80%" ry="80%">
-          <Stop offset="0%" stopColor={tint.bg} stopOpacity="1" />
-          <Stop offset="100%" stopColor={colors.surface} stopOpacity="1" />
+        <RadialGradient id={`cg_${category}`} cx="50%" cy="40%" rx="65%" ry="65%">
+          <Stop offset="0%" stopColor={inner} stopOpacity="1" />
+          <Stop offset="100%" stopColor={outer} stopOpacity="1" />
         </RadialGradient>
       </Defs>
-      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#cg_${category})`} />
+      <Rect x="0" y="0" width={width} height={height} fill={`url(#cg_${category})`} />
     </Svg>
   );
 }
+
+// Same gradient palette as browse cards (ItemCard)
+const CATEGORY_GRADIENTS = {
+  foreplay:    ['#F2B8CC', '#F8EEF3'],
+  positions:   ['#C4B0E8', '#EEE9F6'],
+  settings:    ['#B0C4E8', '#EAEff6'],
+  roleplay:    ['#E8C8A0', '#F6F0E8'],
+  'toys-gear': ['#B0D4C0', '#EAF4EE'],
+  adventurous: ['#F0C0A0', '#F6EDEA'],
+};
 
 function FilterPicker({ filter, onChange, matches }) {
   const activeCategories = [
@@ -103,6 +114,7 @@ const fpStyles = StyleSheet.create({
 
 function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   const [expanded, setExpanded] = useState(false);
+  const [cardSize, setCardSize] = useState({ w: 0, h: 0 });
   const cat = CATEGORIES.find((c) => c.key === match.category);
 
   function handleOpen() {
@@ -115,11 +127,12 @@ function MatchCard({ match, onSeen, onRemove, cardWidth }) {
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, { width: cardWidth }, { borderColor: tint.border || colors.border }]}
+        style={[styles.card, { width: cardWidth, backgroundColor: (CATEGORY_GRADIENTS[match.category] || [])[1] || colors.surfaceAlt, borderColor: tint.border || colors.border }]}
         onPress={handleOpen}
         activeOpacity={0.78}
+        onLayout={(e) => { const { width: w, height: h } = e.nativeEvent.layout; setCardSize({ w, h }); }}
       >
-        <CardGradient category={match.category} />
+        <CardGradient category={match.category} width={cardSize.w} height={cardSize.h} />
         {!match.seen && (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>NEW</Text>
@@ -133,8 +146,8 @@ function MatchCard({ match, onSeen, onRemove, cardWidth }) {
       <Modal visible={expanded} transparent animationType="fade" onRequestClose={() => setExpanded(false)}>
         <Pressable style={styles.overlay} onPress={() => setExpanded(false)}>
           <Pressable style={styles.detail} onPress={() => {}}>
-            <View style={styles.detailHero}>
-              <CardGradient category={match.category} />
+            <View style={[styles.detailHero, { backgroundColor: (CATEGORY_GRADIENTS[match.category] || [])[1] || colors.surfaceAlt }]}>
+              <CardGradient category={match.category} width={320} height={110} />
               <Text style={styles.detailEmoji}>{match.emoji}</Text>
             </View>
             <View style={styles.detailBody}>

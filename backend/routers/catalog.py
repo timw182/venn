@@ -47,7 +47,7 @@ async def undo_response(item_id: int, request: Request, db: Connection = Depends
 
 SPAM_WINDOW = 20       # look at last N responses
 SPAM_THRESHOLD = 0.9   # 90 %+ same direction triggers alert
-SPAM_COOLDOWN_H = 24   # hours between repeated alerts
+SPAM_COOLDOWN_H = 0    # unused — now checks for undismissed alerts instead
 
 
 @router.post("/respond")
@@ -126,26 +126,28 @@ async def respond(body: RespondRequest, request: Request, db: Connection = Depen
                 dominant = "no"
 
             if dominant:
-                # Check cooldown — only alert once per 24h per user
+                # Don't create a new alert if there's already an undismissed one
                 cur = await db.execute(
                     """SELECT 1 FROM swipe_pattern_alerts
                        WHERE couple_id = ? AND about_user_id = ?
-                         AND alerted_at > datetime('now', ?)""",
-                    (couple_id, uid, f"-{SPAM_COOLDOWN_H} hours"),
+                         AND dismissed = 0""",
+                    (couple_id, uid),
                 )
                 already_sent = await cur.fetchone()
                 if not already_sent:
-                    await db.execute(
+                    cur = await db.execute(
                         """INSERT INTO swipe_pattern_alerts (couple_id, about_user_id, pattern)
                            VALUES (?, ?, ?)""",
                         (couple_id, uid, dominant),
                     )
+                    alert_id = cur.lastrowid
                     await db.commit()
                     # Get the spammer's display name for the alert
                     cur = await db.execute("SELECT display_name FROM users WHERE id = ?", (uid,))
                     swiper = await cur.fetchone()
                     await manager.broadcast(couple_id, {
                         "type": "swipe_pattern_alert",
+                        "id": alert_id,
                         "about_user_id": uid,
                         "partner_name": swiper["display_name"] if swiper else "Your partner",
                         "pattern": dominant,

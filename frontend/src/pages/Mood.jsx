@@ -111,32 +111,30 @@ export default function Mood() {
           <p className="mood-section-title">Your mood</p>
 
           {myMood && !picking ? (
-            <div className="mood-current">
-              <div className="mood-current-badge">
-                <span className="mood-current-emoji">{myMoodObj?.emoji}</span>
-                <span className="mood-current-label">{myMoodObj?.label}</span>
-              </div>
-              <button className="mood-change-btn" onClick={() => setPicking(myMood)}>Change</button>
-            </div>
+            <button className="mood-current-card" onClick={() => setPicking(myMood)}>
+              <span className="mood-current-card-emoji">{myMoodObj?.emoji}</span>
+              <span className="mood-current-card-label">{myMoodObj?.label}</span>
+              <span className="mood-tap-hint">Tap to change</span>
+            </button>
           ) : (
             <>
-              <div className="mood-buttons">
+              <div className="mood-grid">
                 {MOODS.map((m) => (
                   <motion.button
                     key={m.key}
-                    className={`mood-btn${picking === m.key ? " active" : ""}`}
+                    className={`mood-tile${picking === m.key ? " active" : ""}`}
                     onClick={() => { haptic.light(); setPicking(m.key); }}
                     whileTap={{ scale: 0.93 }}
                   >
-                    <span className="mood-btn-emoji">{m.emoji}</span>
-                    <span className="mood-btn-label">{m.label}</span>
+                    <span className="mood-tile-emoji">{m.emoji}</span>
+                    <span className="mood-tile-label">{m.label}</span>
                   </motion.button>
                 ))}
               </div>
 
               <AnimatePresence>
                 {picking && (
-                  <motion.div className="mood-confirm-row"
+                  <motion.div className="mood-confirm-col"
                     initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
                     <button className="mood-set-btn" onClick={() => { haptic.medium(); handleSet(); }} disabled={loading}>
                       {loading ? "Sending…" : "Send to partner"}

@@ -35,7 +35,7 @@ async def set_mood(body: MoodRequest, request: Request, db: Connection = Depends
         datetime.now(timezone.utc) + timedelta(hours=body.expires_hours)
     ).isoformat()
 
-    # Rate-limit: only allow change every 5 minutes
+    # Rate-limit: only allow change every 60 seconds
     cur = await db.execute(
         "SELECT updated_at FROM user_mood WHERE user_id = ?", (uid,)
     )

@@ -38,30 +38,16 @@ const TABS = [
   { name: SCREENS.SETTINGS, label: 'Settings',icon: 'sun'    },
 ];
 
-const MOOD_LABELS = {
-  passionate: { emoji: '🔥', label: 'Passionate' },
-  tender:     { emoji: '🫶', label: 'Tender' },
-  playful:    { emoji: '😏', label: 'Playful' },
-  dominant:   { emoji: '👑', label: 'Dominant' },
-  submissive: { emoji: '🦋', label: 'Submissive' },
-  curious:    { emoji: '✨', label: 'Curious' },
-  lazy:       { emoji: '😴', label: 'Lazy' },
-  wild:       { emoji: '⚡', label: 'Wild' },
-  romantic:   { emoji: '🌹', label: 'Romantic' },
-  needy:      { emoji: '🥺', label: 'Needy' },
-  confident:  { emoji: '😎', label: 'Confident' },
-  nervous:    { emoji: '🫣', label: 'Nervous' },
-  cuddly:     { emoji: '🧸', label: 'Cuddly' },
-  flirty:     { emoji: '😘', label: 'Flirty' },
-};
+import { MOODS } from '../lib/constants';
+const MOOD_LABELS = Object.fromEntries(MOODS.map((m) => [m.key, m]));
 
-function MoodToast({ mood, partnerName }) {
+function MoodToast({ moodData, partnerName }) {
   const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-20)).current;
 
   useEffect(() => {
-    if (!mood) return;
+    if (!moodData) return;
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
       Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
@@ -73,14 +59,17 @@ function MoodToast({ mood, partnerName }) {
       ]).start();
     }, 4000);
     return () => clearTimeout(t);
-  }, [mood]);
+  }, [moodData]);
 
-  if (!mood) return null;
-  const m = MOOD_LABELS[mood] || { emoji: '💫', label: mood };
+  if (!moodData || !moodData.mood) return null;
+  const m = MOOD_LABELS[moodData.mood] || { emoji: '💫', label: moodData.mood };
+  const text = moodData.isSelf
+    ? `You're now feeling ${m.emoji} ${m.label}`
+    : `${partnerName} is feeling ${m.emoji} ${m.label}`;
 
   return (
     <Animated.View style={[styles.toast, { top: insets.top + 8, opacity, transform: [{ translateY }] }]}>
-      <Text style={styles.toastText}>{partnerName} is feeling {m.emoji} {m.label}</Text>
+      <Text style={styles.toastText}>{text}</Text>
     </Animated.View>
   );
 }
@@ -125,6 +114,69 @@ function CustomTabBar({ state, descriptors, navigation, matchCount }) {
   );
 }
 
+function ResetBanner() {
+  const { resetState, setResetState } = useMatches();
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+
+  if (resetState !== 'pending_partner') return null;
+
+  async function handleConfirm() {
+    try {
+      await require('../api/client').default.post('/reset/confirm');
+    } catch {}
+  }
+
+  async function handleDecline() {
+    try {
+      await require('../api/client').default.post('/reset/decline');
+    } catch {}
+    setResetState('none');
+  }
+
+  return (
+    <View style={[styles.popup, { top: insets.top + 8 }]}>
+      <Text style={[styles.popupText, styles.popupTextCenter]}>
+        {user?.partnerName || 'Your partner'} wants to reset all swipes & matches.
+      </Text>
+      <View style={styles.popupActions}>
+        <TouchableOpacity style={styles.popupBtnConfirm} onPress={handleConfirm}>
+          <Text style={styles.popupBtnConfirmText}>Confirm</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.popupBtnCancel} onPress={handleDecline}>
+          <Text style={styles.popupBtnCancelText}>Decline</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function SwipeAlertBanner() {
+  const { swipeAlert, setSwipeAlert, resetState } = useMatches();
+  const insets = useSafeAreaInsets();
+
+  if (!swipeAlert || resetState !== 'none') return null;
+
+  return (
+    <View style={[styles.popup, styles.popupRow, { top: insets.top + 8 }]}>
+      <Text style={styles.popupIcon}>{swipeAlert.pattern === 'yes' ? '👀' : '🤔'}</Text>
+      <Text style={styles.popupText}>
+        <Text style={styles.popupBold}>{swipeAlert.partner_name}</Text>
+        {' '}seems to be swiping {swipeAlert.pattern === 'yes' ? 'yes' : 'no'} on everything.
+      </Text>
+      <TouchableOpacity
+        onPress={() => {
+          if (swipeAlert.id) require('../api/client').default.post(`/catalog/swipe-alerts/${swipeAlert.id}/dismiss`).catch(() => {});
+          setSwipeAlert(null);
+        }}
+        hitSlop={8}
+      >
+        <Text style={styles.popupDismiss}>✕</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function MainTabs() {
   const { newMatchCount, partnerMood } = useMatches();
   const { user } = useAuth();
@@ -142,8 +194,10 @@ function MainTabs() {
         <Tab.Screen name={SCREENS.SETTINGS} component={SettingsScreen} />
       </Tab.Navigator>
       <FloatingParticles />
+      <SwipeAlertBanner />
+      <ResetBanner />
       {partnerMood && (
-        <MoodToast mood={partnerMood} partnerName={user?.partnerName || 'Your partner'} />
+        <MoodToast moodData={partnerMood} partnerName={user?.partnerName || 'Your partner'} />
       )}
     </View>
     </TabDirectionProvider>
@@ -278,4 +332,46 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#fff',
   },
+  // Shared popup base
+  popup: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    zIndex: 998,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(240, 122, 106, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  popupRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  popupIcon: { fontSize: 20 },
+  popupText: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.text, lineHeight: 18 },
+  popupTextCenter: { textAlign: 'center', fontSize: 14, lineHeight: 20 },
+  popupBold: { fontFamily: fonts.sansMedium },
+  popupDismiss: { fontSize: 16, color: colors.textMuted, padding: 4 },
+  popupActions: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
+  popupBtnConfirm: {
+    backgroundColor: 'rgba(240, 122, 106, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(240, 122, 106, 0.3)',
+    borderRadius: radii.full,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+  },
+  popupBtnConfirmText: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.no },
+  popupBtnCancel: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+  },
+  popupBtnCancelText: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.textMuted },
 });

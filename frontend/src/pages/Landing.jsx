@@ -28,7 +28,7 @@ export default function Landing() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, loading } = useAuth();
+  const { login, loading, logoutReason } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -53,6 +53,16 @@ export default function Landing() {
       <div className="landing-orb landing-orb-1" />
       <div className="landing-orb landing-orb-2" />
       <div className="landing-orb landing-orb-3" />
+
+      {logoutReason === 'another_device' && (
+        <motion.div
+          className="landing-kicked-banner"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          You were logged out because your account was signed in on another device.
+        </motion.div>
+      )}
 
       {/* ── BRAND — always visible, centered on top ── */}
       <div className="landing-brand">

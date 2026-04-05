@@ -124,7 +124,7 @@ export function MatchProvider({ children }) {
             setSwipeAlert(msg);
           }
         } else if (msg.type === "reset_requested") {
-          setResetState("pending_partner");
+          setResetState(msg.by === userRef.current?.id ? "pending_mine" : "pending_partner");
         } else if (msg.type === "reset_cancelled" || msg.type === "reset_declined") {
           setResetState("none");
         } else if (msg.type === "reset_done") {

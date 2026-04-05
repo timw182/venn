@@ -220,7 +220,8 @@ const sheetStyles = StyleSheet.create({
 /* ── Main component ──────────────────────────────────────────────────── */
 export default function SettingsScreen({ navigation }) {
   const { user, logout, updateProfile, setUser } = useAuth();
-  const { resetState, setResetState } = useMatches();
+  const { resetState, setResetState, matches: allMatches } = useMatches();
+  const [hasResponses, setHasResponses] = useState(true); // assume yes until checked
   const TILES = ALL_TILES.filter((t) => !t.unpairedOnly || !user?.coupleId);
 
   const [activeSheet, setActiveSheet] = useState(null);
@@ -276,6 +277,15 @@ export default function SettingsScreen({ navigation }) {
   const [saveError, setSaveError] = useState("");
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState(null);
+
+  // Check if there's anything to reset
+  useEffect(() => {
+    client.get('/catalog/responses').then((resps) => {
+      setHasResponses(Object.keys(resps || {}).length > 0);
+    }).catch(() => {});
+  }, []);
+
+  const nothingToReset = !hasResponses && allMatches.length === 0;
 
   // Data
   const [resetConfirm, setResetConfirm] = useState(false);
@@ -558,8 +568,8 @@ export default function SettingsScreen({ navigation }) {
                 </Text>
 
                 {resetState === "none" && !resetConfirm && (
-                  <Button variant="secondary" size="sm" onPress={() => setResetConfirm(true)}>
-                    Request reset
+                  <Button variant="secondary" size="sm" onPress={() => setResetConfirm(true)} disabled={nothingToReset}>
+                    {nothingToReset ? 'Nothing to reset' : 'Request reset'}
                   </Button>
                 )}
 
