@@ -356,6 +356,8 @@
 
 .landing-input::placeholder {
   color: var(--color-text-light);
+  font-size: var(--text-sm);
+  font-style: italic;
 }
 
 .landing-input:-webkit-autofill,

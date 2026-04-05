@@ -56,6 +56,47 @@ function Sheet({ open, onClose, title, children }) {
   );
 }
 
+function DeleteAccountField({ deleteConfirm, setDeleteConfirm, deleting, setDeleting, coupled, logout, navigate }) {
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await client.delete('/auth/account');
+      await logout();
+      navigate(ROUTES.LOGIN);
+    } catch (e) {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="sheet-field">
+      <label className="sheet-label">Delete account</label>
+      <p className="sheet-muted">
+        Permanently deletes your account and all your data.
+        {coupled ? ' Your partner will be unpaired and their swipes/matches cleared.' : ''}
+        {' '}This cannot be undone.
+      </p>
+      {!deleteConfirm ? (
+        <Button variant="danger" size="sm" onClick={() => setDeleteConfirm(true)}>
+          Delete account
+        </Button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <p className="sheet-warning">Are you sure? This is permanent.</p>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <Button variant="danger" size="sm" onClick={handleDelete} loading={deleting}>
+              Yes, delete my account
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main component ──────────────────────────────────────────────────── */
 export default function Settings() {
   const { user, isSolo, logout, updateProfile } = useAuth();
@@ -81,7 +122,8 @@ export default function Settings() {
 
   // Data
   const [resetConfirm, setResetConfirm] = useState(false);
-  const [deleteMsg, setDeleteMsg] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Support
   const [ticketMsg, setTicketMsg] = useState("");
@@ -291,30 +333,20 @@ export default function Settings() {
               )}
             </div>
 
-            <div className="sheet-field">
-              <label className="sheet-label">Delete account</label>
-              {deleteMsg ? (
-                <p className="sheet-muted">Account deletion coming soon.</p>
-              ) : (
-                <Button variant="secondary" size="sm" className="sheet-btn-danger" onClick={() => setDeleteMsg(true)}>
-                  Delete account
-                </Button>
-              )}
-            </div>
+            <DeleteAccountField
+              deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
+              deleting={deleting} setDeleting={setDeleting}
+              coupled={true} logout={logout} navigate={navigate}
+            />
           </>
         )}
 
         {!user?.coupleId && (
-          <div className="sheet-field">
-            <label className="sheet-label">Delete account</label>
-            {deleteMsg ? (
-              <p className="sheet-muted">Account deletion coming soon.</p>
-            ) : (
-              <Button variant="secondary" size="sm" className="sheet-btn-danger" onClick={() => setDeleteMsg(true)}>
-                Delete account
-              </Button>
-            )}
-          </div>
+          <DeleteAccountField
+            deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
+            deleting={deleting} setDeleting={setDeleting}
+            coupled={false} logout={logout} navigate={navigate}
+          />
         )}
       </Sheet>
 

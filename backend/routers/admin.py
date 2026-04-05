@@ -142,14 +142,33 @@ async def delete_user(user_id: int, db: Connection = Depends(get_db), admin=Depe
         raise HTTPException(404, "User not found")
     if (row["is_superadmin"] or row["is_admin"]) and not admin["is_superadmin"]:
         raise HTTPException(403, "Only superadmins can delete admin users")
-    # Unpair partner if user is in a couple
-    if row["couple_id"]:
-        await db.execute("UPDATE users SET couple_id=NULL WHERE couple_id=? AND id!=?", (row["couple_id"], user_id))
-        await db.execute("DELETE FROM couples WHERE id=?", (row["couple_id"],))
-    await db.execute("DELETE FROM user_responses WHERE user_id=?", (user_id,))
-    await db.execute("DELETE FROM match_seen WHERE user_id=?", (user_id,))
+
+    couple_id = row["couple_id"]
+    if couple_id:
+        cur = await db.execute("SELECT user_a_id, user_b_id FROM couples WHERE id=?", (couple_id,))
+        couple = await cur.fetchone()
+        partner_id = couple["user_b_id"] if couple["user_a_id"] == user_id else couple["user_a_id"]
+
+        # Clean up couple-scoped data (must come before couple/user deletion due to FKs)
+        await db.execute("DELETE FROM reset_requests WHERE couple_id=?", (couple_id,))
+        await db.execute("DELETE FROM swipe_pattern_alerts WHERE couple_id=?", (couple_id,))
+        await db.execute("DELETE FROM custom_catalog_items WHERE couple_id=?", (couple_id,))
+        for pid in [user_id, partner_id]:
+            await db.execute("DELETE FROM user_responses WHERE user_id=?", (pid,))
+            await db.execute("DELETE FROM match_seen WHERE user_id=?", (pid,))
+            await db.execute("DELETE FROM user_mood WHERE user_id=?", (pid,))
+
+        # Unpair both users, then delete couple (FK order matters)
+        await db.execute("UPDATE users SET couple_id=NULL WHERE couple_id=?", (couple_id,))
+        await db.execute("DELETE FROM couples WHERE id=?", (couple_id,))
+    else:
+        await db.execute("DELETE FROM user_responses WHERE user_id=?", (user_id,))
+        await db.execute("DELETE FROM match_seen WHERE user_id=?", (user_id,))
+        await db.execute("DELETE FROM user_mood WHERE user_id=?", (user_id,))
+        # Clean any orphaned alerts referencing this user
+        await db.execute("DELETE FROM swipe_pattern_alerts WHERE about_user_id=?", (user_id,))
+
     await db.execute("DELETE FROM tickets WHERE user_id=?", (user_id,))
-    await db.execute("UPDATE users SET couple_id=NULL WHERE id=?", (user_id,))
     await db.execute("DELETE FROM users WHERE id=?", (user_id,))
     await db.commit()
     return {"ok": True}

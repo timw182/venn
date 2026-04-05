@@ -22,19 +22,19 @@ import Terms from './pages/Terms';
 
 /** Root "/" — nginx serves download.html for fresh loads; this handles client-side nav */
 function RootRedirect() {
-  const { user, isSolo, loading } = useAuth();
+  const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
-  if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
+  if (user.coupleId) return <Navigate to={ROUTES.BROWSE} replace />;
   return <Navigate to={ROUTES.PAIR} replace />;
 }
 
 /** /login — shows login/register form; redirects logged-in users to the app */
 function LoginRedirect() {
-  const { user, isSolo, loading } = useAuth();
+  const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Landing />;
-  if (user.coupleId || isSolo) return <Navigate to={ROUTES.BROWSE} replace />;
+  if (user.coupleId) return <Navigate to={ROUTES.BROWSE} replace />;
   return <Navigate to={ROUTES.PAIR} replace />;
 }
 
@@ -46,11 +46,11 @@ function AuthGuard() {
   return <Outlet />;
 }
 
-/** Requires active pairing or solo mode */
+/** Requires active pairing (no solo mode on desktop) */
 function PairGuard() {
-  const { user, isSolo, loading } = useAuth();
+  const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user?.coupleId && !isSolo) return <Navigate to={ROUTES.PAIR} replace />;
+  if (!user?.coupleId) return <Navigate to={ROUTES.PAIR} replace />;
   return <Outlet />;
 }
 

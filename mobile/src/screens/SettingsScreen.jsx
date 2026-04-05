@@ -289,7 +289,8 @@ export default function SettingsScreen({ navigation }) {
 
   // Data
   const [resetConfirm, setResetConfirm] = useState(false);
-  const [deleteMsg, setDeleteMsg] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Support
   const [ticketMsg, setTicketMsg] = useState("");
@@ -364,6 +365,16 @@ export default function SettingsScreen({ navigation }) {
       setResetState("none");
     } catch {
       setResetState("none");
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      await client.delete('/auth/account');
+      await logout();
+    } catch {
+      setDeleting(false);
     }
   }
 
@@ -613,12 +624,25 @@ export default function SettingsScreen({ navigation }) {
 
               <View style={styles.field}>
                 <Text style={styles.label}>Delete account</Text>
-                {deleteMsg ? (
-                  <Text style={styles.muted}>Account deletion coming soon.</Text>
-                ) : (
-                  <Button variant="danger" size="sm" onPress={() => setDeleteMsg(true)}>
+                <Text style={styles.muted}>
+                  Permanently deletes your account. Your partner will be unpaired and their swipes/matches cleared. This cannot be undone.
+                </Text>
+                {!deleteConfirm ? (
+                  <Button variant="danger" size="sm" onPress={() => setDeleteConfirm(true)}>
                     Delete account
                   </Button>
+                ) : (
+                  <View style={{ gap: space[3] }}>
+                    <Text style={styles.warning}>Are you sure? This is permanent.</Text>
+                    <View style={styles.sheetActions}>
+                      <Button variant="danger" size="sm" onPress={handleDeleteAccount} loading={deleting}>
+                        Yes, delete
+                      </Button>
+                      <Button variant="ghost" size="sm" onPress={() => setDeleteConfirm(false)}>
+                        Cancel
+                      </Button>
+                    </View>
+                  </View>
                 )}
               </View>
             </>
@@ -627,12 +651,25 @@ export default function SettingsScreen({ navigation }) {
           {!user?.coupleId && (
             <View style={styles.field}>
               <Text style={styles.label}>Delete account</Text>
-              {deleteMsg ? (
-                <Text style={styles.muted}>Account deletion coming soon.</Text>
-              ) : (
-                <Button variant="danger" size="sm" onPress={() => setDeleteMsg(true)}>
+              <Text style={styles.muted}>
+                Permanently deletes your account and all your data. This cannot be undone.
+              </Text>
+              {!deleteConfirm ? (
+                <Button variant="danger" size="sm" onPress={() => setDeleteConfirm(true)}>
                   Delete account
                 </Button>
+              ) : (
+                <View style={{ gap: space[3] }}>
+                  <Text style={styles.warning}>Are you sure? This is permanent.</Text>
+                  <View style={styles.sheetActions}>
+                    <Button variant="danger" size="sm" onPress={handleDeleteAccount} loading={deleting}>
+                      Yes, delete
+                    </Button>
+                    <Button variant="ghost" size="sm" onPress={() => setDeleteConfirm(false)}>
+                      Cancel
+                    </Button>
+                  </View>
+                </View>
               )}
             </View>
           )}

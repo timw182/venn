@@ -154,7 +154,7 @@ export default function Landing() {
                     type="email"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="your@email.com"
+                    placeholder="your@email.com..."
                     required
                     autoComplete="email"
                   />
@@ -167,7 +167,7 @@ export default function Landing() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Keep it secret"
+                    placeholder="Keep it secret..."
                     required
                     autoComplete="current-password"
                   />

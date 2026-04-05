@@ -8,6 +8,7 @@ from slowapi.util import get_remote_address
 
 from database import get_db
 from models import RegisterRequest, LoginRequest, UserOut, UserOutWithToken, UpdateProfileRequest
+from ws import manager
 from routers.deps import verify_session
 
 limiter = Limiter(key_func=get_remote_address)
@@ -218,3 +219,46 @@ async def disconnect_partner(request: Request, db: Connection = Depends(get_db))
     # Remove the couple record
     await db.execute("DELETE FROM couples WHERE id = ?", (couple_id,))
     await db.commit()
+
+
+@router.delete("/account", status_code=204)
+async def delete_account(request: Request, db: Connection = Depends(get_db)):
+    """Permanently delete the current user's account and all associated data."""
+    uid = await _session_user_id(request, db)
+    cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
+    if not row:
+        raise HTTPException(404, "User not found")
+
+    couple_id = row["couple_id"]
+
+    if couple_id:
+        cur = await db.execute("SELECT user_a_id, user_b_id FROM couples WHERE id = ?", (couple_id,))
+        couple = await cur.fetchone()
+        partner_id = couple["user_b_id"] if couple["user_a_id"] == uid else couple["user_a_id"]
+
+        # FK-safe order: delete referencing rows first
+        await db.execute("DELETE FROM reset_requests WHERE couple_id = ?", (couple_id,))
+        await db.execute("DELETE FROM swipe_pattern_alerts WHERE couple_id = ?", (couple_id,))
+        await db.execute("DELETE FROM custom_catalog_items WHERE couple_id = ?", (couple_id,))
+        for pid in [uid, partner_id]:
+            await db.execute("DELETE FROM user_responses WHERE user_id = ?", (pid,))
+            await db.execute("DELETE FROM match_seen WHERE user_id = ?", (pid,))
+            await db.execute("DELETE FROM user_mood WHERE user_id = ?", (pid,))
+
+        # Unpair both, then delete couple
+        await db.execute("UPDATE users SET couple_id = NULL WHERE couple_id = ?", (couple_id,))
+        await db.execute("DELETE FROM couples WHERE id = ?", (couple_id,))
+
+        # Notify partner via WS
+        await manager.broadcast(couple_id, {"type": "partner_deleted"})
+    else:
+        await db.execute("DELETE FROM user_responses WHERE user_id = ?", (uid,))
+        await db.execute("DELETE FROM match_seen WHERE user_id = ?", (uid,))
+        await db.execute("DELETE FROM user_mood WHERE user_id = ?", (uid,))
+        await db.execute("DELETE FROM swipe_pattern_alerts WHERE about_user_id = ?", (uid,))
+
+    await db.execute("DELETE FROM tickets WHERE user_id = ?", (uid,))
+    await db.execute("DELETE FROM users WHERE id = ?", (uid,))
+    await db.commit()
+    request.session.clear()

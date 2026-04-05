@@ -5,6 +5,7 @@ import {
   Animated, Dimensions, Image, Linking,
 } from 'react-native';
 import Svg, { Rect, Circle, Path } from 'react-native-svg';
+import { Feather } from '@expo/vector-icons';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const IS_TABLET = SW >= 768;
@@ -122,6 +123,7 @@ export default function LandingScreen({ navigation }) {
   const [mode, setMode] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
@@ -308,10 +310,10 @@ export default function LandingScreen({ navigation }) {
               <View style={styles.field}>
                 <Text style={styles.label}>Your Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, !displayName && styles.inputEmpty]}
                   value={displayName}
                   onChangeText={setDisplayName}
-                  placeholder="What should they call you?"
+                  placeholder="What should they call you?..."
                   placeholderTextColor={colors.textLight}
                   autoCapitalize="words"
                   textContentType="name"
@@ -322,10 +324,10 @@ export default function LandingScreen({ navigation }) {
             <View style={styles.field}>
               <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, !username && styles.inputEmpty]}
                 value={username}
                 onChangeText={setUsername}
-                placeholder="your@email.com"
+                placeholder="your@email.com..."
                 placeholderTextColor={colors.textLight}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -336,29 +338,41 @@ export default function LandingScreen({ navigation }) {
 
             <View style={styles.field}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Keep it secret"
-                placeholderTextColor={colors.textLight}
-                secureTextEntry
-                textContentType={mode === 'login' ? 'password' : 'newPassword'}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.inputFlex, !password && styles.inputEmpty]}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Keep it secret..."
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry={!showPw}
+                  textContentType={mode === 'login' ? 'password' : 'none'}
+                  autoComplete={mode === 'login' ? 'password' : 'off'}
+                />
+                <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
+                  <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {mode === 'register' && (
               <View style={styles.field}>
                 <Text style={styles.label}>Confirm Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Type it again"
-                  placeholderTextColor={colors.textLight}
-                  secureTextEntry
-                  textContentType="newPassword"
-                />
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={[styles.inputFlex, !confirmPassword && styles.inputEmpty]}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Type it again..."
+                    placeholderTextColor={colors.textLight}
+                    secureTextEntry={!showPw}
+                    textContentType="none"
+                    autoComplete="off"
+                  />
+                  <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
+                    <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -431,7 +445,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
-  brand: { alignItems: 'center', gap: space[3], marginHorizontal: -space[6] },
+  brand: { alignItems: 'center', gap: space[2], marginHorizontal: -space[6], marginBottom: space[4] },
   tagline: { fontFamily: fonts.sansLight, fontSize: 18, color: colors.textMuted, letterSpacing: 0.3 },
   taglineEm: { fontFamily: fonts.serif, color: colors.accent },
 
@@ -452,7 +466,7 @@ const styles = StyleSheet.create({
   featureBody: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, lineHeight: 19 },
 
   cta: { gap: space[4], alignItems: 'center' },
-  toggleBtn: { padding: space[2] },
+  toggleBtn: { paddingHorizontal: space[2], paddingVertical: space[4] },
   toggleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.textMuted, letterSpacing: 0.2, textAlign: 'center' },
   toggleLink: { color: colors.accent },
 
@@ -510,6 +524,31 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+  },
+  inputFlex: {
+    flex: 1,
+    paddingVertical: 13,
+    paddingHorizontal: space[4],
+    fontFamily: fonts.sans,
+    fontSize: 16,
+    color: colors.text,
+  },
+  inputEmpty: {
+    fontFamily: fonts.sansLight,
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  eyeBtn: {
+    paddingHorizontal: space[3],
+    paddingVertical: 12,
+  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1.5,
@@ -537,6 +576,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: space[4],
+    paddingBottom: space[6],
   },
   termsLink: {
     color: colors.textMuted,

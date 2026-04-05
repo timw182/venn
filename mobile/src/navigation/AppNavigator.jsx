@@ -14,6 +14,7 @@ import { TabDirectionProvider, useTabDirection } from '../context/TabDirectionCo
 import { SCREENS } from '../lib/constants';
 import FloatingParticles from '../components/FloatingParticles';
 import { colors, fonts, radii } from '../theme/tokens';
+import client from '../api/client';
 
 import LandingScreen from '../screens/LandingScreen';
 import PairingScreen from '../screens/PairingScreen';
@@ -123,13 +124,13 @@ function ResetBanner() {
 
   async function handleConfirm() {
     try {
-      await require('../api/client').default.post('/reset/confirm');
+      await client.post('/reset/confirm');
     } catch {}
   }
 
   async function handleDecline() {
     try {
-      await require('../api/client').default.post('/reset/decline');
+      await client.post('/reset/decline');
     } catch {}
     setResetState('none');
   }
@@ -166,7 +167,7 @@ function SwipeAlertBanner() {
       </Text>
       <TouchableOpacity
         onPress={() => {
-          if (swipeAlert.id) require('../api/client').default.post(`/catalog/swipe-alerts/${swipeAlert.id}/dismiss`).catch(() => {});
+          if (swipeAlert.id) client.post(`/catalog/swipe-alerts/${swipeAlert.id}/dismiss`).catch(() => {});
           setSwipeAlert(null);
         }}
         hitSlop={8}
