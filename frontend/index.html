@@ -9,21 +9,45 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>venn - Find your overlap.</title>
+    <title>Venn — Find Your Overlap</title>
     <meta name="description" content="Venn helps couples explore and discover shared desires together — privately, playfully, and without the awkwardness of asking." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://venn.lu/" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Venn — Find your overlap" />
+    <meta property="og:title" content="Venn — Find Your Overlap" />
     <meta property="og:description" content="A private couples app to discover what you both want — without the awkwardness." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://venn.lu" />
+    <meta property="og:url" content="https://venn.lu/" />
     <meta property="og:image" content="https://venn.lu/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Venn" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Venn — Find your overlap" />
+    <meta name="twitter:title" content="Venn — Find Your Overlap" />
     <meta name="twitter:description" content="A private couples app to discover what you both want — without the awkwardness." />
     <meta name="twitter:image" content="https://venn.lu/og-image.png" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Venn",
+      "url": "https://venn.lu",
+      "description": "Venn helps couples explore and discover shared desires together — privately, playfully, and without the awkwardness of asking.",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      }
+    }
+    </script>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -32,6 +56,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>Venn — Find Your Overlap</h1>
+      <p>Venn helps couples explore and discover shared desires together — privately, playfully, and without the awkwardness of asking.</p>
+      <p><a href="https://venn.lu/download">Download the app</a></p>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
