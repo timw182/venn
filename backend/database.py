@@ -137,6 +137,77 @@ async def init_db():
                 else:
                     _mig_log.warning("Migration failed for %s.%s: %s", table, col, e)
 
+        # ── Catalog title renames (Apple App Store compliance) ────────────
+        _CATALOG_RENAMES = [
+            ("Warm-Up Spanking",       "Warm-Up Taps"),
+            ("Hair Pulling",           "Hair Play"),
+            ("Worship from Below",     "Devotion"),
+            ("Over the Knee",          "Across the Lap"),
+            ("Going Down",             "Oral Focus"),
+            ("Over the Lap",           "Draped Across"),
+            ("From Behind with Hair Pull", "From Behind with Hair Play"),
+            ("Filmed for Later",       "Recorded for Later"),
+            ("Owned for a Night",      "Yours for a Night"),
+            ("Innocence Lost",         "New Experience"),
+            ("Obedient",               "Follow the Lead"),
+            ("Punishment Game",        "Consequence Game"),
+            ("Pet & Owner",            "Pet Play"),
+            ("Soft Restraints",        "Soft Ties"),
+            ("Gag",                    "Hush"),
+            ("Flogger",                "Sensation Tails"),
+            ("Bondage Tape",           "Body Tape"),
+            ("Under-Bed Restraints",   "Under-Bed Ties"),
+            ("Shibari Rope",           "Japanese Rope Art"),
+            ("Light Bondage",          "Light Restraint"),
+            ("Read Erotica Together",  "Read Stories Together"),
+            ("Blindfold + Restraints", "Blindfold + Ties"),
+            ("Full Day Dynamic",       "Full Day Exchange"),
+            ("Denial Game",            "Anticipation Game"),
+            ("Full Bondage Scene",     "Full Restraint Scene"),
+            ("Impact Play",            "Intensity Play"),
+            ("Full Shibari Tie",       "Full Rope Tie"),
+            ("Humiliation Walk",       "Trust Walk"),
+            ("Collaring Moment",       "Ceremony Moment"),
+            ("Contract Night",         "Agreement Night"),
+        ]
+        _CATALOG_DESC_UPDATES = [
+            ("Devotion",              "Show complete devotion. Every touch an offering."),
+            ("From Behind with Hair Play", "One hand in their hair. Controlled and primal."),
+            ("Yours for a Night",     "One belongs to the other. Given tasks, shown off."),
+            ("New Experience",        "One character slowly drawn into something new and exciting."),
+            ("Follow the Lead",       "They don't speak unless told to. Complete trust."),
+            ("Consequence Game",      "They break the rules on purpose. You decide what happens."),
+            ("Pet Play",              "One takes a playful role. Collar, commands, rewards."),
+            ("Soft Ties",             "Scarves, ribbons, or proper cuffs. Trust and surrender."),
+            ("Sensation Tails",       "Multiple tails, wide sensation. Warm the skin gradually."),
+            ("Japanese Rope Art",     "Traditional Japanese rope technique. The ritual is the point."),
+            ("Interrogation",         "One questions, one resists — until they give in. Intense."),
+            ("Service Role",          "In uniform (or not). Every request followed without question."),
+            ("Read Stories Together",  "Pick a steamy story. Read it aloud. See where it leads."),
+            ("Anticipation Game",     "You decide when — and if — things reach the finish."),
+            ("Full Restraint Scene",  "Planned, rope or ties, full immobility. Learn safety first."),
+            ("Intensity Play",        "Taps, paddles — escalating intensity, with check-ins."),
+            ("Trust Walk",            "Led around the home. Guided and trusting."),
+            ("Ceremony Moment",       "Formal gesture of commitment. Words, meaning, intention."),
+            ("Agreement Night",       "Write and sign a play agreement together. Limits, rules, trust."),
+            ("Sensation Play",        "Wax, ice, scratching — mix contrasts carefully."),
+            ("Marathon Session",      "Clear the whole afternoon. No phone, no plans."),
+        ]
+        try:
+            for old_title, new_title in _CATALOG_RENAMES:
+                await db.execute(
+                    "UPDATE catalog_items SET title = ? WHERE title = ?",
+                    (new_title, old_title),
+                )
+            for title, new_desc in _CATALOG_DESC_UPDATES:
+                await db.execute(
+                    "UPDATE catalog_items SET description = ? WHERE title = ?",
+                    (new_desc, title),
+                )
+            await db.commit()
+        except Exception as e:
+            _mig_log.warning("Catalog rename migration: %s", e)
+
 
 @asynccontextmanager
 async def get_db_ctx():

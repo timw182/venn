@@ -55,20 +55,31 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
     const targetX = response === 'yes' ? 500 : response === 'no' ? -500 : 0;
     const targetY = response === 'maybe' ? -500 : 0;
 
-    tx.value = withTiming(targetX, { duration: 300 });
-    ty.value = withTiming(targetY, { duration: 300 }, () => {
-      runOnJS(finishExit)();
-    });
+    // Put the completion callback on the axis that actually moves,
+    // so finishExit fires only after the card has left the screen.
+    if (response === 'maybe') {
+      tx.value = withTiming(targetX, { duration: 300 });
+      ty.value = withTiming(targetY, { duration: 300 }, () => {
+        runOnJS(finishExit)();
+      });
+    } else {
+      ty.value = withTiming(targetY, { duration: 300 });
+      tx.value = withTiming(targetX, { duration: 300 }, () => {
+        runOnJS(finishExit)();
+      });
+    }
   }
 
   const exitTimer = useRef(null);
 
   function finishExit() {
+    // Reset shared values BEFORE updating items so the new card
+    // never inherits the exit position (which would flash the overlay).
+    tx.value = 0;
+    ty.value = 0;
     setLocalItems([...itemsRef.current]);
     clearTimeout(exitTimer.current);
     exitTimer.current = setTimeout(() => {
-      tx.value = 0;
-      ty.value = 0;
       respondingRef.current = false;
       setExiting(false);
     }, 16);

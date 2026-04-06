@@ -2,7 +2,11 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/api';
+if (!__DEV__ && !API_BASE.startsWith('https://')) {
+  throw new Error('API base must use HTTPS in production');
+}
 const TOKEN_KEY = 'vn_session_token';
+const REQUEST_TIMEOUT = 15000;
 
 // Global 401 listener — AuthContext hooks into this to force logout
 let _onUnauthorized = null;
@@ -14,7 +18,9 @@ async function getToken() {
 
 export async function storeToken(token) {
   if (token) {
-    await SecureStore.setItemAsync(TOKEN_KEY, token).catch(() => {});
+    await SecureStore.setItemAsync(TOKEN_KEY, token).catch((e) => {
+      console.warn('SecureStore write failed:', e);
+    });
   }
 }
 
@@ -30,10 +36,22 @@ async function request(path, options = {}) {
     ...options.headers,
   };
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Request timed out');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (res.status === 401) {
     const isAuthPath = path.startsWith('/auth/');

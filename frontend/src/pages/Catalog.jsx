@@ -277,7 +277,7 @@ export default function Catalog() {
       <div className="catalog-inner">
         <div className="catalog-header">
           <h2 className="catalog-title serif">Browse...</h2>
-          <p className="catalog-subtitle text-muted">Over 200 Kinks in 6 Categories. (Every stack is randomized)</p>
+          <p className="catalog-subtitle text-muted">200+ activities across 6 categories</p>
         </div>
 
         <div className="catalog-category-row">

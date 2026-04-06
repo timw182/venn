@@ -1,3 +1,4 @@
+import asyncio
 import os
 import secrets
 import time
@@ -186,8 +187,10 @@ async def ws_ticket(request: Request):
 @app.websocket("/api/ws")
 async def websocket_endpoint(websocket: WebSocket):
     uid = websocket.session.get("user_id")
+    already_accepted = False
     # Fallback: one-time ticket for mobile clients
     if not uid:
+        # Accept ticket from query param (legacy) or first message (preferred)
         ticket = websocket.query_params.get("ticket")
         if ticket:
             now = time.time()
@@ -195,21 +198,39 @@ async def websocket_endpoint(websocket: WebSocket):
             if entry and entry[1] >= now:
                 uid = entry[0]
     if not uid:
+        # No session or query-param ticket — accept and wait for ticket in first message
         await websocket.accept()
-        await websocket.close(code=4001)
-        return
+        already_accepted = True
+        try:
+            first_msg = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
+            if first_msg.startswith("ticket:"):
+                ticket = first_msg[7:]
+                now = time.time()
+                entry = _ws_tickets.pop(ticket, None)
+                if entry and entry[1] >= now:
+                    uid = entry[0]
+        except (asyncio.TimeoutError, WebSocketDisconnect):
+            pass
+        if not uid:
+            await websocket.close(code=4001)
+            return
 
     async with get_db_ctx() as db:
         cur = await db.execute("SELECT couple_id FROM users WHERE id = ?", (uid,))
         row = await cur.fetchone()
 
     if not row or not row["couple_id"]:
-        await websocket.accept()
+        if not already_accepted:
+            await websocket.accept()
         await websocket.close(code=4002)
         return
 
     couple_id = row["couple_id"]
-    await manager.connect(websocket, couple_id)
+    if not already_accepted:
+        await manager.connect(websocket, couple_id)
+    else:
+        # Already accepted — just register in the room
+        manager.rooms.setdefault(couple_id, set()).add(websocket)
     try:
         while True:
             # Keep connection alive; server pushes events, client just pings

@@ -346,8 +346,8 @@ export default function LandingScreen({ navigation }) {
                   placeholder="Keep it secret..."
                   placeholderTextColor={colors.textLight}
                   secureTextEntry={!showPw}
-                  textContentType={mode === 'login' ? 'password' : 'none'}
-                  autoComplete={mode === 'login' ? 'password' : 'off'}
+                  textContentType={mode === 'login' ? 'password' : 'newPassword'}
+                  autoComplete={mode === 'login' ? 'password' : 'password-new'}
                 />
                 <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
                   <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />
@@ -366,8 +366,8 @@ export default function LandingScreen({ navigation }) {
                     placeholder="Type it again..."
                     placeholderTextColor={colors.textLight}
                     secureTextEntry={!showPw}
-                    textContentType="none"
-                    autoComplete="off"
+                    textContentType="newPassword"
+                    autoComplete="password-new"
                   />
                   <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
                     <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />

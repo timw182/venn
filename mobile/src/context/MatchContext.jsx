@@ -77,24 +77,27 @@ export function MatchProvider({ children }) {
     const state = wsRef.current?.readyState;
     if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
 
-    let url;
+    let ticket;
     try {
       const data = await client.get('/ws/ticket');
       if (typeof data.ticket === 'string' && data.ticket.length > 0) {
-        url = `${WS_URL}?ticket=${data.ticket}`;
+        ticket = data.ticket;
       }
     } catch {}
-    if (!url) {
+    if (!ticket) {
       // Ticket fetch failed; schedule retry via reconnect logic
       const delay = Math.min(RECONNECT_BASE * 2 ** retryRef.current, RECONNECT_MAX);
       retryRef.current++;
       retryTimer.current = setTimeout(connect, delay);
       return;
     }
-    const ws = new WebSocket(url);
+    // Connect without ticket in URL to avoid proxy/CDN query-param logging
+    const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      // Send ticket as first message instead of query param
+      ws.send(`ticket:${ticket}`);
       const isReconnect = retryRef.current > 0;
       retryRef.current = 0;
       // Catch up on missed matches/mood (reconnects only)
@@ -113,9 +116,16 @@ export function MatchProvider({ children }) {
       }, 25000);
     };
 
+    const KNOWN_WS_TYPES = new Set([
+      'match', 'mood_update', 'mood_cleared', 'swipe_pattern_alert',
+      'reset_requested', 'reset_cancelled', 'reset_declined', 'reset_done',
+    ]);
+
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
+        if (typeof msg !== 'object' || msg === null || typeof msg.type !== 'string') return;
+        if (!KNOWN_WS_TYPES.has(msg.type)) return;
         if (msg.type === "match" && msg.item) {
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));

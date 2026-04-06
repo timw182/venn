@@ -11,7 +11,7 @@ router = APIRouter(prefix="/catalog/custom", tags=["catalog"])
 limiter = Limiter(key_func=get_remote_address)
 
 # ── Word filter ───────────────────────────────────────────────
-# Block genuinely harmful content; this is an adult app so normal kink terms are fine
+# Block genuinely harmful content; normal intimacy terms are fine for this app
 _BLOCKED = {
     "minor", "minors", "child", "children", "underage", "kid", "kids",
     "teen", "teenager", "13", "14", "15", "16", "17",
