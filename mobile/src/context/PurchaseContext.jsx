@@ -36,30 +36,27 @@ export function PurchaseProvider({ children }) {
 
   const purchasePairingCode = useCallback(async () => {
     try {
+      // Try offerings first
       const offerings = await Purchases.getOfferings();
-      // Find our product in the current offering
-      let pkg = null;
-
       if (offerings.current) {
-        // Look through available packages for our product
         const allPackages = offerings.current.availablePackages || [];
-        pkg = allPackages.find(
+        const pkg = allPackages.find(
           (p) => p.product.identifier === PRODUCT_ID
         );
+        if (pkg) {
+          const { customerInfo } = await Purchases.purchasePackage(pkg);
+          await client.post('/pairing/verify-purchase', { rc_user_id: customerInfo.originalAppUserId }).catch(() => {});
+          setIsPurchased(true);
+          return customerInfo;
+        }
       }
 
-      if (!pkg) {
-        // Fallback: purchase directly by product ID
-        const { customerInfo } = await Purchases.purchaseStoreProduct(
-          { identifier: PRODUCT_ID }
-        );
-        await client.post('/pairing/verify-purchase', { rc_user_id: customerInfo.originalAppUserId }).catch(() => {});
-        setIsPurchased(true);
-        return customerInfo;
+      // Fallback: fetch product directly and purchase
+      const products = await Purchases.getProducts([PRODUCT_ID]);
+      if (products.length === 0) {
+        throw new Error('Product not available. Please try again later.');
       }
-
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      // Notify backend
+      const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
       await client.post('/pairing/verify-purchase', { rc_user_id: customerInfo.originalAppUserId }).catch(() => {});
       setIsPurchased(true);
       return customerInfo;

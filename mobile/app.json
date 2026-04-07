@@ -33,7 +33,7 @@
     "extra": {
       "apiBase": "https://api.venn.lu/api",
       "wsBase": "wss://api.venn.lu/api/ws",
-      "revenueCatApiKey": "test_OCGnqNcJEaWLczUIKeGKpuxWiZg",
+      "revenueCatApiKey": "appl_hBolFWiqmjQgIZrkJfyHgVsTVOX",
       "eas": {
         "projectId": "8007ff9e-e39a-496f-80fd-59704ca6cba0"
       }
