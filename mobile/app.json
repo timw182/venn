@@ -2,7 +2,7 @@
   "expo": {
     "name": "Venn",
     "slug": "venn",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -33,6 +33,7 @@
     "extra": {
       "apiBase": "https://api.venn.lu/api",
       "wsBase": "wss://api.venn.lu/api/ws",
+      "revenueCatApiKey": "test_OCGnqNcJEaWLczUIKeGKpuxWiZg",
       "eas": {
         "projectId": "8007ff9e-e39a-496f-80fd-59704ca6cba0"
       }

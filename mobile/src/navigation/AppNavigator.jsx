@@ -33,7 +33,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TABS = [
-  { name: SCREENS.BROWSE,   label: 'Browse',  icon: 'grid'   },
+  { name: SCREENS.BROWSE,   label: 'Explore',  icon: 'grid'   },
   { name: SCREENS.MATCHES,  label: 'Matches', icon: 'link-2' },
   { name: SCREENS.MOOD,     label: 'Mood',    icon: 'smile'  },
   { name: SCREENS.SETTINGS, label: 'Settings',icon: 'sun'    },

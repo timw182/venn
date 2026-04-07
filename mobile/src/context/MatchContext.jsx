@@ -95,24 +95,31 @@ export function MatchProvider({ children }) {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
-    ws.onopen = () => {
+    ws.onopen = async () => {
       // Send ticket as first message instead of query param
       ws.send(`ticket:${ticket}`);
       const isReconnect = retryRef.current > 0;
       retryRef.current = 0;
       // Catch up on missed matches/mood (reconnects only)
       if (isReconnect) {
-        Promise.all([
+        await Promise.all([
           fetchMatches().then((data) => {
             if (data) data.forEach((m) => knownIds.current.add(m.id));
-          }),
-          fetchMood(),
+          }).catch(() => {}),
+          fetchMood().catch(() => {}),
         ]);
       }
-      // Keepalive ping every 25s
+      // Keepalive ping every 25s with pong timeout
+      ws._pongTimer = null;
       const ping = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) ws.send("ping");
-        else clearInterval(ping);
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send("ping");
+          ws._pongTimer = setTimeout(() => {
+            ws.close();
+          }, 10000);
+        } else {
+          clearInterval(ping);
+        }
       }, 25000);
     };
 
@@ -122,6 +129,8 @@ export function MatchProvider({ children }) {
     ]);
 
     ws.onmessage = (event) => {
+      // Any message means server is alive — clear pong timeout
+      if (ws._pongTimer) { clearTimeout(ws._pongTimer); ws._pongTimer = null; }
       try {
         const msg = JSON.parse(event.data);
         if (typeof msg !== 'object' || msg === null || typeof msg.type !== 'string') return;

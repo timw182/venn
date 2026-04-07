@@ -20,6 +20,30 @@ const SWIPE_Y = 80;
 const MAX_ROT = 10;
 const VISIBLE = 3;
 
+function BehindCard({ idx, tx, ty }) {
+  const baseOffset = idx * 8;
+  const baseNarrower = idx * 16;
+
+  const animStyle = useAnimatedStyle(() => {
+    const drag = Math.sqrt(tx.value * tx.value + ty.value * ty.value);
+    const progress = interpolate(drag, [0, SWIPE_X], [0, 1], Extrapolation.CLAMP);
+
+    const offset = baseOffset - progress * 8;
+    const narrower = CARD_WIDTH - baseNarrower + progress * 16;
+    return {
+      zIndex: VISIBLE - idx,
+      width: narrower,
+      left: (CARD_WIDTH - narrower) / 2,
+      bottom: -offset,
+      height: 24,
+      borderBottomLeftRadius: 14,
+      borderBottomRightRadius: 14,
+    };
+  });
+
+  return <Animated.View style={[styles.behindCard, animStyle]} />;
+}
+
 export default function CardStack({ items = [], onRespond, matchItem, onUndo, availableHeight = 0 }) {
   const [localItems, setLocalItems] = useState(items);
   const [exiting, setExiting] = useState(false);
@@ -159,18 +183,8 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
       <View style={[styles.stack, { width: CARD_WIDTH, height: cardH }]}>
         {localItems.slice(1, VISIBLE).map((item, i) => {
           const idx = i + 1;
-          const offset = idx * 8;
-          const narrower = CARD_WIDTH - idx * 16;
           return (
-            <View key={item.id} style={[styles.behindCard, {
-              zIndex: VISIBLE - idx,
-              width: narrower,
-              left: (CARD_WIDTH - narrower) / 2,
-              bottom: -offset,
-              height: 24,
-              borderBottomLeftRadius: 14,
-              borderBottomRightRadius: 14,
-            }]} />
+            <BehindCard key={item.id} idx={idx} tx={tx} ty={ty} />
           );
         })}
         {localItems.length > 0 && (

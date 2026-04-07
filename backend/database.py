@@ -112,6 +112,14 @@ async def init_db():
                 emoji      TEXT    NOT NULL DEFAULT '✨',
                 created_at TEXT    NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS refresh_tokens (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token_hash TEXT    NOT NULL UNIQUE,
+                expires_at TEXT    NOT NULL,
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         await db.commit()
 
@@ -127,6 +135,8 @@ async def init_db():
             ("user_mood", "custom_message", "TEXT"),
             ("tickets",   "admin_note",     "TEXT"),
             ("tickets",   "resolved_at",    "TEXT"),
+            ("users",     "reset_code",     "TEXT"),
+            ("users",     "reset_code_expires_at", "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")

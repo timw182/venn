@@ -9,6 +9,7 @@ const IS_TABLET = Dimensions.get('window').width >= 768;
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
+import { usePurchase } from '../context/PurchaseContext';
 import { SCREENS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
@@ -20,19 +21,47 @@ export default function PairingScreen({ navigation, route }) {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
-  const { pair, createPairingCode, enterSolo, loading } = useAuth();
+  const [restoring, setRestoring] = useState(false);
+  const { pair, createPairingCode, enterSolo, logout, loading } = useAuth();
+  const { isPurchased, purchasePairingCode, restorePurchases } = usePurchase();
 
   async function handleCreate() {
     setError('');
     setCreating(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
+      // Purchase if not already purchased
+      if (!isPurchased) {
+        const result = await purchasePairingCode();
+        if (!result) {
+          // User cancelled
+          setCreating(false);
+          return;
+        }
+      }
       const code = await createPairingCode();
       navigation.replace(SCREENS.CODE_REVEAL, { code });
     } catch (err) {
       setError(err.message || 'Could not create invite');
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleRestore() {
+    setError('');
+    setRestoring(true);
+    try {
+      const restored = await restorePurchases();
+      if (restored) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        setError('No previous purchase found');
+      }
+    } catch (err) {
+      setError(err.message || 'Could not restore purchase');
+    } finally {
+      setRestoring(false);
     }
   }
 
@@ -95,7 +124,7 @@ export default function PairingScreen({ navigation, route }) {
               fullWidth
               onPress={handleJoin}
               loading={loading}
-              disabled={joinCode.length < 6}
+              disabled={loading || joinCode.length < 6}
             >
               Connect
             </Button>
@@ -115,13 +144,10 @@ export default function PairingScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="always">
         <View style={IS_TABLET ? styles.tabletInner : null}>
-        <View style={styles.brand}>
-          <View style={styles.logoMark}>
-            <Feather name="circle" size={14} color={colors.rose} style={{ marginRight: -4 }} />
-            <Feather name="circle" size={14} color={colors.violet} style={{ marginLeft: -4 }} />
-          </View>
-          <Text style={styles.logoName}>venn</Text>
-        </View>
+        <TouchableOpacity onPress={logout} style={styles.backBtn}>
+          <Feather name="arrow-left" size={20} color={colors.textMuted} />
+          <Text style={styles.backText}>log out</Text>
+        </TouchableOpacity>
 
         <View style={styles.hero}>
           <Text style={styles.title}>Connect with{'\n'}your person.</Text>
@@ -146,7 +172,10 @@ export default function PairingScreen({ navigation, route }) {
             <View style={styles.cardBody}>
               <Text style={[styles.cardTitle, { color: colors.rose }]}>Create an invite</Text>
               <Text style={styles.cardDesc}>Generate a code and share it with your partner</Text>
-              <Text style={styles.cardPrice}><Text style={styles.cardPriceValue}>€9.99</Text>  ·  one-time</Text>
+              {isPurchased
+                ? <Text style={styles.cardPrice}><Text style={[styles.cardPriceValue, { color: colors.violet }]}>Purchased ✓</Text></Text>
+                : <Text style={styles.cardPrice}><Text style={styles.cardPriceValue}>€9.99</Text>  ·  one-time</Text>
+              }
             </View>
           </TouchableOpacity>
 
@@ -178,6 +207,14 @@ export default function PairingScreen({ navigation, route }) {
         <TouchableOpacity onPress={handleSolo} style={styles.soloBtn}>
           <Text style={styles.soloText}>Explore solo for now →</Text>
         </TouchableOpacity>
+
+        {!isPurchased && (
+          <TouchableOpacity onPress={handleRestore} style={styles.restoreBtn} disabled={restoring}>
+            <Text style={styles.restoreText}>
+              {restoring ? 'Restoring…' : 'Restore purchase'}
+            </Text>
+          </TouchableOpacity>
+        )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -272,6 +309,10 @@ const styles = StyleSheet.create({
   // Solo
   soloBtn: { alignSelf: 'center', paddingVertical: space[3] },
   soloText: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textLight },
+
+  // Restore
+  restoreBtn: { alignSelf: 'center', paddingVertical: space[2] },
+  restoreText: { fontFamily: fonts.sansLight, fontSize: 12, color: colors.textLight, textDecorationLine: 'underline' },
 
   // Skip in join mode
   skipBtn: { alignSelf: 'center', paddingVertical: space[3], marginTop: space[2] },

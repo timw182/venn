@@ -44,7 +44,8 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from fastapi import Depends
-from database import init_db
+import aiosqlite
+from database import init_db, DB_PATH
 from seed import seed
 from routers import auth, admin as admin_router, tickets as tickets_router, pairing, catalog, matches, mood, reset, custom_items
 from routers.deps import verify_session
@@ -163,15 +164,9 @@ _ws_tickets: dict[str, tuple[int, float]] = {}
 @limiter.limit("10/minute")
 async def ws_ticket(request: Request):
     """Issue a 60-second single-use ticket for WebSocket auth (mobile clients)."""
-    uid = request.session.get("user_id")
-    if not uid:
-        token = request.headers.get("X-Session-Token")
-        if token:
-            async with get_db_ctx() as db:
-                cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
-                row = await cur.fetchone()
-                if row:
-                    uid = row["id"]
+    from routers.deps import resolve_user_id
+    async with get_db_ctx() as db:
+        uid = await resolve_user_id(request, db)
     if not uid:
         raise HTTPException(401, "Not authenticated")
     now = time.time()
@@ -187,6 +182,16 @@ async def ws_ticket(request: Request):
 @app.websocket("/api/ws")
 async def websocket_endpoint(websocket: WebSocket):
     uid = websocket.session.get("user_id")
+    # Verify session token against DB if uid came from session cookie
+    if uid:
+        session_token = websocket.session.get("session_token")
+        if session_token:
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                cur = await db.execute("SELECT session_token FROM users WHERE id = ?", (uid,))
+                row = await cur.fetchone()
+                if not row or row["session_token"] != session_token:
+                    uid = None  # Revoked session — fall through to ticket auth
     already_accepted = False
     # Fallback: one-time ticket for mobile clients
     if not uid:

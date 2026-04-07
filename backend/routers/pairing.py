@@ -121,6 +121,45 @@ async def _send_code_email(to_email: str, code: str) -> None:
         log.error("Failed to send pairing code email to %s: %s", to_email, e)
 
 
+@router.post("/verify-purchase")
+@limiter.limit("10/minute")
+async def verify_purchase(request: Request, db: Connection = Depends(get_db)):
+    """Called after successful RevenueCat purchase to mark user as paid."""
+    import re
+    uid = await _session_user_id(request, db)
+    body = await request.json()
+    rc_user_id = body.get("rc_user_id", "")
+
+    # Sanitize rc_user_id to prevent SSRF path traversal
+    if rc_user_id and not re.match(r'^[\w\-:.]+$', rc_user_id):
+        raise HTTPException(400, "Invalid user ID format")
+
+    # Verify with RevenueCat API that this user actually purchased
+    rc_api_key = os.environ.get("REVENUECAT_API_KEY", "")
+    if not rc_api_key:
+        raise HTTPException(503, "Payment verification unavailable")
+
+    import httpx
+    subscriber_id = rc_user_id or str(uid)
+    async with httpx.AsyncClient() as http:
+        resp = await http.get(
+            f"https://api.revenuecat.com/v1/subscribers/{subscriber_id}",
+            headers={"Authorization": f"Bearer {rc_api_key}"},
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            entitlements = data.get("subscriber", {}).get("entitlements", {})
+            if not entitlements:
+                raise HTTPException(402, "No active entitlement found")
+        else:
+            log.warning("RevenueCat verification failed: %s", resp.status_code)
+            raise HTTPException(502, "Could not verify purchase")
+
+    await db.execute("UPDATE users SET is_paid = 1 WHERE id = ?", (uid,))
+    await db.commit()
+    return {"is_paid": True}
+
+
 @router.post("/create", response_model=PairingCodeOut)
 @limiter.limit("10/minute")
 async def create_pairing_code(request: Request, db: Connection = Depends(get_db)):

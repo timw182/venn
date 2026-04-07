@@ -88,6 +88,13 @@ export default function BrowseScreen() {
     return prog;
   }, [catalog, responses]);
 
+  // Auto-clear undo after 30 seconds
+  useEffect(() => {
+    if (!lastResponse) return;
+    const t = setTimeout(() => setLastResponse(null), 30000);
+    return () => clearTimeout(t);
+  }, [lastResponse]);
+
   const handleUndo = useCallback(() => {
     if (!lastResponse) return;
     const { item } = lastResponse;
@@ -134,7 +141,7 @@ export default function BrowseScreen() {
     <SlideView>
       <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Browse</Text>
+        <Text style={styles.headerTitle}>Explore</Text>
         <Text style={styles.headerSub}>200+ activities across 6 categories</Text>
       </View>
       <CategoryPicker active={activeCategory} onChange={setActiveCategory} progress={progress} />

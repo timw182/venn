@@ -15,6 +15,8 @@ import {
 import * as Updates from 'expo-updates';
 import { AuthProvider } from './src/context/AuthContext';
 import { MatchProvider } from './src/context/MatchContext';
+import { PurchaseProvider } from './src/context/PurchaseContext';
+import { ErrorProvider } from './src/context/ErrorContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { colors, fonts, radii, space } from './src/theme/tokens';
 
@@ -111,11 +113,15 @@ export default function App() {
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={styles.root}>
-        <AuthProvider>
-          <MatchProvider>
-            <AppNavigator />
-          </MatchProvider>
-        </AuthProvider>
+        <ErrorProvider>
+          <PurchaseProvider>
+            <AuthProvider>
+              <MatchProvider>
+                <AppNavigator />
+              </MatchProvider>
+            </AuthProvider>
+          </PurchaseProvider>
+        </ErrorProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
   );

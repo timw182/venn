@@ -13,6 +13,18 @@ VALID_MOODS = {
 _EMAIL_RE = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
 
 
+def validate_password(v: str) -> str:
+    if len(v) < 8:
+        raise ValueError("Password must be at least 8 characters")
+    if not re.search(r'[A-Z]', v):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r'[a-z]', v):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r'[0-9]', v):
+        raise ValueError("Password must contain at least one number")
+    return v
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -31,15 +43,7 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_valid(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if not re.search(r'[A-Z]', v):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r'[a-z]', v):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r'[0-9]', v):
-            raise ValueError("Password must contain at least one number")
-        return v
+        return validate_password(v)
 
     @field_validator("display_name")
     @classmethod
@@ -76,6 +80,18 @@ class UserOut(BaseModel):
 class UserOutWithToken(UserOut):
     """Extended response that includes session_token — only for mobile clients."""
     session_token: Optional[str] = None
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: UserOut
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 # ── Pairing ───────────────────────────────────────────────────────────────────

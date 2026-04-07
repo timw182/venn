@@ -17,9 +17,18 @@ export default function CodeRevealScreen({ navigation, route }) {
   const { setUser, enterPendingPair } = useAuth();
   const [copied, setCopied] = useState(false);
 
-  // Poll for partner joining
+  // Poll for partner joining (stop after 30 minutes)
+  const [pollExpired, setPollExpired] = useState(false);
   useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 450; // 30min at 4s intervals
     const poll = setInterval(async () => {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        clearInterval(poll);
+        setPollExpired(true);
+        return;
+      }
       try {
         const raw = await client.get('/auth/me');
         if (raw.couple_id) {

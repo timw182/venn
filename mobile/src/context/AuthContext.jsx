@@ -1,7 +1,8 @@
 import { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import client, { clearSession, storeToken, setOnUnauthorized } from '../api/client';
+import Purchases from 'react-native-purchases';
+import client, { clearSession, storeTokens, setOnUnauthorized } from '../api/client';
 
 const SOLO_KEY = 'vn_solo';
 
@@ -27,7 +28,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     Promise.all([
-      client.get('/auth/me').then((raw) => setUser(toUser(raw))).catch(() => {}),
+      client.get('/auth/me').then((raw) => {
+        const u = toUser(raw);
+        setUser(u);
+        Purchases.logIn(String(u.id)).catch(() => {});
+      }).catch(() => {}),
       AsyncStorage.getItem(SOLO_KEY).then((v) => { if (v) setIsSolo(true); }).catch(() => {}),
     ]).finally(() => setLoading(false));
 
@@ -55,18 +60,22 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     setLogoutReason(null);
-    const raw = await client.post('/auth/login', { username, password });
-    if (raw.session_token) await storeToken(raw.session_token);
-    const u = toUser(raw);
+    const raw = await client.post('/auth/token', { username, password });
+    await storeTokens(raw.access_token, raw.refresh_token);
+    const u = toUser(raw.user);
     setUser(u);
+    Purchases.logIn(String(u.id)).catch(() => {});
     return u;
   }, []);
 
   const register = useCallback(async (username, password, displayName) => {
-    const raw = await client.post('/auth/register', { username, password, display_name: displayName });
-    if (raw.session_token) await storeToken(raw.session_token);
-    const u = toUser(raw);
+    // Register first, then exchange credentials for JWT tokens
+    await client.post('/auth/register', { username, password, display_name: displayName });
+    const raw = await client.post('/auth/token', { username, password });
+    await storeTokens(raw.access_token, raw.refresh_token);
+    const u = toUser(raw.user);
     setUser(u);
+    Purchases.logIn(String(u.id)).catch(() => {});
     return u;
   }, []);
 

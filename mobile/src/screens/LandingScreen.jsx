@@ -74,6 +74,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
+import client from '../api/client';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
@@ -127,8 +128,23 @@ export default function LandingScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { login, register, logoutReason } = useAuth();
+
+  // Auto-dismiss success toast
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(''), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+
+  // Forgot password state
+  const [resetStep, setResetStep] = useState(0); // 0=email, 1=code+new pw
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   // ── Swipe-back gesture for form view ────────────────────────────────────────
   const formX = useSharedValue(SW * 0.35);
@@ -196,13 +212,175 @@ export default function LandingScreen({ navigation }) {
     }
   }
 
+  async function handleForgotSubmit() {
+    setError('');
+    setSuccess('');
+    setSubmitting(true);
+    try {
+      if (resetStep === 0) {
+        await client.post('/auth/forgot-password', { email: resetEmail });
+        setResetStep(1);
+        setSuccess('Code sent to your email');
+      } else {
+        if (newPassword !== confirmNewPassword) {
+          setError('Passwords do not match');
+          setSubmitting(false);
+          return;
+        }
+        await client.post('/auth/reset-password', {
+          email: resetEmail,
+          code: resetCode,
+          new_password: newPassword,
+        });
+        setSuccess('Password reset! You can now sign in.');
+        setTimeout(() => openForm('login'), 1500);
+      }
+    } catch (err) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function openForm(m) {
     setMode(m);
     setError('');
+    setSuccess('');
     setUsername('');
     setPassword('');
     setConfirmPassword('');
     setDisplayName('');
+    setResetStep(0);
+    setResetEmail('');
+    setResetCode('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+  }
+
+  if (mode === 'forgot') {
+    return (
+      <SafeAreaView style={styles.container}>
+        {!!success && (
+          <TouchableOpacity
+            style={styles.successToast}
+            activeOpacity={0.8}
+            onPress={() => setSuccess('')}
+          >
+            <Feather name="check-circle" size={18} color="#2E7D32" />
+            <Text style={styles.successToastText}>{success}</Text>
+          </TouchableOpacity>
+        )}
+        <GestureDetector gesture={panGesture}>
+          <Reanimated.View style={[{ flex: 1 }, formAnimStyle]}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+              <ScrollView contentContainerStyle={styles.formScroll} keyboardShouldPersistTaps="handled">
+                <View style={IS_TABLET ? styles.tabletInner : null}>
+                  <TouchableOpacity onPress={() => openForm('login')} style={styles.backBtn}>
+                    <Text style={styles.backText}>← back to login</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.formBrand}>
+                    <LogoMark size="md" />
+                    <Text style={styles.formHeading}>Reset password</Text>
+                    <Text style={styles.subtitle}>
+                      {resetStep === 0
+                        ? "Enter your email and we'll send you a code"
+                        : 'Enter the code and your new password'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.form}>
+                    {resetStep === 0 ? (
+                      <View style={[styles.field, { marginTop: space[4] }]}>
+                        <Text style={styles.label}>Email</Text>
+                        <TextInput
+                          style={[styles.input, !resetEmail && styles.inputEmpty]}
+                          value={resetEmail}
+                          onChangeText={setResetEmail}
+                          placeholder="your@email.com..."
+                          placeholderTextColor={colors.textLight}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          keyboardType="email-address"
+                          textContentType="emailAddress"
+                          autoFocus
+                        />
+                      </View>
+                    ) : (
+                      <>
+                        <View style={[styles.field, { marginTop: space[4] }]}>
+                          <Text style={styles.label}>Reset Code</Text>
+                          <TextInput
+                            style={[styles.input, !resetCode && styles.inputEmpty]}
+                            value={resetCode}
+                            onChangeText={setResetCode}
+                            placeholder="Paste code from email..."
+                            placeholderTextColor={colors.textLight}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            autoFocus
+                          />
+                        </View>
+                        <View style={styles.field}>
+                          <Text style={styles.label}>New Password</Text>
+                          <View style={styles.inputRow}>
+                            <TextInput
+                              style={[styles.inputFlex, !newPassword && styles.inputEmpty]}
+                              value={newPassword}
+                              onChangeText={setNewPassword}
+                              placeholder="At least 8 characters..."
+                              placeholderTextColor={colors.textLight}
+                              secureTextEntry={!showPw}
+                              textContentType="newPassword"
+                            />
+                            <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
+                              <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        <View style={styles.field}>
+                          <Text style={styles.label}>Confirm Password</Text>
+                          <View style={styles.inputRow}>
+                            <TextInput
+                              style={[styles.inputFlex, !confirmNewPassword && styles.inputEmpty]}
+                              value={confirmNewPassword}
+                              onChangeText={setConfirmNewPassword}
+                              placeholder="Type it again..."
+                              placeholderTextColor={colors.textLight}
+                              secureTextEntry={!showPw}
+                              textContentType="newPassword"
+                            />
+                            <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn} hitSlop={8}>
+                              <Feather name={showPw ? 'eye' : 'eye-off'} size={18} color={colors.textLight} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </>
+                    )}
+
+                    {!!error && (
+                      <View style={styles.errorBox}>
+                        <Text style={styles.errorText}>{error}</Text>
+                      </View>
+                    )}
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleForgotSubmit(); }}
+                      loading={submitting}
+                      disabled={resetStep === 0 ? !resetEmail : (!resetCode || !newPassword)}
+                    >
+                      {resetStep === 0 ? 'Send reset code' : 'Set new password'}
+                    </Button>
+                  </View>
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </Reanimated.View>
+        </GestureDetector>
+      </SafeAreaView>
+    );
   }
 
   if (mode === null) {
@@ -387,6 +565,12 @@ export default function LandingScreen({ navigation }) {
             </Button>
           </View>
 
+          {mode === 'login' && (
+            <TouchableOpacity onPress={() => openForm('forgot')} style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             onPress={() => openForm(mode === 'login' ? 'register' : 'login')}
             style={styles.toggleBtn}
@@ -568,6 +752,31 @@ const styles = StyleSheet.create({
     padding: space[3],
   },
   errorText: { fontFamily: fonts.sans, fontSize: 13, color: colors.no, textAlign: 'center' },
+
+  successToast: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    right: 16,
+    zIndex: 9999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(76, 175, 80, 0.35)',
+    borderRadius: radii.lg,
+    padding: space[4],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  successToastText: { fontFamily: fonts.sansMedium, fontSize: 14, color: '#2E7D32', flex: 1 },
+
+  forgotBtn: { alignSelf: 'center', paddingVertical: space[1] },
+  forgotText: { fontFamily: fonts.sans, fontSize: 13, color: colors.textLight, textDecorationLine: 'underline' },
 
   termsText: {
     fontFamily: fonts.sans,

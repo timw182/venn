@@ -278,6 +278,15 @@ export default function SettingsScreen({ navigation }) {
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState(null);
 
+  // Change password
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmNewPw, setConfirmNewPw] = useState("");
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwChanging, setPwChanging] = useState(false);
+  const [showPwFields, setShowPwFields] = useState(false);
+
   // Check if there's anything to reset
   useEffect(() => {
     client.get('/catalog/responses').then((resps) => {
@@ -318,6 +327,31 @@ export default function SettingsScreen({ navigation }) {
     }
   }
 
+  async function handleChangePassword() {
+    setPwError("");
+    if (newPw !== confirmNewPw) {
+      setPwError("Passwords do not match");
+      return;
+    }
+    setPwChanging(true);
+    try {
+      await client.post("/auth/change-password", {
+        current_password: currentPw,
+        new_password: newPw,
+      });
+      setPwSaved(true);
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmNewPw("");
+      setShowPwFields(false);
+      setTimeout(() => setPwSaved(false), 3000);
+    } catch (err) {
+      setPwError(err.message || "Could not change password");
+    } finally {
+      setPwChanging(false);
+    }
+  }
+
   async function handleLogout() {
     await logout();
   }
@@ -348,15 +382,23 @@ export default function SettingsScreen({ navigation }) {
       await client.post("/reset/request");
       setResetState("pending_mine");
       setResetConfirm(false);
-    } catch {}
+    } catch (e) {
+      Alert.alert("Error", e.message || "Could not send reset request");
+    }
   }
   async function handleConfirmReset() {
-    try { await client.post("/reset/confirm"); } catch {}
+    try {
+      await client.post("/reset/confirm");
+    } catch (e) {
+      Alert.alert("Error", e.message || "Could not confirm reset");
+    }
   }
   async function handleDeclineReset() {
     try {
       await client.post("/reset/decline");
-    } catch {}
+    } catch (e) {
+      Alert.alert("Error", e.message || "Could not decline reset");
+    }
     setResetState("none");
   }
   async function handleCancelReset() {
@@ -373,7 +415,8 @@ export default function SettingsScreen({ navigation }) {
     try {
       await client.delete('/auth/account');
       await logout();
-    } catch {
+    } catch (e) {
+      Alert.alert("Error", e.message || "Could not delete account");
       setDeleting(false);
     }
   }
@@ -410,11 +453,6 @@ export default function SettingsScreen({ navigation }) {
           <View style={styles.headerRow}>
             <Text style={styles.title}>Settings</Text>
             <View style={styles.headerActions}>
-              {user?.isAdmin && (
-                <Button variant="secondary" size="sm" onPress={() => navigation.navigate("Admin")}>
-                  Admin
-                </Button>
-              )}
               <Button
                 variant="secondary"
                 size="sm"
@@ -475,6 +513,58 @@ export default function SettingsScreen({ navigation }) {
             <View style={[styles.input, styles.inputReadonly]}>
               <Text style={styles.inputReadonlyText}>{user?.username}</Text>
             </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Password</Text>
+            {pwSaved && <Text style={styles.successText}>Password updated!</Text>}
+            {!showPwFields ? (
+              <Button variant="secondary" size="sm" onPress={() => setShowPwFields(true)}>
+                Change password
+              </Button>
+            ) : (
+              <View style={{ gap: space[3] }}>
+                <TextInput
+                  style={styles.input}
+                  value={currentPw}
+                  onChangeText={setCurrentPw}
+                  placeholder="Current password"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry
+                />
+                <TextInput
+                  style={styles.input}
+                  value={newPw}
+                  onChangeText={setNewPw}
+                  placeholder="New password"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry
+                />
+                <TextInput
+                  style={styles.input}
+                  value={confirmNewPw}
+                  onChangeText={setConfirmNewPw}
+                  placeholder="Confirm new password"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry
+                />
+                {!!pwError && <Text style={styles.errorText}>{pwError}</Text>}
+                <View style={styles.sheetActions}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onPress={handleChangePassword}
+                    loading={pwChanging}
+                    disabled={!currentPw || !newPw || !confirmNewPw}
+                  >
+                    Update password
+                  </Button>
+                  <Button variant="ghost" size="sm" onPress={() => { setShowPwFields(false); setPwError(""); }}>
+                    Cancel
+                  </Button>
+                </View>
+              </View>
+            )}
           </View>
 
           {user?.coupleId ? (
@@ -570,6 +660,15 @@ export default function SettingsScreen({ navigation }) {
 
         {/* ── Data sheet ── */}
         <Sheet open={activeSheet === "data"} onClose={closeSheet} title="Data">
+          <View style={styles.field}>
+            <Text style={styles.label}>What we store</Text>
+            <Text style={styles.muted}>
+              Just your email (for login and payment) and a password — that's it. Your password is salted and scrambled with bcrypt (10 rounds of pure cryptographic chaos + a generous sprinkle of fairy dust) — so not even we can read it. Your display name? Call yourself whatever you want, as long as your partner still recognizes you. No real names, no phone numbers, no location, no tracking. Your swipes stay between you two — and only the mutual ones ever surface.
+            </Text>
+          </View>
+
+          <View style={styles.sectionDivider} />
+
           {user?.coupleId && (
             <>
               <View style={styles.field}>

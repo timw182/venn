@@ -241,7 +241,7 @@ export default function Settings() {
         ))}
       </div>
 
-      <p className="settings-version">v0.1 · Venn</p>
+      <p className="settings-version">v1.1 · Venn</p>
 
       {/* ── Profile sheet ── */}
       <Sheet open={activeSheet === "profile"} onClose={closeSheet} title="Profile">

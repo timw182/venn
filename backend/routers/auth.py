@@ -1,5 +1,8 @@
+import os
 import secrets
-from datetime import datetime, timezone
+import logging
+import resend
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from aiosqlite import Connection
 from passlib.context import CryptContext
@@ -7,9 +10,12 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from database import get_db
-from models import RegisterRequest, LoginRequest, UserOut, UserOutWithToken, UpdateProfileRequest
+from models import RegisterRequest, LoginRequest, UserOut, UserOutWithToken, UpdateProfileRequest, TokenResponse, RefreshRequest, validate_password
 from ws import manager
-from routers.deps import verify_session
+from routers.deps import verify_session, resolve_user_id
+from jwt_utils import create_access_token, create_refresh_token, decode_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -68,21 +74,11 @@ async def _get_user_out(db: Connection, user_id: int, session_token: str = None)
 
 
 async def _session_user_id(request: Request, db: Connection = None) -> int:
-    """Get user ID from session cookie (web) or X-Session-Token header (mobile)."""
-    uid = request.session.get("user_id")
-    if uid:
-        return uid
-    # Use uid resolved by verify_session middleware (avoids double-query for mobile)
-    if hasattr(request.state, "user_id"):
-        return request.state.user_id
-    # Fallback: token-based auth for mobile clients
-    token = request.headers.get("X-Session-Token")
-    if token and db:
-        cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
-        row = await cur.fetchone()
-        if row:
-            return row["id"]
-    raise HTTPException(401, "Not authenticated")
+    """Get user ID from cookie, Bearer JWT, or X-Session-Token."""
+    uid = await resolve_user_id(request, db)
+    if not uid:
+        raise HTTPException(401, "Not authenticated")
+    return uid
 
 
 @router.post("/register", response_model=UserOutWithToken)
@@ -134,34 +130,46 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
 
 @router.post("/logout", status_code=204, dependencies=[Depends(verify_session)])
 async def logout(request: Request, db: Connection = Depends(get_db)):
-    uid = request.session.get("user_id")
-    if not uid:
-        token = request.headers.get("X-Session-Token")
-        if token:
-            cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
-            row = await cur.fetchone()
-            if row:
-                uid = row["id"]
+    uid = await resolve_user_id(request, db)
     if uid:
         await db.execute("UPDATE users SET session_token = NULL WHERE id = ?", (uid,))
+        await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (uid,))
         await db.commit()
     request.session.clear()
 
 
 @router.get("/me")
 async def me(request: Request, db: Connection = Depends(get_db)):
-    uid = request.session.get("user_id")
-    if not uid:
-        token = request.headers.get("X-Session-Token")
-        if token:
-            cur = await db.execute("SELECT id FROM users WHERE session_token = ?", (token,))
-            row = await cur.fetchone()
-            if row:
-                uid = row["id"]
+    uid = await resolve_user_id(request, db)
     if not uid:
         return None  # 200 with null body — avoids noisy 401 in browser console
     return await _get_user_out(db, uid)
 
+
+
+@router.post("/change-password", status_code=204, dependencies=[Depends(verify_session)])
+@limiter.limit("5/minute")
+async def change_password(request: Request, db: Connection = Depends(get_db)):
+    uid = await _session_user_id(request, db)
+    body = await request.json()
+    current = body.get("current_password", "")
+    new_pw = body.get("new_password", "")
+
+    if not current or not new_pw:
+        raise HTTPException(400, "Current and new password are required")
+    try:
+        validate_password(new_pw)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    cur = await db.execute("SELECT password_hash FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
+    if not row or not pwd_ctx.verify(current, row["password_hash"]):
+        raise HTTPException(400, "Current password is incorrect")
+
+    hashed = pwd_ctx.hash(new_pw)
+    await db.execute("UPDATE users SET password_hash = ? WHERE id = ?", (hashed, uid))
+    await db.commit()
 
 
 @router.patch("/profile", response_model=UserOut, dependencies=[Depends(verify_session)])
@@ -221,7 +229,7 @@ async def disconnect_partner(request: Request, db: Connection = Depends(get_db))
     await db.commit()
 
 
-@router.delete("/account", status_code=204)
+@router.delete("/account", status_code=204, dependencies=[Depends(verify_session)])
 async def delete_account(request: Request, db: Connection = Depends(get_db)):
     """Permanently delete the current user's account and all associated data."""
     uid = await _session_user_id(request, db)
@@ -258,7 +266,186 @@ async def delete_account(request: Request, db: Connection = Depends(get_db)):
         await db.execute("DELETE FROM user_mood WHERE user_id = ?", (uid,))
         await db.execute("DELETE FROM swipe_pattern_alerts WHERE about_user_id = ?", (uid,))
 
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (uid,))
     await db.execute("DELETE FROM tickets WHERE user_id = ?", (uid,))
     await db.execute("DELETE FROM users WHERE id = ?", (uid,))
     await db.commit()
     request.session.clear()
+
+
+# ── Password Reset ───────────────────────────────────────────────────────────
+
+log = logging.getLogger("venn.auth")
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+RESET_CODE_TTL_MINUTES = 15
+
+
+@router.post("/forgot-password", status_code=204)
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, db: Connection = Depends(get_db)):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(400, "Email is required")
+
+    cur = await db.execute("SELECT id FROM users WHERE username = ?", (email,))
+    row = await cur.fetchone()
+    if not row:
+        # Don't reveal whether email exists
+        return
+
+    code = secrets.token_urlsafe(24)
+    expires = (datetime.now(timezone.utc) + timedelta(minutes=RESET_CODE_TTL_MINUTES)).isoformat()
+    await db.execute(
+        "UPDATE users SET reset_code = ?, reset_code_expires_at = ? WHERE id = ?",
+        (code, expires, row["id"]),
+    )
+    await db.commit()
+
+    if resend.api_key:
+        try:
+            resend.Emails.send({
+                "from": "Password Reset <password@venn.lu>",
+                "to": [email],
+                "subject": "Your Venn password reset code",
+                "html": f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=DM+Sans:wght@300;400;500&display=swap');body{{margin:0;padding:0;background:#EDE8F4;}}</style></head>
+<body style="margin:0;padding:0;background:#EDE8F4;">
+<table role="presentation" width="100%" style="background:#EDE8F4;"><tr><td style="padding:48px 16px;" align="center">
+<table role="presentation" width="520" style="max-width:520px;background:#FAF7FC;border-radius:24px;overflow:hidden;box-shadow:0 4px 40px rgba(45,31,61,0.10);">
+<tr><td height="4" style="background:linear-gradient(90deg,#C4547A 0%,#9B80D4 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+<tr><td style="padding:36px 40px 0;text-align:center;">
+<span style="font-family:'Comfortaa',cursive;font-size:21px;font-weight:700;color:#2D1F3D;">venn</span></td></tr>
+<tr><td style="padding:28px 40px 0;text-align:center;">
+<h1 style="font-family:'Comfortaa',cursive;font-size:24px;font-weight:700;color:#2D1F3D;margin:0;">Password reset</h1></td></tr>
+<tr><td style="padding:14px 40px 0;text-align:center;">
+<p style="font-family:'DM Sans',Helvetica;font-size:15px;font-weight:300;color:#5C4A72;margin:0;line-height:1.65;">Enter this code in the app to set a new password.</p></td></tr>
+<tr><td style="padding:28px 40px 0;">
+<table role="presentation" width="100%"><tr><td style="background:#fff;border:1.5px solid #E4D8EE;border-radius:16px;padding:28px 24px;text-align:center;">
+<p style="font-family:'DM Sans',Helvetica;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#9B80D4;margin:0 0 16px;">your reset code</p>
+<p style="font-family:'Comfortaa',cursive,monospace;font-size:18px;font-weight:700;letter-spacing:2px;color:#2D1F3D;margin:0 0 16px;word-break:break-all;">{code}</p>
+<p style="font-family:'DM Sans',Helvetica;font-size:12px;color:#B0A0C0;margin:0;">Valid for {RESET_CODE_TTL_MINUTES} minutes</p>
+</td></tr></table></td></tr>
+<tr><td style="padding:20px 40px 36px;text-align:center;">
+<p style="font-family:'DM Sans',Helvetica;font-size:13px;font-weight:300;color:#7A6490;margin:0;line-height:1.65;">If you didn't request this, you can safely ignore this email.</p></td></tr>
+<tr><td style="border-top:1px solid #E4D8EE;padding:20px 40px;text-align:center;">
+<p style="font-family:'DM Sans',Helvetica;font-size:11px;color:#C4B8D4;margin:0;">Venn &middot; <a href="https://venn.lu" style="color:#C4B8D4;text-decoration:none;">venn.lu</a></p></td></tr>
+</table></td></tr></table></body></html>""",
+            })
+        except Exception as e:
+            log.error("Failed to send reset email to %s: %s", email, e)
+    else:
+        log.warning("RESEND_API_KEY not set — could not send reset email to %s", email)
+
+
+@router.post("/reset-password", status_code=204)
+@limiter.limit("5/minute")
+async def reset_password(request: Request, db: Connection = Depends(get_db)):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    code = (body.get("code") or "").strip()
+    new_password = body.get("new_password", "")
+
+    if not email or not code or not new_password:
+        raise HTTPException(400, "Email, code, and new password are required")
+    try:
+        validate_password(new_password)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    cur = await db.execute(
+        "SELECT id, reset_code, reset_code_expires_at FROM users WHERE username = ?",
+        (email,),
+    )
+    row = await cur.fetchone()
+    import hmac
+    if not row or not row["reset_code"] or not hmac.compare_digest(row["reset_code"], code):
+        raise HTTPException(400, "Invalid or expired reset code")
+
+    expires = datetime.fromisoformat(row["reset_code_expires_at"])
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > expires:
+        raise HTTPException(400, "Invalid or expired reset code")
+
+    hashed = pwd_ctx.hash(new_password)
+    await db.execute(
+        "UPDATE users SET password_hash = ?, reset_code = NULL, reset_code_expires_at = NULL, session_token = NULL WHERE id = ?",
+        (hashed, row["id"]),
+    )
+    # Invalidate all refresh tokens so old sessions can't persist
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (row["id"],))
+    await db.commit()
+
+
+# ── JWT Token Auth (mobile) ──────────────────────────────────────────────────
+
+async def _issue_tokens(db: Connection, user_id: int) -> tuple[str, str]:
+    """Create access + refresh token pair, store refresh hash in DB."""
+    access = create_access_token(user_id, SECRET_KEY)
+    raw_refresh, refresh_hash = create_refresh_token()
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)).isoformat()
+    await db.execute(
+        "INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
+        (user_id, refresh_hash, expires_at),
+    )
+    await db.commit()
+    return access, raw_refresh
+
+
+@router.post("/token", response_model=TokenResponse)
+@limiter.limit("5/minute")
+async def token_login(body: LoginRequest, request: Request, db: Connection = Depends(get_db)):
+    """Login and receive JWT access + refresh tokens (for mobile clients)."""
+    cur = await db.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),))
+    row = await cur.fetchone()
+    hash_to_check = row["password_hash"] if row else _DUMMY_HASH
+    password_ok = pwd_ctx.verify(body.password, hash_to_check)
+    if not row or not password_ok:
+        raise HTTPException(401, "Invalid email or password")
+
+    # Clean up old refresh tokens to prevent accumulation
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (row["id"],))
+    access, refresh = await _issue_tokens(db, row["id"])
+    user = await _get_user_out(db, row["id"])
+    return TokenResponse(
+        access_token=access,
+        refresh_token=refresh,
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user,
+    )
+
+
+@router.post("/token/refresh", response_model=TokenResponse)
+@limiter.limit("10/minute")
+async def token_refresh(body: RefreshRequest, request: Request, db: Connection = Depends(get_db)):
+    """Exchange a refresh token for a new access + refresh token pair."""
+    import hashlib
+    token_hash = hashlib.sha256(body.refresh_token.encode()).hexdigest()
+    cur = await db.execute(
+        "SELECT id, user_id, expires_at FROM refresh_tokens WHERE token_hash = ?",
+        (token_hash,),
+    )
+    row = await cur.fetchone()
+    if not row:
+        raise HTTPException(401, "Invalid refresh token")
+
+    expires_at = datetime.fromisoformat(row["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        await db.execute("DELETE FROM refresh_tokens WHERE id = ?", (row["id"],))
+        await db.commit()
+        raise HTTPException(401, "Refresh token expired")
+
+    # Rotate: delete old, issue new
+    await db.execute("DELETE FROM refresh_tokens WHERE id = ?", (row["id"],))
+    access, refresh = await _issue_tokens(db, row["user_id"])
+    user = await _get_user_out(db, row["user_id"])
+    return TokenResponse(
+        access_token=access,
+        refresh_token=refresh,
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user,
+    )

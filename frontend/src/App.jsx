@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/useAuth';
 import { ROUTES } from './lib/constants';
@@ -8,15 +9,16 @@ import Shell from './components/layout/Shell';
 import Landing from './pages/Landing';
 import Pairing from './pages/Pairing';
 import Connected from './pages/Connected';
-import Catalog from './pages/Catalog';
-import Matches from './pages/Matches';
-import Mood from './pages/Mood';
-import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
 import Impressum from './pages/Impressum';
-import Admin from './pages/Admin';
-import Experts from './pages/Experts';
 import Terms from './pages/Terms';
+
+const Catalog  = lazy(() => import('./pages/Catalog'));
+const Matches  = lazy(() => import('./pages/Matches'));
+const Mood     = lazy(() => import('./pages/Mood'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Admin    = lazy(() => import('./pages/Admin'));
+const Experts  = lazy(() => import('./pages/Experts'));
 
 // ── Route guards ──────────────────────────────────────────────────────────────
 
@@ -70,6 +72,7 @@ export default function App() {
       <FloatingHearts />
       <CookieBanner />
       <ErrorBoundary>
+      <Suspense fallback={null}>
       <Routes>
         {/* Public */}
         <Route path="/" element={<RootRedirect />} />
@@ -107,6 +110,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
       </ErrorBoundary>
     </>
   );

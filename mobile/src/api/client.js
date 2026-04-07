@@ -5,34 +5,90 @@ const API_BASE = Constants.expoConfig?.extra?.apiBase || 'https://api.venn.lu/ap
 if (!__DEV__ && !API_BASE.startsWith('https://')) {
   throw new Error('API base must use HTTPS in production');
 }
-const TOKEN_KEY = 'vn_session_token';
+const ACCESS_KEY = 'vn_access_token';
+const REFRESH_KEY = 'vn_refresh_token';
+const LEGACY_TOKEN_KEY = 'vn_session_token';
 const REQUEST_TIMEOUT = 15000;
 
 // Global 401 listener — AuthContext hooks into this to force logout
 let _onUnauthorized = null;
 export function setOnUnauthorized(fn) { _onUnauthorized = fn; }
 
-async function getToken() {
-  return SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);
+// Global error listener — ErrorContext hooks into this to show toast
+let _onError = null;
+export function setOnError(fn) { _onError = fn; }
+
+async function getAccessToken() {
+  return SecureStore.getItemAsync(ACCESS_KEY).catch(() => null);
 }
 
+async function getRefreshToken() {
+  return SecureStore.getItemAsync(REFRESH_KEY).catch(() => null);
+}
+
+export async function storeTokens(access, refresh) {
+  await Promise.all([
+    access ? SecureStore.setItemAsync(ACCESS_KEY, access).catch(() => {}) : Promise.resolve(),
+    refresh ? SecureStore.setItemAsync(REFRESH_KEY, refresh).catch(() => {}) : Promise.resolve(),
+  ]);
+}
+
+// Keep for backward compat during migration
 export async function storeToken(token) {
   if (token) {
-    await SecureStore.setItemAsync(TOKEN_KEY, token).catch((e) => {
+    await SecureStore.setItemAsync(LEGACY_TOKEN_KEY, token).catch((e) => {
       console.warn('SecureStore write failed:', e);
     });
   }
 }
 
 export async function clearSession() {
-  await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+  await Promise.all([
+    SecureStore.deleteItemAsync(ACCESS_KEY).catch(() => {}),
+    SecureStore.deleteItemAsync(REFRESH_KEY).catch(() => {}),
+    SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY).catch(() => {}),
+  ]);
+}
+
+// Refresh mutex to prevent concurrent refresh attempts
+let _refreshPromise = null;
+
+async function refreshTokens() {
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    try {
+      const refresh = await getRefreshToken();
+      if (!refresh) return false;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+      try {
+        const res = await fetch(`${API_BASE}/auth/token/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refresh }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return false;
+        const data = await res.json();
+        await storeTokens(data.access_token, data.refresh_token);
+        return true;
+      } catch {
+        return false;
+      }
+    } finally {
+      _refreshPromise = null;
+    }
+  })();
+  return _refreshPromise;
 }
 
 async function request(path, options = {}) {
-  const token = await getToken();
+  const token = await getAccessToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { 'X-Session-Token': token } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -47,20 +103,52 @@ async function request(path, options = {}) {
       signal: controller.signal,
     });
   } catch (err) {
-    if (err.name === 'AbortError') throw new Error('Request timed out');
+    if (err.name === 'AbortError') {
+      _onError?.('Request timed out', { endpoint: path });
+      throw new Error('Request timed out');
+    }
+    _onError?.(err.message || 'Network error', { endpoint: path });
     throw err;
   } finally {
     clearTimeout(timeout);
   }
 
+  // On 401, try refresh once (except for auth endpoints)
   if (res.status === 401) {
     const isAuthPath = path.startsWith('/auth/');
-    if (!isAuthPath) {
-      await clearSession();
-      _onUnauthorized?.();
+    if (!isAuthPath && token) {
+      const refreshed = await refreshTokens();
+      if (refreshed) {
+        // Retry with new token
+        const newToken = await getAccessToken();
+        const retryController = new AbortController();
+        const retryTimeout = setTimeout(() => retryController.abort(), REQUEST_TIMEOUT);
+        try {
+          res = await fetch(`${API_BASE}${path}`, {
+            ...options,
+            headers: {
+              ...headers,
+              Authorization: `Bearer ${newToken}`,
+            },
+            signal: retryController.signal,
+          });
+        } catch (err) {
+          if (err.name === 'AbortError') throw new Error('Request timed out');
+          throw err;
+        } finally {
+          clearTimeout(retryTimeout);
+        }
+      }
     }
-    const body = await res.json().catch(() => ({}));
-    throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');
+
+    if (res.status === 401) {
+      if (!isAuthPath) {
+        await clearSession();
+        _onUnauthorized?.();
+      }
+      const body = await res.json().catch(() => ({}));
+      throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');
+    }
   }
 
   if (!res.ok) {
@@ -76,6 +164,7 @@ async function request(path, options = {}) {
       : typeof detail === 'string'
       ? detail
       : `Request failed: ${res.status}`;
+    _onError?.(message, { endpoint: path, status: res.status });
     throw new Error(message);
   }
 
