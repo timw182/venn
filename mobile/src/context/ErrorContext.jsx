@@ -1,9 +1,8 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions,
-  TextInput, KeyboardAvoidingView, Platform, Modal,
+  TextInput, KeyboardAvoidingView, Platform, Modal, StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors, fonts, radii, space } from '../theme/tokens';
 import client, { setOnError } from '../api/client';
@@ -17,7 +16,7 @@ export function useError() {
 }
 
 function ErrorToast({ error, onDismiss, onReport }) {
-  const insets = useSafeAreaInsets();
+  const topInset = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 24);
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -41,7 +40,7 @@ function ErrorToast({ error, onDismiss, onReport }) {
   }
 
   return (
-    <Animated.View style={[styles.toast, { top: insets.top + 8, opacity, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: topInset + 8, opacity, transform: [{ translateY }] }]}>
       <View style={styles.toastContent}>
         <View style={styles.toastIcon}>
           <Feather name="alert-circle" size={18} color={colors.no} />

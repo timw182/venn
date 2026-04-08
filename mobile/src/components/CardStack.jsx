@@ -181,7 +181,7 @@ export default function CardStack({ items = [], onRespond, matchItem, onUndo, av
 
       {/* Card stack */}
       <View style={[styles.stack, { width: CARD_WIDTH, height: cardH }]}>
-        {localItems.slice(1, VISIBLE).map((item, i) => {
+        {!exiting && localItems.slice(1, VISIBLE).map((item, i) => {
           const idx = i + 1;
           return (
             <BehindCard key={item.id} idx={idx} tx={tx} ty={ty} />

@@ -73,6 +73,24 @@ import Reanimated, {
   interpolate,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import Constants from 'expo-constants';
+
+import { TurboModuleRegistry } from 'react-native';
+
+// Guard: only require if native module is actually linked in this build
+const _hasGoogle = (() => { try { return !!TurboModuleRegistry.get('RNGoogleSignin'); } catch { return false; } })();
+const _hasFb = (() => { try { return !!TurboModuleRegistry.get('FBLoginManager'); } catch { return false; } })();
+
+function getGoogleSignin() {
+  if (!_hasGoogle) return null;
+  return require('@react-native-google-signin/google-signin').GoogleSignin;
+}
+function getFbSdk() {
+  if (!_hasFb) return null;
+  const mod = require('react-native-fbsdk-next');
+  return { LoginManager: mod.LoginManager, AccessToken: mod.AccessToken };
+}
 import { useAuth } from '../context/useAuth';
 import client from '../api/client';
 import * as Haptics from 'expo-haptics';
@@ -130,7 +148,22 @@ export default function LandingScreen({ navigation }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { login, register, logoutReason } = useAuth();
+  const { login, socialLogin, register, logoutReason } = useAuth();
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
+    }
+    const gs = getGoogleSignin();
+    if (gs) {
+      const extra = Constants.expoConfig?.extra || {};
+      gs.configure({
+        webClientId: extra.googleWebClientId,
+        iosClientId: extra.googleIosClientId,
+      });
+    }
+  }, []);
 
   // Auto-dismiss success toast
   useEffect(() => {
@@ -239,6 +272,55 @@ export default function LandingScreen({ navigation }) {
       setError(err.message || 'Something went wrong');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleAppleSignIn() {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        ],
+      });
+      const displayName = [credential.fullName?.givenName, credential.fullName?.familyName]
+        .filter(Boolean).join(' ') || '';
+      await socialLogin('apple', credential.identityToken, displayName);
+    } catch (e) {
+      if (e.code !== 'ERR_REQUEST_CANCELED') {
+        setError(e.message || 'Apple sign-in failed');
+      }
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const gs = getGoogleSignin();
+    if (!gs) { setError('Google sign-in requires a new app build'); return; }
+    try {
+      await gs.hasPlayServices();
+      const response = await gs.signIn();
+      const idToken = response.data?.idToken;
+      if (!idToken) throw new Error('No ID token from Google');
+      const name = response.data?.user?.name || '';
+      await socialLogin('google', idToken, name);
+    } catch (e) {
+      if (e.code !== 'SIGN_IN_CANCELLED') {
+        setError(e.message || 'Google sign-in failed');
+      }
+    }
+  }
+
+  async function handleFacebookSignIn() {
+    const fb = getFbSdk();
+    if (!fb) { setError('Facebook sign-in requires a new app build'); return; }
+    try {
+      const result = await fb.LoginManager.logInWithPermissions(['public_profile', 'email']);
+      if (result.isCancelled) return;
+      const tokenData = await fb.AccessToken.getCurrentAccessToken();
+      if (!tokenData) throw new Error('No access token from Facebook');
+      await socialLogin('facebook', tokenData.accessToken, '');
+    } catch (e) {
+      setError(e.message || 'Facebook sign-in failed');
     }
   }
 
@@ -563,6 +645,34 @@ export default function LandingScreen({ navigation }) {
             <Button variant="primary" size="lg" fullWidth onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleSubmit(); }} loading={submitting}>
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </Button>
+
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <Text style={styles.orText}>or continue with</Text>
+              <View style={styles.orLine} />
+            </View>
+            <View style={styles.socialRow}>
+              {appleAvailable && (
+                <TouchableOpacity style={styles.socialBtn} onPress={handleAppleSignIn}>
+                  <Svg width={20} height={20} viewBox="0 0 24 24" fill={colors.text}>
+                    <Path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                  </Svg>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.socialBtn} onPress={handleGoogleSignIn}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                  <Path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <Path d="M5.84 14.09a6.97 6.97 0 0 1 0-4.17V7.08H2.18a11.01 11.01 0 0 0 0 9.84l3.66-2.84z" fill="#FBBC05" />
+                  <Path d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.08l3.66 2.84c.87-2.6 3.3-4.17 6.16-4.17z" fill="#EA4335" />
+                </Svg>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialBtn} onPress={handleFacebookSignIn}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="#1877F2">
+                  <Path d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874V12h3.328l-.532 3.469h-2.796v8.385C19.612 22.954 24 17.99 24 12z" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {mode === 'login' && (
@@ -648,6 +758,21 @@ const styles = StyleSheet.create({
   featureIcon: { fontSize: 22, lineHeight: 28 },
   featureTitle: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text, marginBottom: 3, letterSpacing: 0.2 },
   featureBody: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, lineHeight: 19 },
+
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  orLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  orText: { fontFamily: fonts.sansLight, fontSize: 11, color: colors.textLight, letterSpacing: 0.5 },
+  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: space[4] },
+  socialBtn: {
+    width: 52,
+    height: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   cta: { gap: space[4], alignItems: 'center' },
   toggleBtn: { paddingHorizontal: space[2], paddingVertical: space[4] },

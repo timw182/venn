@@ -68,6 +68,20 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  const socialLogin = useCallback(async (provider, idToken, displayName) => {
+    setLogoutReason(null);
+    const raw = await client.post('/auth/social', {
+      provider,
+      id_token: idToken,
+      display_name: displayName || undefined,
+    });
+    await storeTokens(raw.access_token, raw.refresh_token);
+    const u = toUser(raw.user);
+    setUser(u);
+    Purchases.logIn(String(u.id)).catch(() => {});
+    return u;
+  }, []);
+
   const register = useCallback(async (username, password, displayName) => {
     // Register first, then exchange credentials for JWT tokens
     await client.post('/auth/register', { username, password, display_name: displayName });
@@ -120,7 +134,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isSolo, isPendingPair, loading, logoutReason, login, register, logout, pair, createPairingCode, enterSolo, enterPendingPair, setUser, updateProfile }}>
+    <AuthContext.Provider value={{ user, isSolo, isPendingPair, loading, logoutReason, login, socialLogin, register, logout, pair, createPairingCode, enterSolo, enterPendingPair, setUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

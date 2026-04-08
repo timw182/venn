@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
@@ -68,6 +68,15 @@ export default function CodeRevealScreen({ navigation, route }) {
     setTimeout(() => setCopied(false), 2500);
   }
 
+  async function handleShare() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Share.share({
+        message: `Join me on Venn! Enter my invite code: ${code}\n\nhttps://venn.lu`,
+      });
+    } catch {}
+  }
+
   const chars = code.split('');
 
   return (
@@ -107,8 +116,13 @@ export default function CodeRevealScreen({ navigation, route }) {
           {copied ? '✓  Copied!' : '⎘  Copy code'}
         </Button>
 
+        <TouchableOpacity style={styles.shareBtn} onPress={handleShare} activeOpacity={0.7}>
+          <Feather name="share" size={16} color={colors.violet} />
+          <Text style={styles.shareBtnText}>Share with your partner</Text>
+        </TouchableOpacity>
+
         <Text style={styles.shareNote}>
-          Share however you like — text, voice note, written on a napkin.{'\n'}
+          Or send it however you like — voice note, written on a napkin…{'\n'}
           <Text style={styles.shareNoteEm}>Your partner enters it under Settings → Pairing.</Text>
         </Text>
 
@@ -221,6 +235,25 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   emailEm: { fontWeight: '500' },
+
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    alignSelf: 'stretch',
+    paddingVertical: 13,
+    borderWidth: 1.5,
+    borderColor: 'rgba(155,128,212,0.3)',
+    borderRadius: radii.lg,
+    backgroundColor: 'rgba(155,128,212,0.06)',
+    marginTop: space[3],
+  },
+  shareBtnText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 14,
+    color: colors.violet,
+  },
 
   shareNote: {
     fontFamily: fonts.sansLight,

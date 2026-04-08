@@ -1,6 +1,8 @@
 import os
 import secrets
 import logging
+import httpx
+import jwt
 import resend
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -117,9 +119,10 @@ async def login(body: LoginRequest, request: Request, db: Connection = Depends(g
     if not row or not password_ok:
         raise HTTPException(401, "Invalid email or password")
 
-    # New session token invalidates all other devices
+    # Invalidate all other sessions (web cookie + mobile JWT)
     token = secrets.token_hex(32)
     await db.execute("UPDATE users SET session_token = ? WHERE id = ?", (token, row["id"]))
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (row["id"],))
     await db.commit()
 
     request.session.clear()
@@ -405,7 +408,8 @@ async def token_login(body: LoginRequest, request: Request, db: Connection = Dep
     if not row or not password_ok:
         raise HTTPException(401, "Invalid email or password")
 
-    # Clean up old refresh tokens to prevent accumulation
+    # Invalidate all other sessions (web cookie + existing refresh tokens)
+    await db.execute("UPDATE users SET session_token = NULL WHERE id = ?", (row["id"],))
     await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (row["id"],))
     access, refresh = await _issue_tokens(db, row["id"])
     user = await _get_user_out(db, row["id"])
@@ -443,6 +447,207 @@ async def token_refresh(body: RefreshRequest, request: Request, db: Connection =
     await db.execute("DELETE FROM refresh_tokens WHERE id = ?", (row["id"],))
     access, refresh = await _issue_tokens(db, row["user_id"])
     user = await _get_user_out(db, row["user_id"])
+    return TokenResponse(
+        access_token=access,
+        refresh_token=refresh,
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user,
+    )
+
+
+# ── Apple Sign In ────────────────────────────────────────────────────────────
+
+_apple_keys_cache: dict = {}
+_apple_keys_fetched_at: float = 0
+APPLE_KEYS_TTL = 3600  # re-fetch every hour
+
+APPLE_BUNDLE_ID = "net.amoreapp.venn"
+APPLE_ALLOWED_AUDIENCES = [APPLE_BUNDLE_ID, "host.exp.Exponent"]
+
+
+async def _get_apple_public_keys() -> list[dict]:
+    """Fetch Apple's public keys for verifying identity tokens (cached)."""
+    import time
+    global _apple_keys_cache, _apple_keys_fetched_at
+    now = time.time()
+    if _apple_keys_cache and (now - _apple_keys_fetched_at) < APPLE_KEYS_TTL:
+        return _apple_keys_cache.get("keys", [])
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get("https://appleid.apple.com/auth/keys")
+        resp.raise_for_status()
+        _apple_keys_cache = resp.json()
+        _apple_keys_fetched_at = now
+    return _apple_keys_cache.get("keys", [])
+
+
+async def _verify_apple_token(id_token: str) -> dict:
+    """Verify an Apple identity token and return claims (sub, email)."""
+    header = jwt.get_unverified_header(id_token)
+    kid = header.get("kid")
+    if not kid:
+        raise ValueError("Missing kid in token header")
+
+    apple_keys = await _get_apple_public_keys()
+    matching_key = next((k for k in apple_keys if k["kid"] == kid), None)
+    if not matching_key:
+        raise ValueError("No matching Apple public key")
+
+    from jwt.algorithms import RSAAlgorithm
+    public_key = RSAAlgorithm.from_jwk(matching_key)
+
+    claims = jwt.decode(
+        id_token,
+        public_key,
+        algorithms=["RS256"],
+        audience=APPLE_ALLOWED_AUDIENCES,
+        issuer="https://appleid.apple.com",
+    )
+    return claims
+
+
+GOOGLE_WEB_CLIENT_ID = os.environ.get("GOOGLE_WEB_CLIENT_ID", "")
+GOOGLE_IOS_CLIENT_ID = os.environ.get("GOOGLE_IOS_CLIENT_ID", "")
+FACEBOOK_APP_ID = os.environ.get("FACEBOOK_APP_ID", "")
+FACEBOOK_APP_SECRET = os.environ.get("FACEBOOK_APP_SECRET", "")
+
+
+async def _verify_google_token(id_token: str) -> dict:
+    """Verify a Google ID token and return claims (sub, email, name)."""
+    async with httpx.AsyncClient(timeout=10) as c:
+        resp = await c.get(
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"id_token": id_token},
+        )
+        if resp.status_code != 200:
+            raise ValueError(f"Google token verification failed: {resp.text}")
+        claims = resp.json()
+
+    aud = claims.get("aud", "")
+    if aud not in (GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID):
+        raise ValueError(f"Google token audience mismatch: {aud}")
+    if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        raise ValueError("Google token issuer mismatch")
+    return claims
+
+
+async def _verify_facebook_token(access_token: str) -> dict:
+    """Verify a Facebook access token and return user profile."""
+    async with httpx.AsyncClient(timeout=10) as c:
+        # Debug the token first
+        resp = await c.get(
+            "https://graph.facebook.com/debug_token",
+            params={
+                "input_token": access_token,
+                "access_token": f"{FACEBOOK_APP_ID}|{FACEBOOK_APP_SECRET}",
+            },
+        )
+        if resp.status_code != 200:
+            raise ValueError(f"Facebook token debug failed: {resp.text}")
+        debug_data = resp.json().get("data", {})
+        if not debug_data.get("is_valid"):
+            raise ValueError("Facebook token is not valid")
+        if str(debug_data.get("app_id")) != FACEBOOK_APP_ID:
+            raise ValueError("Facebook token app_id mismatch")
+
+        # Fetch user profile
+        resp = await c.get(
+            "https://graph.facebook.com/me",
+            params={"fields": "id,name,email", "access_token": access_token},
+        )
+        if resp.status_code != 200:
+            raise ValueError(f"Facebook profile fetch failed: {resp.text}")
+        return resp.json()
+
+
+async def _find_or_create_social_user(
+    db: Connection, provider: str, provider_id: str, email: str, display_name: str
+) -> int:
+    """Look up or create a user for the given social provider. Returns user_id."""
+    cur = await db.execute(
+        "SELECT id FROM users WHERE auth_provider = ? AND auth_provider_id = ?",
+        (provider, provider_id),
+    )
+    row = await cur.fetchone()
+    if row:
+        return row["id"]
+
+    # Check if email matches an existing account
+    if email:
+        cur = await db.execute("SELECT id FROM users WHERE username = ?", (email,))
+        existing = await cur.fetchone()
+        if existing:
+            await db.execute(
+                "UPDATE users SET auth_provider = ?, auth_provider_id = ? WHERE id = ?",
+                (provider, provider_id, existing["id"]),
+            )
+            await db.commit()
+            return existing["id"]
+
+    # New user
+    username = email or f"{provider}_{provider_id[:12]}@noreply.venn.lu"
+    color = AVATAR_COLORS[hash(username) % len(AVATAR_COLORS)]
+    name = display_name or (email.split("@")[0] if email else "Venn User")
+    cursor = await db.execute(
+        "INSERT INTO users (username, password_hash, display_name, avatar_color, auth_provider, auth_provider_id) VALUES (?,?,?,?,?,?)",
+        (username, "", name, color, provider, provider_id),
+    )
+    await db.commit()
+    return cursor.lastrowid
+
+
+@router.post("/social", response_model=TokenResponse)
+@limiter.limit("10/minute")
+async def social_login(request: Request, db: Connection = Depends(get_db)):
+    """Authenticate via Apple, Google, or Facebook. Creates account on first login."""
+    body = await request.json()
+    provider = (body.get("provider") or "").strip().lower()
+    id_token = body.get("id_token", "")
+    given_name = (body.get("display_name") or "").strip()
+
+    if provider not in ("apple", "google", "facebook"):
+        raise HTTPException(400, "Unsupported provider")
+    if not id_token:
+        raise HTTPException(400, "id_token is required")
+
+    if provider == "apple":
+        try:
+            claims = await _verify_apple_token(id_token)
+        except Exception as e:
+            log.warning("Apple token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Apple identity token")
+        provider_id = claims.get("sub", "")
+        email = claims.get("email", "")
+
+    elif provider == "google":
+        try:
+            claims = await _verify_google_token(id_token)
+        except Exception as e:
+            log.warning("Google token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Google identity token")
+        provider_id = claims.get("sub", "")
+        email = claims.get("email", "")
+        given_name = given_name or claims.get("name", "")
+
+    elif provider == "facebook":
+        try:
+            profile = await _verify_facebook_token(id_token)
+        except Exception as e:
+            log.warning("Facebook token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Facebook access token")
+        provider_id = profile.get("id", "")
+        email = profile.get("email", "")
+        given_name = given_name or profile.get("name", "")
+
+    if not provider_id:
+        raise HTTPException(401, "Invalid token: missing subject")
+
+    user_id = await _find_or_create_social_user(db, provider, provider_id, email, given_name)
+
+    # Invalidate all other sessions (web cookie + existing refresh tokens)
+    await db.execute("UPDATE users SET session_token = NULL WHERE id = ?", (user_id,))
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (user_id,))
+    access, refresh = await _issue_tokens(db, user_id)
+    user = await _get_user_out(db, user_id)
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,

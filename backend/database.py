@@ -25,7 +25,7 @@ async def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
                 username     TEXT    NOT NULL UNIQUE COLLATE NOCASE,
-                password_hash TEXT   NOT NULL,
+                password_hash TEXT,
                 display_name TEXT    NOT NULL,
                 avatar_color TEXT    NOT NULL DEFAULT '#C4754B',
                 email        TEXT,
@@ -137,6 +137,8 @@ async def init_db():
             ("tickets",   "resolved_at",    "TEXT"),
             ("users",     "reset_code",     "TEXT"),
             ("users",     "reset_code_expires_at", "TEXT"),
+            ("users",     "auth_provider",    "TEXT"),
+            ("users",     "auth_provider_id", "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")

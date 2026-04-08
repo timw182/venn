@@ -6,6 +6,7 @@ import client from '../api/client';
 
 const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.revenueCatApiKey || '';
 const PRODUCT_ID = 'lu.venn.pairingcode';
+const IS_EXPO_GO = Constants.appOwnership === 'expo';
 
 const PurchaseContext = createContext(null);
 
@@ -17,6 +18,11 @@ export function PurchaseProvider({ children }) {
   useEffect(() => {
     mountedRef.current = true;
     async function init() {
+      if (IS_EXPO_GO) {
+        // RevenueCat native store unavailable in Expo Go — skip purchase gate
+        if (mountedRef.current) { setIsPurchased(true); setIsReady(true); }
+        return;
+      }
       try {
         Purchases.configure({ apiKey: REVENUECAT_API_KEY });
         const info = await Purchases.getCustomerInfo();
