@@ -39,4 +39,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-dev-build
-          path: build-*.ipa
+          path: mobile/build-*.ipa
