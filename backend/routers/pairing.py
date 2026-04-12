@@ -29,16 +29,39 @@ resend.api_key = os.environ.get("RESEND_API_KEY", "")
 
 _CODE_CHARS = string.ascii_uppercase.replace("I", "").replace("O", "") + "23456789"
 
+# Placeholder addresses generated for social-login users who don't share their email.
+# Sending to these bounces, so we skip delivery instead.
+_PLACEHOLDER_EMAIL_SUFFIX = "@noreply.venn.lu"
+
 
 def _gen_code(length: int = CODE_LENGTH) -> str:
     return "".join(secrets.choice(_CODE_CHARS) for _ in range(length))
 
 
-async def _send_code_email(to_email: str, code: str) -> None:
+def _pick_delivery_email(user) -> str | None:
+    """Return a usable email for the user, or None if nothing real is on file."""
+    for field in ("email", "username"):
+        try:
+            addr = user[field]
+        except (KeyError, IndexError):
+            addr = None
+        if not addr:
+            continue
+        addr = addr.strip()
+        if not addr or "@" not in addr:
+            continue
+        if addr.lower().endswith(_PLACEHOLDER_EMAIL_SUFFIX):
+            continue
+        return addr
+    return None
+
+
+async def _send_code_email(to_email: str, code: str) -> bool:
+    """Send the invite-code email. Returns True on success, False if skipped or failed."""
     from_email = os.environ.get("FROM_EMAIL", "Venn <noreply@venn.lu>")
     if not resend.api_key:
         log.warning("RESEND_API_KEY not set — skipping email for %s", to_email)
-        return
+        return False
     try:
         resend.Emails.send({
             "from": from_email,
@@ -117,8 +140,10 @@ async def _send_code_email(to_email: str, code: str) -> None:
 </body>
 </html>""",
         })
+        return True
     except Exception as e:
         log.error("Failed to send pairing code email to %s: %s", to_email, e)
+        return False
 
 
 @router.post("/verify-purchase")
@@ -166,7 +191,7 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
     uid = await _session_user_id(request, db)
 
     cur = await db.execute(
-        "SELECT couple_id, pairing_code, pairing_code_expires_at, is_paid, username FROM users WHERE id = ?", (uid,)
+        "SELECT couple_id, pairing_code, pairing_code_expires_at, is_paid, username, email FROM users WHERE id = ?", (uid,)
     )
     user = await cur.fetchone()
     if user and user["couple_id"]:
@@ -175,36 +200,40 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
     if PAYMENT_REQUIRED and not user["is_paid"]:
         raise HTTPException(402, "Payment required to generate a pairing code")
 
-    # Return existing code if still valid
+    # Return existing code if still valid, otherwise mint a new one.
+    code: str | None = None
     if user and user["pairing_code"] and user["pairing_code_expires_at"]:
         exp = datetime.fromisoformat(user["pairing_code_expires_at"])
         if exp.tzinfo is None:
             exp = exp.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) < exp:
-            return PairingCodeOut(code=user["pairing_code"])
+            code = user["pairing_code"]
 
-    # Generate a unique code
-    for _ in range(10):
-        code = _gen_code()
-        cur = await db.execute("SELECT id FROM users WHERE pairing_code = ?", (code,))
-        existing = await cur.fetchone()
-        if not existing:
-            break
-    else:
-        raise HTTPException(500, "Could not generate unique code")
+    if code is None:
+        # Generate a unique code
+        for _ in range(10):
+            candidate = _gen_code()
+            cur = await db.execute("SELECT id FROM users WHERE pairing_code = ?", (candidate,))
+            existing = await cur.fetchone()
+            if not existing:
+                code = candidate
+                break
+        else:
+            raise HTTPException(500, "Could not generate unique code")
 
-    expires_at = (datetime.now(timezone.utc) + timedelta(hours=CODE_TTL_HOURS)).isoformat()
-    await db.execute(
-        "UPDATE users SET pairing_code = ?, pairing_code_expires_at = ? WHERE id = ?",
-        (code, expires_at, uid),
-    )
-    await db.commit()
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=CODE_TTL_HOURS)).isoformat()
+        await db.execute(
+            "UPDATE users SET pairing_code = ?, pairing_code_expires_at = ? WHERE id = ?",
+            (code, expires_at, uid),
+        )
+        await db.commit()
 
-    # Send email (username is the email address)
-    if user and user["username"]:
-        await _send_code_email(user["username"], code)
+    # Always re-send the email on this endpoint — rate limiting (10/min) is the spam guard.
+    # If the user has no real email on file (social login w/o email share), skip quietly.
+    delivery = _pick_delivery_email(user) if user else None
+    email_sent = await _send_code_email(delivery, code) if delivery else False
 
-    return PairingCodeOut(code=code)
+    return PairingCodeOut(code=code, email_sent=email_sent)
 
 
 @router.post("/join", response_model=UserOut)

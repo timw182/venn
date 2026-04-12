@@ -98,6 +98,7 @@ class RefreshRequest(BaseModel):
 
 class PairingCodeOut(BaseModel):
     code: str
+    email_sent: Optional[bool] = None
 
 
 _CODE_CHARS = set("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")

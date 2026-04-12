@@ -21,6 +21,12 @@ python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 Production: `pm2 restart venn-api`
 
+**When adding new vars to `backend/.env`**: a plain `pm2 restart` does NOT re-read `ecosystem.config.js`, so new keys stay missing in the running process. Use:
+```bash
+pm2 delete venn-api && pm2 start /root/venn/ecosystem.config.js --only venn-api
+```
+Verify with `pm2 env <id> | grep <NEW_VAR>`.
+
 ### Frontend
 ```bash
 cd frontend

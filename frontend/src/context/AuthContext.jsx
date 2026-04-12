@@ -73,6 +73,24 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const socialLogin = useCallback(async (provider, idToken, displayName = '') => {
+    setLoading(true);
+    setLogoutReason(null);
+    try {
+      const raw = await client.post('/auth/social-web', {
+        provider,
+        id_token: idToken,
+        display_name: displayName,
+      });
+      clearLocalUserData();
+      const u = toUser(raw);
+      setUser(u);
+      return u;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await client.post('/auth/logout').catch(() => {});
     clearLocalUserData();
@@ -109,7 +127,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, isSolo, loading, logoutReason,
-      login, register, logout,
+      login, register, socialLogin, logout,
       pair, createPairingCode, enterSolo,
       updateUserFromRaw, updateProfile,
     }}>

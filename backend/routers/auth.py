@@ -462,7 +462,8 @@ _apple_keys_fetched_at: float = 0
 APPLE_KEYS_TTL = 3600  # re-fetch every hour
 
 APPLE_BUNDLE_ID = "net.amoreapp.venn"
-APPLE_ALLOWED_AUDIENCES = [APPLE_BUNDLE_ID, "host.exp.Exponent"]
+APPLE_WEB_SERVICE_ID = os.environ.get("APPLE_WEB_SERVICE_ID", "")
+APPLE_ALLOWED_AUDIENCES = [aud for aud in [APPLE_BUNDLE_ID, "host.exp.Exponent", APPLE_WEB_SERVICE_ID] if aud]
 
 
 async def _get_apple_public_keys() -> list[dict]:
@@ -654,3 +655,63 @@ async def social_login(request: Request, db: Connection = Depends(get_db)):
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=user,
     )
+
+
+@router.post("/social-web", response_model=UserOutWithToken)
+@limiter.limit("10/minute")
+async def social_login_web(request: Request, db: Connection = Depends(get_db)):
+    """Web social login — same token verification as /social but sets a session cookie."""
+    body = await request.json()
+    provider = (body.get("provider") or "").strip().lower()
+    id_token = body.get("id_token", "")
+    given_name = (body.get("display_name") or "").strip()
+
+    if provider not in ("apple", "google", "facebook"):
+        raise HTTPException(400, "Unsupported provider")
+    if not id_token:
+        raise HTTPException(400, "id_token is required")
+
+    if provider == "apple":
+        try:
+            claims = await _verify_apple_token(id_token)
+        except Exception as e:
+            log.warning("Apple token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Apple identity token")
+        provider_id = claims.get("sub", "")
+        email = claims.get("email", "")
+
+    elif provider == "google":
+        try:
+            claims = await _verify_google_token(id_token)
+        except Exception as e:
+            log.warning("Google token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Google identity token")
+        provider_id = claims.get("sub", "")
+        email = claims.get("email", "")
+        given_name = given_name or claims.get("name", "")
+
+    elif provider == "facebook":
+        try:
+            profile = await _verify_facebook_token(id_token)
+        except Exception as e:
+            log.warning("Facebook token verification failed: %s", e)
+            raise HTTPException(401, "Invalid Facebook access token")
+        provider_id = profile.get("id", "")
+        email = profile.get("email", "")
+        given_name = given_name or profile.get("name", "")
+
+    if not provider_id:
+        raise HTTPException(401, "Invalid token: missing subject")
+
+    user_id = await _find_or_create_social_user(db, provider, provider_id, email, given_name)
+
+    token = secrets.token_hex(32)
+    await db.execute("UPDATE users SET session_token = ? WHERE id = ?", (token, user_id))
+    await db.execute("DELETE FROM refresh_tokens WHERE user_id = ?", (user_id,))
+    await db.commit()
+
+    request.session.clear()
+    request.session["user_id"] = user_id
+    request.session["session_token"] = token
+
+    return await _get_user_out(db, user_id, session_token=token)
