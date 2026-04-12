@@ -34,3 +34,9 @@ jobs:
 
       - name: Build iOS dev client
         run: eas build --platform ios --profile development --local --non-interactive
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-dev-build
+          path: build-*.ipa
