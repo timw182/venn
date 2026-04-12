@@ -13,7 +13,7 @@ import Button from '../components/Button';
 import client from '../api/client';
 
 export default function CodeRevealScreen({ navigation, route }) {
-  const { code } = route.params;
+  const { code, emailSent = true } = route.params;
   const { setUser, enterPendingPair } = useAuth();
   const [copied, setCopied] = useState(false);
 
@@ -106,9 +106,11 @@ export default function CodeRevealScreen({ navigation, route }) {
 
         {/* Email confirmation */}
         <View style={styles.emailPill}>
-          <Feather name="mail" size={14} color={colors.deepViolet} />
+          <Feather name={emailSent ? 'mail' : 'bookmark'} size={14} color={colors.deepViolet} />
           <Text style={styles.emailText}>
-            Sent to your email — also findable in <Text style={styles.emailEm}>Settings → Pairing</Text>
+            {emailSent
+              ? <>Sent to your email — also findable in <Text style={styles.emailEm}>Settings → Pairing</Text></>
+              : <>Keep this code somewhere safe — also findable in <Text style={styles.emailEm}>Settings → Pairing</Text></>}
           </Text>
         </View>
 

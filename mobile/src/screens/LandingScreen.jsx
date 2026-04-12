@@ -76,11 +76,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
 
-import { TurboModuleRegistry } from 'react-native';
+import { TurboModuleRegistry, NativeModules } from 'react-native';
 
-// Guard: only require if native module is actually linked in this build
+// Guard: only require if native module is actually linked in this build.
+// Google Sign-In is a TurboModule (RNGoogleSignin).
+// react-native-fbsdk-next is still a legacy bridge module — access via NativeModules.FBLoginManager.
 const _hasGoogle = (() => { try { return !!TurboModuleRegistry.get('RNGoogleSignin'); } catch { return false; } })();
-const _hasFb = (() => { try { return !!TurboModuleRegistry.get('FBLoginManager'); } catch { return false; } })();
+const _hasFb = (() => { try { return !!NativeModules.FBLoginManager; } catch { return false; } })();
 
 function getGoogleSignin() {
   if (!_hasGoogle) return null;

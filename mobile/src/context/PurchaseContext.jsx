@@ -40,6 +40,18 @@ export function PurchaseProvider({ children }) {
     return () => { mountedRef.current = false; };
   }, []);
 
+  const verifyWithBackend = async (rcUserId) => {
+    try {
+      await client.post('/pairing/verify-purchase', { rc_user_id: rcUserId });
+    } catch (e) {
+      const err = new Error(
+        "Payment received but we couldn't confirm it on our side. Try 'Restore purchases' in a moment — if it still fails, contact support and we'll fix it."
+      );
+      err.verificationFailed = true;
+      throw err;
+    }
+  };
+
   const purchasePairingCode = useCallback(async () => {
     try {
       // Try offerings first
@@ -51,7 +63,7 @@ export function PurchaseProvider({ children }) {
         );
         if (pkg) {
           const { customerInfo } = await Purchases.purchasePackage(pkg);
-          await client.post('/pairing/verify-purchase', { rc_user_id: customerInfo.originalAppUserId }).catch(() => {});
+          await verifyWithBackend(customerInfo.originalAppUserId);
           setIsPurchased(true);
           return customerInfo;
         }
@@ -63,7 +75,7 @@ export function PurchaseProvider({ children }) {
         throw new Error('Product not available. Please try again later.');
       }
       const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
-      await client.post('/pairing/verify-purchase', { rc_user_id: customerInfo.originalAppUserId }).catch(() => {});
+      await verifyWithBackend(customerInfo.originalAppUserId);
       setIsPurchased(true);
       return customerInfo;
     } catch (e) {

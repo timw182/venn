@@ -90,6 +90,7 @@ export function AuthProvider({ children }) {
     const u = toUser(raw.user);
     setUser(u);
     Purchases.logIn(String(u.id)).catch(() => {});
+    await AsyncStorage.setItem('vn_show_onboarding', '1').catch(() => {});
     return u;
   }, []);
 
@@ -120,7 +121,7 @@ export function AuthProvider({ children }) {
 
   const createPairingCode = useCallback(async () => {
     const data = await client.post('/pairing/create');
-    return data.code;
+    return { code: data.code, emailSent: data.email_sent === true };
   }, []);
 
   const enterPendingPair = useCallback(() => {

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Keyboard,
-  Dimensions,
+  Dimensions, Modal, Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const IS_TABLET = Dimensions.get('window').width >= 768;
 
@@ -22,8 +23,28 @@ export default function PairingScreen({ navigation, route }) {
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
+  const [onboardingSlide, setOnboardingSlide] = useState(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
   const { pair, createPairingCode, enterSolo, logout, loading } = useAuth();
   const { isPurchased, purchasePairingCode, restorePurchases } = usePurchase();
+
+  useEffect(() => {
+    AsyncStorage.getItem('vn_show_onboarding').then((v) => {
+      if (v === '1') {
+        setOnboardingVisible(true);
+        AsyncStorage.removeItem('vn_show_onboarding').catch(() => {});
+      }
+    }).catch(() => {});
+  }, []);
+
+  function nextSlide() {
+    Animated.timing(slideAnim, { toValue: -300, duration: 220, useNativeDriver: true }).start(() => {
+      setOnboardingSlide(1);
+      slideAnim.setValue(300);
+      Animated.timing(slideAnim, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+    });
+  }
 
   async function handleCreate() {
     setError('');
@@ -39,8 +60,8 @@ export default function PairingScreen({ navigation, route }) {
           return;
         }
       }
-      const code = await createPairingCode();
-      navigation.replace(SCREENS.CODE_REVEAL, { code });
+      const { code, emailSent } = await createPairingCode();
+      navigation.replace(SCREENS.CODE_REVEAL, { code, emailSent });
     } catch (err) {
       setError(err.message || 'Could not create invite');
     } finally {
@@ -149,10 +170,68 @@ export default function PairingScreen({ navigation, route }) {
           <Text style={styles.backText}>log out</Text>
         </TouchableOpacity>
 
+        {/* Onboarding modal */}
+        <Modal visible={onboardingVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
+                {onboardingSlide === 0 ? (
+                  <View style={styles.modalSlide}>
+                    <Text style={styles.modalEmoji}>🔒</Text>
+                    <Text style={styles.modalTitle}>No rejection, ever</Text>
+                    <Text style={styles.modalBody}>
+                      You and your partner each swipe independently. Neither of you ever sees what the other said no to.{'\n\n'}Only mutual matches are revealed.
+                    </Text>
+                    <TouchableOpacity style={styles.modalBtn} onPress={nextSlide}>
+                      <Text style={styles.modalBtnText}>Next →</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.modalSlide}>
+                    <Text style={styles.modalEmoji}>💌</Text>
+                    <Text style={styles.modalTitle}>Invite your partner</Text>
+                    <Text style={styles.modalBody}>
+                      Create an invite code below and share it with your partner. Once they enter it, you're connected and ready to discover your overlap.
+                    </Text>
+                    <TouchableOpacity style={styles.modalBtn} onPress={() => setOnboardingVisible(false)}>
+                      <Text style={styles.modalBtnText}>Let's go</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </Animated.View>
+              <View style={styles.modalDots}>
+                <View style={[styles.modalDot, onboardingSlide === 0 && styles.modalDotActive]} />
+                <View style={[styles.modalDot, onboardingSlide === 1 && styles.modalDotActive]} />
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         <View style={styles.hero}>
           <Text style={styles.title}>Connect with{'\n'}your person.</Text>
           <Text style={styles.subtitle}>Discover what you both want — together.</Text>
         </View>
+
+        <View style={styles.howItWorks}>
+          {[
+            { n: '1', text: 'Create or receive an invite code' },
+            { n: '2', text: 'Both swipe independently — privately' },
+            { n: '3', text: 'Only mutual matches are revealed' },
+          ].map((s) => (
+            <View key={s.n} style={styles.howStep}>
+              <View style={styles.howBadge}>
+                <Text style={styles.howNum}>{s.n}</Text>
+              </View>
+              <Text style={styles.howText}>{s.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        {!!error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         <View style={styles.cards}>
 
@@ -300,6 +379,66 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sansMedium,
     color: colors.rose,
   },
+
+  // How it works
+  howItWorks: { gap: space[2], marginBottom: space[6] },
+  howStep: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  howBadge: {
+    width: 22, height: 22,
+    borderRadius: radii.full,
+    backgroundColor: colors.accentSoft,
+    alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
+  howNum: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.rose },
+  howText: { fontFamily: fonts.sansLight, fontSize: 13, color: colors.textMuted, flex: 1, lineHeight: 18 },
+
+  // Onboarding modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space[6],
+  },
+  modalCard: {
+    backgroundColor: colors.bg,
+    borderRadius: radii.xl,
+    padding: space[8],
+    width: '100%',
+    maxWidth: 360,
+    overflow: 'hidden',
+  },
+  modalSlide: { alignItems: 'center' },
+  modalEmoji: { fontSize: 44, marginBottom: space[5] },
+  modalTitle: {
+    fontFamily: fonts.serifBold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: space[4],
+    letterSpacing: -0.3,
+  },
+  modalBody: {
+    fontFamily: fonts.sansLight,
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: space[8],
+  },
+  modalBtn: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: radii.lg,
+    paddingVertical: 13,
+    paddingHorizontal: space[8],
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  modalBtnText: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.rose },
+  modalDots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: space[5] },
+  modalDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
+  modalDotActive: { backgroundColor: colors.rose, width: 18 },
 
   // Or divider
   orRow: { flexDirection: 'row', alignItems: 'center', gap: space[3], marginVertical: 2 },
