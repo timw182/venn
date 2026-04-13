@@ -149,14 +149,20 @@ async def _send_code_email(to_email: str, code: str) -> bool:
 @router.post("/verify-purchase")
 @limiter.limit("10/minute")
 async def verify_purchase(request: Request, db: Connection = Depends(get_db)):
-    """Called after successful RevenueCat purchase to mark user as paid."""
+    """Called after a RevenueCat consumable purchase to credit the user.
+
+    Reads non-subscription transactions, inserts any new ones into
+    ``pairing_purchases`` (idempotent on store transaction id), and
+    increments ``users.pairing_credits`` by the number of newly-recorded
+    transactions. Returns the user's new credit total.
+    """
     import re
     uid = await _session_user_id(request, db)
     body = await request.json()
     rc_user_id = body.get("rc_user_id", "")
 
     # Sanitize rc_user_id to prevent SSRF path traversal
-    if rc_user_id and not re.match(r'^[\w\-:.]+$', rc_user_id):
+    if rc_user_id and not re.match(r'^[\w\-:.$]+$', rc_user_id):
         raise HTTPException(400, "Invalid user ID format")
 
     # Verify with RevenueCat API that this user actually purchased
@@ -171,18 +177,45 @@ async def verify_purchase(request: Request, db: Connection = Depends(get_db)):
             f"https://api.revenuecat.com/v1/subscribers/{subscriber_id}",
             headers={"Authorization": f"Bearer {rc_api_key}"},
         )
-        if resp.status_code == 200:
-            data = resp.json()
-            entitlements = data.get("subscriber", {}).get("entitlements", {})
-            if not entitlements:
-                raise HTTPException(402, "No active entitlement found")
-        else:
+        if resp.status_code != 200:
             log.warning("RevenueCat verification failed: %s", resp.status_code)
             raise HTTPException(502, "Could not verify purchase")
+        data = resp.json()
 
-    await db.execute("UPDATE users SET is_paid = 1 WHERE id = ?", (uid,))
+    subscriber = data.get("subscriber", {}) or {}
+    non_sub = subscriber.get("non_subscription_transactions", []) or []
+    relevant = [
+        t for t in non_sub
+        if t.get("product_id") == "lu.venn.pairingcode_v2"
+    ]
+
+    new_count = 0
+    for t in relevant:
+        store_tx_id = t.get("id")
+        product_id = t.get("product_id")
+        purchased_at = t.get("purchase_date") or ""
+        if not store_tx_id or not product_id:
+            continue
+        cur = await db.execute(
+            "INSERT OR IGNORE INTO pairing_purchases "
+            "(user_id, store_transaction_id, product_id, purchased_at) "
+            "VALUES (?, ?, ?, ?)",
+            (uid, store_tx_id, product_id, purchased_at),
+        )
+        if cur.rowcount and cur.rowcount > 0:
+            new_count += 1
+
+    if new_count > 0:
+        await db.execute(
+            "UPDATE users SET pairing_credits = pairing_credits + ? WHERE id = ?",
+            (new_count, uid),
+        )
     await db.commit()
-    return {"is_paid": True}
+
+    cur = await db.execute("SELECT pairing_credits FROM users WHERE id = ?", (uid,))
+    row = await cur.fetchone()
+    credits = int(row["pairing_credits"]) if row and row["pairing_credits"] is not None else 0
+    return {"credits": credits}
 
 
 @router.post("/create", response_model=PairingCodeOut)
@@ -191,14 +224,14 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
     uid = await _session_user_id(request, db)
 
     cur = await db.execute(
-        "SELECT couple_id, pairing_code, pairing_code_expires_at, is_paid, username, email FROM users WHERE id = ?", (uid,)
+        "SELECT couple_id, pairing_code, pairing_code_expires_at, pairing_credits, username, email FROM users WHERE id = ?", (uid,)
     )
     user = await cur.fetchone()
     if user and user["couple_id"]:
         raise HTTPException(400, "Already paired")
 
-    if PAYMENT_REQUIRED and not user["is_paid"]:
-        raise HTTPException(402, "Payment required to generate a pairing code")
+    if PAYMENT_REQUIRED and (user["pairing_credits"] or 0) <= 0:
+        raise HTTPException(402, "No pairing credits — purchase one to generate a code")
 
     # Return existing code if still valid, otherwise mint a new one.
     code: str | None = None
@@ -300,11 +333,18 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
         await db.execute("ROLLBACK")
         raise HTTPException(409, "Pairing conflict — please try again")
 
-    # Mark both users as paid (partner inherits paid status)
-    await db.execute(
-        "UPDATE users SET is_paid = 1 WHERE id IN (?,?)",
-        (other["id"], uid),
+    # Decrement the buyer's (code owner's) pairing credits by 1.
+    # The joining partner is unaffected.
+    cur = await db.execute(
+        "UPDATE users SET pairing_credits = pairing_credits - 1 "
+        "WHERE id = ? AND pairing_credits > 0",
+        (other["id"],),
     )
+    if cur.rowcount == 0:
+        log.warning(
+            "Pairing succeeded but buyer %s had no credits to decrement",
+            other["id"],
+        )
     await db.commit()
 
     return await _get_user_out(db, uid)
@@ -314,7 +354,7 @@ async def join_with_code(body: JoinRequest, request: Request, db: Connection = D
 async def pairing_status(request: Request, db: Connection = Depends(get_db)):
     uid = await _session_user_id(request, db)
     cur = await db.execute(
-        "SELECT couple_id, pairing_code, pairing_code_expires_at, is_paid FROM users WHERE id = ?", (uid,)
+        "SELECT couple_id, pairing_code, pairing_code_expires_at, pairing_credits FROM users WHERE id = ?", (uid,)
     )
     row = await cur.fetchone()
     code = None
@@ -327,5 +367,5 @@ async def pairing_status(request: Request, db: Connection = Depends(get_db)):
     return {
         "paired": bool(row and row["couple_id"]),
         "pairing_code": code,
-        "is_paid": bool(row and row["is_paid"]),
+        "pairing_credits": int(row["pairing_credits"]) if row and row["pairing_credits"] is not None else 0,
     }

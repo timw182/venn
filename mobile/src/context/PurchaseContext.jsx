@@ -5,44 +5,56 @@ import Constants from 'expo-constants';
 import client from '../api/client';
 
 const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.revenueCatApiKey || '';
-const PRODUCT_ID = 'lu.venn.pairingcode';
+const PRODUCT_ID = 'lu.venn.pairingcode_v2';
 const IS_EXPO_GO = Constants.appOwnership === 'expo';
 
 const PurchaseContext = createContext(null);
 
 export function PurchaseProvider({ children }) {
   const [isReady, setIsReady] = useState(false);
-  const [isPurchased, setIsPurchased] = useState(false);
+  const [credits, setCredits] = useState(0);
   const mountedRef = useRef(true);
+
+  const fetchCredits = useCallback(async () => {
+    try {
+      const { data } = await client.get('/pairing/status');
+      const n = Number(data?.pairing_credits) || 0;
+      if (mountedRef.current) setCredits(n);
+      return n;
+    } catch (e) {
+      if (__DEV__) console.warn('Fetch credits error:', e);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     async function init() {
       if (IS_EXPO_GO) {
-        // RevenueCat native store unavailable in Expo Go — skip purchase gate
-        if (mountedRef.current) { setIsPurchased(true); setIsReady(true); }
+        // RevenueCat native store unavailable in Expo Go — skip RC config.
+        // Still pull credits from backend so dev builds reflect real state.
+        await fetchCredits();
+        if (mountedRef.current) setIsReady(true);
         return;
       }
       try {
         Purchases.configure({ apiKey: REVENUECAT_API_KEY });
-        const info = await Purchases.getCustomerInfo();
-        const active = info.entitlements.active;
-        if (mountedRef.current && active && Object.keys(active).length > 0) {
-          setIsPurchased(true);
-        }
       } catch (e) {
         if (__DEV__) console.warn('RevenueCat init error:', e);
-      } finally {
-        if (mountedRef.current) setIsReady(true);
       }
+      await fetchCredits();
+      if (mountedRef.current) setIsReady(true);
     }
     init();
     return () => { mountedRef.current = false; };
-  }, []);
+  }, [fetchCredits]);
 
   const verifyWithBackend = async (rcUserId) => {
     try {
-      await client.post('/pairing/verify-purchase', { rc_user_id: rcUserId });
+      const { data } = await client.post('/pairing/verify-purchase', { rc_user_id: rcUserId });
+      const n = Number(data?.credits) || 0;
+      if (mountedRef.current) setCredits(n);
+      return n;
     } catch (e) {
       const err = new Error(
         "Payment received but we couldn't confirm it on our side. Try 'Restore purchases' in a moment — if it still fails, contact support and we'll fix it."
@@ -64,7 +76,6 @@ export function PurchaseProvider({ children }) {
         if (pkg) {
           const { customerInfo } = await Purchases.purchasePackage(pkg);
           await verifyWithBackend(customerInfo.originalAppUserId);
-          setIsPurchased(true);
           return customerInfo;
         }
       }
@@ -76,7 +87,6 @@ export function PurchaseProvider({ children }) {
       }
       const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
       await verifyWithBackend(customerInfo.originalAppUserId);
-      setIsPurchased(true);
       return customerInfo;
     } catch (e) {
       if (e.userCancelled) return null;
@@ -87,17 +97,18 @@ export function PurchaseProvider({ children }) {
   const restorePurchases = useCallback(async () => {
     try {
       const info = await Purchases.restorePurchases();
-      const active = info.entitlements.active;
-      if (active && Object.keys(active).length > 0) {
-        setIsPurchased(true);
-        return true;
+      const before = credits;
+      try {
+        const after = await verifyWithBackend(info?.originalAppUserId);
+        return (after ?? 0) > before;
+      } catch {
+        return false;
       }
-      return false;
     } catch (e) {
       if (__DEV__) console.warn('Restore error:', e);
       return false;
     }
-  }, []);
+  }, [credits]);
 
   const identifyUser = useCallback(async (userId) => {
     try {
@@ -107,9 +118,13 @@ export function PurchaseProvider({ children }) {
     }
   }, []);
 
+  const refreshCredits = useCallback(async () => {
+    return await fetchCredits();
+  }, [fetchCredits]);
+
   return (
     <PurchaseContext.Provider
-      value={{ isReady, isPurchased, purchasePairingCode, restorePurchases, identifyUser }}
+      value={{ isReady, credits, purchasePairingCode, restorePurchases, identifyUser, refreshCredits }}
     >
       {children}
     </PurchaseContext.Provider>

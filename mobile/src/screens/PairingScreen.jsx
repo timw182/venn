@@ -27,7 +27,7 @@ export default function PairingScreen({ navigation, route }) {
   const [onboardingSlide, setOnboardingSlide] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const { pair, createPairingCode, enterSolo, logout, loading } = useAuth();
-  const { isPurchased, purchasePairingCode, restorePurchases } = usePurchase();
+  const { credits, purchasePairingCode, restorePurchases } = usePurchase();
 
   useEffect(() => {
     AsyncStorage.getItem('vn_show_onboarding').then((v) => {
@@ -51,8 +51,8 @@ export default function PairingScreen({ navigation, route }) {
     setCreating(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      // Purchase if not already purchased
-      if (!isPurchased) {
+      // Purchase a credit if the user has none
+      if (credits <= 0) {
         const result = await purchasePairingCode();
         if (!result) {
           // User cancelled
@@ -251,8 +251,8 @@ export default function PairingScreen({ navigation, route }) {
             <View style={styles.cardBody}>
               <Text style={[styles.cardTitle, { color: colors.rose }]}>Create an invite</Text>
               <Text style={styles.cardDesc}>Generate a code and share it with your partner</Text>
-              {isPurchased
-                ? <Text style={styles.cardPrice}><Text style={[styles.cardPriceValue, { color: colors.violet }]}>Purchased ✓</Text></Text>
+              {credits > 0
+                ? <Text style={styles.cardPrice}><Text style={[styles.cardPriceValue, { color: colors.violet }]}>{credits} credit{credits === 1 ? '' : 's'} available ✓</Text></Text>
                 : <Text style={styles.cardPrice}><Text style={styles.cardPriceValue}>€9.99</Text>  ·  one-time</Text>
               }
             </View>
@@ -287,7 +287,7 @@ export default function PairingScreen({ navigation, route }) {
           <Text style={styles.soloText}>Explore solo for now →</Text>
         </TouchableOpacity>
 
-        {!isPurchased && (
+        {credits <= 0 && (
           <TouchableOpacity onPress={handleRestore} style={styles.restoreBtn} disabled={restoring}>
             <Text style={styles.restoreText}>
               {restoring ? 'Restoring…' : 'Restore purchase'}

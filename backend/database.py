@@ -120,6 +120,15 @@ async def init_db():
                 expires_at TEXT    NOT NULL,
                 created_at TEXT    NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS pairing_purchases (
+                id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id               INTEGER NOT NULL,
+                store_transaction_id  TEXT    NOT NULL UNIQUE,
+                product_id            TEXT    NOT NULL,
+                purchased_at          TEXT    NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
         await db.commit()
 
@@ -132,6 +141,7 @@ async def init_db():
             ("users",     "session_token",  "TEXT"),
             ("users",     "email",          "TEXT"),
             ("users",     "is_paid",        "INTEGER NOT NULL DEFAULT 0"),
+            ("users",     "pairing_credits", "INTEGER NOT NULL DEFAULT 0"),
             ("user_mood", "custom_message", "TEXT"),
             ("tickets",   "admin_note",     "TEXT"),
             ("tickets",   "resolved_at",    "TEXT"),

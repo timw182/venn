@@ -101,6 +101,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     await client.post('/auth/logout').catch(() => {});
+    await Purchases.logOut().catch(() => {});
     await clearSession();
     await AsyncStorage.removeItem(SOLO_KEY).catch(() => {});
     setUser(null);
