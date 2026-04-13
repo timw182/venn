@@ -485,6 +485,13 @@ export default function LandingScreen({ navigation }) {
               </Text>
             </View>
           )}
+          {logoutReason === 'session_expired' && (
+            <View style={styles.kickedBanner}>
+              <Text style={styles.kickedText}>
+                Your session expired. Please sign in again.
+              </Text>
+            </View>
+          )}
 
           <View style={styles.featuresAndCta}>
             <View style={styles.features}>

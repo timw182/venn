@@ -142,12 +142,14 @@ async function request(path, options = {}) {
     }
 
     if (res.status === 401) {
+      const body = await res.json().catch(() => ({}));
+      const detail = typeof body.detail === 'string' ? body.detail : 'Unauthorized';
       if (!isAuthPath) {
         await clearSession();
-        _onUnauthorized?.();
+        const reason = detail === 'Logged in on another device' ? 'another_device' : 'session_expired';
+        _onUnauthorized?.(reason);
       }
-      const body = await res.json().catch(() => ({}));
-      throw new Error(typeof body.detail === 'string' ? body.detail : 'Unauthorized');
+      throw new Error(detail);
     }
   }
 

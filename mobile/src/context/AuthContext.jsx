@@ -37,10 +37,10 @@ export function AuthProvider({ children }) {
     ]).finally(() => setLoading(false));
 
     // Force logout on any 401 from API calls
-    setOnUnauthorized(() => {
+    setOnUnauthorized((reason) => {
       setUser(null);
       setIsSolo(false);
-      setLogoutReason('another_device');
+      setLogoutReason(reason || 'session_expired');
     });
   }, []);
 
