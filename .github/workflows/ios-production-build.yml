@@ -1,0 +1,37 @@
+name: iOS Production Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - run: npm install
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+
+      - name: Build iOS production IPA
+        run: eas build --platform ios --profile production --local --non-interactive --output venn-production.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-production-build
+          path: mobile/venn-production.ipa
+          retention-days: 30
