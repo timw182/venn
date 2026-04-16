@@ -23,7 +23,8 @@
     "production": {
       "distribution": "store",
       "ios": {
-        "autoIncrement": true
+        "autoIncrement": true,
+        "credentialsSource": "remote"
       },
       "android": {
         "buildType": "app-bundle",
