@@ -32,20 +32,13 @@ jobs:
           ASC_KEY: ${{ secrets.ASC_API_KEY }}
         run: printf '%s\n' "$ASC_KEY" > /tmp/asc-key.p8
 
-      - name: Verify ASC credentials
-        env:
-          EXPO_ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          EXPO_ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
-        run: |
-          echo "Key file exists: $(test -s /tmp/asc-key.p8 && echo yes || echo NO)"
-          echo "Key ID set: $(test -n "$EXPO_ASC_API_KEY_ID" && echo yes || echo NO)"
-          echo "Issuer ID set: $(test -n "$EXPO_ASC_API_KEY_ISSUER_ID" && echo yes || echo NO)"
-
       - name: Build iOS production IPA
         env:
           EXPO_ASC_API_KEY_PATH: /tmp/asc-key.p8
-          EXPO_ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          EXPO_ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: P9M7A74M6C
+          EXPO_APPLE_TEAM_TYPE: INDIVIDUAL
         run: eas build --platform ios --profile production --local --non-interactive --output venn-production.ipa
 
       - uses: actions/upload-artifact@v4
