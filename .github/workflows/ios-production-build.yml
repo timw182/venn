@@ -28,13 +28,13 @@ jobs:
           packager: npm
 
       - name: Write ASC API Key
-        run: echo "${{ secrets.EXPO_APPLE_APP_STORE_CONNECT_API_KEY_PATH }}" | base64 -d > /tmp/asc-key.p8
+        run: echo "${{ secrets.ASC_API_KEY }}" > /tmp/asc-key.p8
 
       - name: Build iOS production IPA
         env:
-          EXPO_APPLE_APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.EXPO_APPLE_APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          EXPO_APPLE_APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.EXPO_APPLE_APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          EXPO_APPLE_APP_STORE_CONNECT_API_KEY_PATH: /tmp/asc-key.p8
+          EXPO_ASC_API_KEY_PATH: /tmp/asc-key.p8
+          EXPO_ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
         run: eas build --platform ios --profile production --local --non-interactive --output venn-production.ipa
 
       - uses: actions/upload-artifact@v4
