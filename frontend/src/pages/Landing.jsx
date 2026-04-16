@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/useAuth";
+import client from "../api/client";
 import Button from "../components/shared/Button";
 import { ROUTES } from "../lib/constants";
 import "./Landing.css";
@@ -24,12 +25,18 @@ const features = [
 ];
 
 export default function Landing() {
-  const [mode, setMode] = useState(null); // null = hero, 'login' = form
+  const [mode, setMode] = useState(null); // null = hero, 'login' = form, 'forgot' = reset
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const { login, socialLogin, loading, logoutReason } = useAuth();
-  const [socialLoading, setSocialLoading] = useState(null); // 'google' | 'facebook' | 'apple'
+  const [socialLoading, setSocialLoading] = useState(null);
+  const [resetStep, setResetStep] = useState(0); // 0=email, 1=code+new pw
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -126,11 +133,43 @@ export default function Landing() {
     }));
   }
 
+  async function handleForgotSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setResetLoading(true);
+    try {
+      if (resetStep === 0) {
+        await client.post("/auth/forgot-password", { email: resetEmail });
+        setResetStep(1);
+        setSuccess("Check your email for a reset code.");
+      } else {
+        await client.post("/auth/reset-password", { email: resetEmail, code: resetCode, new_password: newPassword });
+        setSuccess("Password updated. You can now sign in.");
+        setTimeout(() => { setMode("login"); setSuccess(""); }, 2000);
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    }
+    setResetLoading(false);
+  }
+
   function openForm() {
     setMode("login");
     setError("");
+    setSuccess("");
     setUsername("");
     setPassword("");
+  }
+
+  function openForgot() {
+    setMode("forgot");
+    setError("");
+    setSuccess("");
+    setResetStep(0);
+    setResetEmail("");
+    setResetCode("");
+    setNewPassword("");
   }
 
   return (
@@ -270,6 +309,8 @@ export default function Landing() {
                 </Button>
             </form>
 
+            <button className="landing-forgot" onClick={openForgot}>Forgot password?</button>
+
             <div className="landing-social-divider"><span>or continue with</span></div>
 
             <div className="landing-social-buttons">
@@ -329,6 +370,93 @@ export default function Landing() {
               <a href="/terms">Terms</a> and{" "}
               <a href="/privacy">Privacy Policy</a>.
             </p>
+          </motion.div>
+        )}
+
+        {mode === "forgot" && (
+          <motion.div
+            key="forgot"
+            className="landing-below-brand landing-form-view"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0, right: 0.5 }}
+            dragMomentum={false}
+            onDragEnd={(_, info) => {
+              if (info.offset.x > 80 || info.velocity.x > 400) setMode(null);
+            }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 80 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <button className="landing-back" onClick={() => setMode("login")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              back
+            </button>
+
+            <h1 className="landing-heading">Reset password</h1>
+            <p className="landing-subtitle">{resetStep === 0 ? "Enter your email to receive a reset code." : "Enter the code and your new password."}</p>
+
+            <form className="landing-form" onSubmit={handleForgotSubmit}>
+              {resetStep === 0 ? (
+                <div className="landing-field">
+                  <label className="landing-label">Email</label>
+                  <input
+                    className="landing-input"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="your@email.com..."
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="landing-field">
+                    <label className="landing-label">Reset code</label>
+                    <input
+                      className="landing-input"
+                      type="text"
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      placeholder="6-digit code..."
+                      required
+                      autoComplete="one-time-code"
+                    />
+                  </div>
+                  <div className="landing-field">
+                    <label className="landing-label">New password</label>
+                    <input
+                      className="landing-input"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="At least 8 characters..."
+                      required
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </>
+              )}
+
+              {error && (
+                <motion.p className="landing-error" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
+                  {error}
+                </motion.p>
+              )}
+              {success && (
+                <motion.p className="landing-success" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
+                  {success}
+                </motion.p>
+              )}
+
+              <Button type="submit" variant="primary" size="lg" fullWidth loading={resetLoading}>
+                {resetStep === 0 ? "Send reset code" : "Update password"}
+              </Button>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>

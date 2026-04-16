@@ -17,8 +17,8 @@ export function PurchaseProvider({ children }) {
 
   const fetchCredits = useCallback(async () => {
     try {
-      const { data } = await client.get('/pairing/status');
-      const n = Number(data?.pairing_credits) || 0;
+      const res = await client.get('/pairing/status');
+      const n = Number(res?.pairing_credits) || 0;
       if (mountedRef.current) setCredits(n);
       return n;
     } catch (e) {
@@ -51,8 +51,8 @@ export function PurchaseProvider({ children }) {
 
   const verifyWithBackend = async (rcUserId) => {
     try {
-      const { data } = await client.post('/pairing/verify-purchase', { rc_user_id: rcUserId });
-      const n = Number(data?.credits) || 0;
+      const res = await client.post('/pairing/verify-purchase', { rc_user_id: rcUserId });
+      const n = Number(res?.credits) || 0;
       if (mountedRef.current) setCredits(n);
       return n;
     } catch (e) {

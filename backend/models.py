@@ -5,6 +5,7 @@ from typing import Optional
 VALID_MOODS = {
     "passionate", "tender", "playful", "dominant", "submissive", "curious",
     "lazy", "wild", "romantic", "needy", "confident", "nervous", "cuddly", "flirty",
+    "dreamy", "cheeky",
 }
 
 
