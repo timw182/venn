@@ -27,11 +27,5 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: npm
 
-      - name: Build iOS production IPA
-        run: eas build --platform ios --profile production --local --non-interactive --output venn-production.ipa
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ios-production-build
-          path: mobile/venn-production.ipa
-          retention-days: 30
+      - name: Build iOS production
+        run: eas build --platform ios --profile production --non-interactive
