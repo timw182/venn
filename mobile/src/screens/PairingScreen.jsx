@@ -27,7 +27,11 @@ export default function PairingScreen({ navigation, route }) {
   const [onboardingSlide, setOnboardingSlide] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const { pair, createPairingCode, enterSolo, logout, loading } = useAuth();
-  const { credits, purchasePairingCode, restorePurchases } = usePurchase();
+  const { credits, purchasePairingCode, restorePurchases, refreshCredits } = usePurchase();
+
+  useEffect(() => {
+    refreshCredits();
+  }, [refreshCredits]);
 
   useEffect(() => {
     AsyncStorage.getItem('vn_show_onboarding').then((v) => {
@@ -51,8 +55,9 @@ export default function PairingScreen({ navigation, route }) {
     setCreating(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      // Purchase a credit if the user has none
-      if (credits <= 0) {
+      // Re-fetch credits to get the latest count
+      const latestCredits = await refreshCredits();
+      if ((latestCredits ?? credits) <= 0) {
         const result = await purchasePairingCode();
         if (!result) {
           // User cancelled
