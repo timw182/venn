@@ -28,7 +28,18 @@ jobs:
           packager: npm
 
       - name: Write ASC API Key
-        run: echo "${{ secrets.ASC_API_KEY }}" > /tmp/asc-key.p8
+        env:
+          ASC_KEY: ${{ secrets.ASC_API_KEY }}
+        run: printf '%s\n' "$ASC_KEY" > /tmp/asc-key.p8
+
+      - name: Verify ASC credentials
+        env:
+          EXPO_ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        run: |
+          echo "Key file exists: $(test -s /tmp/asc-key.p8 && echo yes || echo NO)"
+          echo "Key ID set: $(test -n "$EXPO_ASC_API_KEY_ID" && echo yes || echo NO)"
+          echo "Issuer ID set: $(test -n "$EXPO_ASC_API_KEY_ISSUER_ID" && echo yes || echo NO)"
 
       - name: Build iOS production IPA
         env:
