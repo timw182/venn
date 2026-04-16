@@ -575,9 +575,20 @@ async def _find_or_create_social_user(
 
     # Check if email matches an existing account
     if email:
-        cur = await db.execute("SELECT id FROM users WHERE username = ?", (email,))
+        cur = await db.execute(
+            "SELECT id, password_hash, auth_provider FROM users WHERE username = ?", (email,)
+        )
         existing = await cur.fetchone()
         if existing:
+            # Only auto-link if the account has no password (was created via social or is empty).
+            # Accounts with a password set must be explicitly logged in before linking a social
+            # provider, to prevent a third-party social takeover via matching email.
+            if existing["password_hash"]:
+                raise HTTPException(
+                    409,
+                    "An account with this email already exists. Sign in with your password, "
+                    "then link your social account from Settings.",
+                )
             await db.execute(
                 "UPDATE users SET auth_provider = ?, auth_provider_id = ? WHERE id = ?",
                 (provider, provider_id, existing["id"]),

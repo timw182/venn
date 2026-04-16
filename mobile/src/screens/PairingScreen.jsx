@@ -11,6 +11,7 @@ const IS_TABLET = Dimensions.get('window').width >= 768;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/useAuth';
 import { usePurchase } from '../context/PurchaseContext';
+import client from '../api/client';
 import { SCREENS } from '../lib/constants';
 import { colors, fonts, space, radii } from '../theme/tokens';
 import Button from '../components/Button';
@@ -55,9 +56,11 @@ export default function PairingScreen({ navigation, route }) {
     setCreating(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      // Re-fetch credits to get the latest count
-      const latestCredits = await refreshCredits();
-      if ((latestCredits ?? credits) <= 0) {
+      // Check if an active code already exists — no purchase needed then
+      const status = await client.get('/pairing/status');
+      const hasActiveCode = !!status?.pairing_code;
+      const latestCredits = Number(status?.pairing_credits) || 0;
+      if (!hasActiveCode && latestCredits <= 0) {
         const result = await purchasePairingCode();
         if (!result) {
           // User cancelled

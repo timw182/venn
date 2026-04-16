@@ -129,7 +129,7 @@ export function AuthProvider({ children }) {
       user, isSolo, loading, logoutReason,
       login, register, socialLogin, logout,
       pair, createPairingCode, enterSolo,
-      updateUserFromRaw, updateProfile,
+      updateUserFromRaw, updateProfile, setUser,
     }}>
       {children}
     </AuthContext.Provider>

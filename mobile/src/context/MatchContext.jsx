@@ -11,7 +11,7 @@ const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 
 export function MatchProvider({ children }) {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [matches, setMatches]           = useState([]);
   const [latestNewMatch, setLatestNewMatch] = useState(null);
   const [resetState, setResetState]     = useState("none");
@@ -126,6 +126,7 @@ export function MatchProvider({ children }) {
     const KNOWN_WS_TYPES = new Set([
       'match', 'mood_update', 'mood_cleared', 'swipe_pattern_alert',
       'reset_requested', 'reset_cancelled', 'reset_declined', 'reset_done',
+      'partner_deleted',
     ]);
 
     ws.onmessage = (event) => {
@@ -157,6 +158,16 @@ export function MatchProvider({ children }) {
           setLatestNewMatch(null);
           knownIds.current.clear();
           AsyncStorage.multiRemove(["vn_responses"]).catch(() => {});
+        } else if (msg.type === "partner_deleted") {
+          // Partner deleted their account — clear all couple state and un-pair locally
+          setMatches([]);
+          setLatestNewMatch(null);
+          setPartnerMood(null);
+          setSwipeAlert(null);
+          setResetState("none");
+          knownIds.current.clear();
+          AsyncStorage.multiRemove(["vn_responses"]).catch(() => {});
+          setUser((u) => (u ? { ...u, coupleId: null, partnerName: null } : u));
         }
       } catch {}
     };

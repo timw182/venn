@@ -10,7 +10,7 @@ const RECONNECT_BASE = 2000;
 const RECONNECT_MAX  = 30000;
 
 export function MatchProvider({ children }) {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [matches, setMatches]           = useState([]);
   const [latestNewMatch, setLatestNewMatch] = useState(null);
   const [resetState, setResetState]       = useState("none"); // none | pending_mine | pending_partner
@@ -131,6 +131,17 @@ export function MatchProvider({ children }) {
           setResetState("none");
           try { localStorage.removeItem(STORAGE_KEYS.RESPONSES); } catch {}
           window.location.reload();
+        } else if (msg.type === "partner_deleted") {
+          // Partner deleted their account — clear couple state locally
+          setMatches([]);
+          setLatestNewMatch(null);
+          setPartnerMood(null);
+          setPartnerMessage(null);
+          setSwipeAlert(null);
+          setResetState("none");
+          knownIds.current.clear();
+          try { localStorage.removeItem(STORAGE_KEYS.RESPONSES); } catch {}
+          setUser((u) => (u ? { ...u, coupleId: null, partnerName: null } : u));
         }
       } catch {}
     };

@@ -230,10 +230,7 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
     if user and user["couple_id"]:
         raise HTTPException(400, "Already paired")
 
-    if PAYMENT_REQUIRED and (user["pairing_credits"] or 0) <= 0:
-        raise HTTPException(402, "No pairing credits — purchase one to generate a code")
-
-    # Return existing code if still valid, otherwise mint a new one.
+    # Return existing code if still valid (no credit check needed — code was already paid for).
     code: str | None = None
     if user and user["pairing_code"] and user["pairing_code_expires_at"]:
         exp = datetime.fromisoformat(user["pairing_code_expires_at"])
@@ -241,6 +238,10 @@ async def create_pairing_code(request: Request, db: Connection = Depends(get_db)
             exp = exp.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) < exp:
             code = user["pairing_code"]
+
+    # Only require payment when minting a new code
+    if code is None and PAYMENT_REQUIRED and (user["pairing_credits"] or 0) <= 0:
+        raise HTTPException(402, "No pairing credits — purchase one to generate a code")
 
     if code is None:
         # Generate a unique code
