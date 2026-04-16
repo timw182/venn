@@ -508,6 +508,7 @@ async def _verify_apple_token(id_token: str) -> dict:
 
 GOOGLE_WEB_CLIENT_ID = os.environ.get("GOOGLE_WEB_CLIENT_ID", "")
 GOOGLE_IOS_CLIENT_ID = os.environ.get("GOOGLE_IOS_CLIENT_ID", "")
+GOOGLE_MOBILE_WEB_CLIENT_ID = os.environ.get("GOOGLE_MOBILE_WEB_CLIENT_ID", "")
 FACEBOOK_APP_ID = os.environ.get("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.environ.get("FACEBOOK_APP_SECRET", "")
 
@@ -524,7 +525,7 @@ async def _verify_google_token(id_token: str) -> dict:
         claims = resp.json()
 
     aud = claims.get("aud", "")
-    if aud not in (GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID):
+    if aud not in (GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_MOBILE_WEB_CLIENT_ID):
         raise ValueError(f"Google token audience mismatch: {aud}")
     if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
         raise ValueError("Google token issuer mismatch")

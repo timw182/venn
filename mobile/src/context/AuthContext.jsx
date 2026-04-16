@@ -58,15 +58,22 @@ export function AuthProvider({ children }) {
     return () => sub.remove();
   }, []);
 
+  const resetLocalFlags = useCallback(async () => {
+    await AsyncStorage.removeItem(SOLO_KEY).catch(() => {});
+    setIsSolo(false);
+    setIsPendingPair(false);
+  }, []);
+
   const login = useCallback(async (username, password) => {
     setLogoutReason(null);
     const raw = await client.post('/auth/token', { username, password });
     await storeTokens(raw.access_token, raw.refresh_token);
+    await resetLocalFlags();
     const u = toUser(raw.user);
     setUser(u);
     Purchases.logIn(String(u.id)).catch(() => {});
     return u;
-  }, []);
+  }, [resetLocalFlags]);
 
   const socialLogin = useCallback(async (provider, idToken, displayName) => {
     setLogoutReason(null);
@@ -76,23 +83,25 @@ export function AuthProvider({ children }) {
       display_name: displayName || undefined,
     });
     await storeTokens(raw.access_token, raw.refresh_token);
+    await resetLocalFlags();
     const u = toUser(raw.user);
     setUser(u);
     Purchases.logIn(String(u.id)).catch(() => {});
     return u;
-  }, []);
+  }, [resetLocalFlags]);
 
   const register = useCallback(async (username, password, displayName) => {
     // Register first, then exchange credentials for JWT tokens
     await client.post('/auth/register', { username, password, display_name: displayName });
     const raw = await client.post('/auth/token', { username, password });
     await storeTokens(raw.access_token, raw.refresh_token);
+    await resetLocalFlags();
     const u = toUser(raw.user);
     setUser(u);
     Purchases.logIn(String(u.id)).catch(() => {});
     await AsyncStorage.setItem('vn_show_onboarding', '1').catch(() => {});
     return u;
-  }, []);
+  }, [resetLocalFlags]);
 
   const enterSolo = useCallback(async () => {
     await AsyncStorage.setItem(SOLO_KEY, '1').catch(() => {});

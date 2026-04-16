@@ -676,8 +676,12 @@ export default function LandingScreen({ navigation }) {
                   <Path d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.08l3.66 2.84c.87-2.6 3.3-4.17 6.16-4.17z" fill="#EA4335" />
                 </Svg>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn} onPress={handleFacebookSignIn}>
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="#1877F2">
+              <TouchableOpacity
+                style={[styles.socialBtn, styles.socialBtnDisabled]}
+                disabled
+                activeOpacity={1}
+              >
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="#B8B0C4">
                   <Path d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874V12h3.328l-.532 3.469h-2.796v8.385C19.612 22.954 24 17.99 24 12z" />
                 </Svg>
               </TouchableOpacity>
@@ -781,6 +785,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  socialBtnDisabled: {
+    opacity: 0.4,
+    backgroundColor: colors.bg,
   },
 
   cta: { gap: space[4], alignItems: 'center' },
