@@ -260,6 +260,32 @@
         }
       }
 
+      /* Floating hearts — ambient background across the whole page.
+         z-index kept high so they paint above pinned sections (GSAP
+         ScrollTrigger applies position:fixed to .how-it-works while pinning,
+         and its solid var(--color-bg) would otherwise cover the hearts). */
+      .hearts-bg {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 50;
+        overflow: hidden;
+      }
+      .heart-float {
+        position: absolute;
+        bottom: -80px;
+        opacity: 0.12;
+        animation: heartRise linear infinite;
+        will-change: transform, opacity;
+        user-select: none;
+      }
+      @keyframes heartRise {
+        0%   { transform: translateY(0) translateX(0) scale(0.8); opacity: 0; }
+        10%  { opacity: 0.12; }
+        85%  { opacity: 0.12; }
+        100% { transform: translateY(-110dvh) translateX(var(--drift)) scale(1.1); opacity: 0; }
+      }
+
       /* Hero content */
       .hero-content {
         position: relative;
@@ -1401,6 +1427,9 @@
   </head>
 
   <body>
+    <!-- Floating hearts background (matches in-app FloatingHearts) -->
+    <div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
+
     <!-- Scroll progress -->
     <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -1880,6 +1909,34 @@
       gsap.registerPlugin(ScrollTrigger);
 
       document.addEventListener("DOMContentLoaded", () => {
+        // ── Floating hearts background ──
+        (() => {
+          const host = document.getElementById("heartsBg");
+          if (!host) return;
+          const COUNT = 20;
+          const COLORS = ["#F07A6A", "#9B80D4", "#C4547A", "#9B80D4", "#F07A6A"];
+          const frag = document.createDocumentFragment();
+          for (let i = 0; i < COUNT; i++) {
+            const left = i < 12 ? Math.random() * 100 : 55 + Math.random() * 45;
+            const size = 40 + Math.random() * 60;
+            const delay = Math.random() * 12;
+            const duration = 14 + Math.random() * 10;
+            const drift = (Math.random() - 0.5) * 120;
+            const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            const span = document.createElement("span");
+            span.className = "heart-float";
+            span.textContent = "\u2665";
+            span.style.left = left + "%";
+            span.style.fontSize = size + "px";
+            span.style.animationDelay = delay + "s";
+            span.style.animationDuration = duration + "s";
+            span.style.setProperty("--drift", drift + "px");
+            span.style.color = color;
+            frag.appendChild(span);
+          }
+          host.appendChild(frag);
+        })();
+
         // ── Scroll-triggered reveals ──
         const reveals = document.querySelectorAll(".reveal");
         const observer = new IntersectionObserver(
